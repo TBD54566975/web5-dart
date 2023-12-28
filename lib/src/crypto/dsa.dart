@@ -1,20 +1,18 @@
 import 'dart:typed_data';
 
-import './jwk.dart';
+import 'package:tbdex/src/crypto/jwk.dart';
 
 /// Enum [DsaName] representing supported Digital Signature Algorithm (DSA) names.
 enum DsaName {
   secp256k1,
   ed25519;
 
-  static final Map<DsaAlias, DsaName> aliases = {
+  static final aliases = {
     DsaAlias(algorithm: 'EdDSA', curve: 'Ed25519'): DsaName.ed25519,
-    DsaAlias(algorithm: null, curve: 'Ed25519'): DsaName.ed25519
+    DsaAlias(algorithm: null, curve: 'Ed25519'): DsaName.ed25519,
   };
 
-  static DsaName? findByAlias(DsaAlias alias) {
-    return aliases[alias];
-  }
+  static DsaName? findByAlias(DsaAlias alias) => aliases[alias];
 }
 
 class DsaAlias {
@@ -42,9 +40,9 @@ class DsaAlias {
 /// key, signing a payload, and verifying a signature. It is designed to be
 /// concretely implemented for specific DSA algorithms (e.g. Ed25519)
 abstract interface class Dsa {
-  late DsaName name;
-  late String algorithm;
-  late String curve;
+  DsaName get name;
+  String get algorithm;
+  String get curve;
 
   /// generates a private key and returns it as a JWK
   Future<Jwk> generatePrivateKey();

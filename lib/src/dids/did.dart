@@ -1,6 +1,6 @@
-import '../crypto/key_manager.dart';
+import 'package:tbdex/src/crypto/key_manager.dart';
 
 abstract class Did {
-  late String uri;
-  late KeyManager keyManager;
+  String get uri;
+  KeyManager get keyManager;
 }

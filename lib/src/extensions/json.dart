@@ -17,7 +17,7 @@ extension Encoders on JsonCodec {
   ///
   /// Returns a [List<int>] representing the byte array.
   List<int> toBytes(Object object) {
-    var stringified = encode(object);
+    final stringified = encode(object);
 
     return utf8.encoder.convert(stringified);
   }
@@ -30,13 +30,11 @@ extension Encoders on JsonCodec {
   ///
   ///
   /// Returns a [String] representing the Base64 URL encoded value.
-  String toBase64Url(Object object, {bool? padding = false}) {
-    var bytes = toBytes(object);
+  String toBase64Url(Object object, {bool padding = false}) {
+    final bytes = toBytes(object);
 
-    if (padding == true) {
-      return base64UrlEncoder.convert(bytes);
-    } else {
-      return base64UrlEncoder.convertNoPadding(bytes);
-    }
+    return padding
+        ? base64UrlEncoder.convert(bytes)
+        : base64UrlEncoder.convertNoPadding(bytes);
   }
 }

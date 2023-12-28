@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import './jwk.dart';
-import './dsa.dart';
+import 'package:tbdex/src/crypto/jwk.dart';
+import 'package:tbdex/src/crypto/dsa.dart';
 
 /// A key management interface that provides functionality for generating,
 /// storing, and utilizing private keys and their associated public keys.
