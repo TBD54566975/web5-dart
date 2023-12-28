@@ -1,10 +1,10 @@
 import 'dart:collection';
 import 'dart:typed_data';
 
-import './dsa.dart';
-import './jwk.dart';
-import './ed25519.dart';
-import './key_manager.dart';
+import 'package:tbdex/src/crypto/dsa.dart';
+import 'package:tbdex/src/crypto/jwk.dart';
+import 'package:tbdex/src/crypto/ed25519.dart';
+import 'package:tbdex/src/crypto/key_manager.dart';
 
 final supportedAlgorithms = {DsaName.ed25519: Ed25519()};
 
@@ -50,11 +50,13 @@ class InMemoryKeyManager implements KeyManager {
     final privateKeyJwk = keyStore[keyAlias]!;
 
     final dsaName = DsaName.findByAlias(
-        DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv));
+      DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv),
+    );
 
     if (dsaName == null) {
       throw Exception(
-          "${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.");
+        "${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.",
+      );
     }
 
     final keyGenerator = supportedAlgorithms[dsaName]!;
@@ -71,11 +73,13 @@ class InMemoryKeyManager implements KeyManager {
 
     final privateKeyJwk = keyStore[keyAlias]!;
     final dsaName = DsaName.findByAlias(
-        DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv));
+      DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv),
+    );
 
     if (dsaName != null) {
       throw Exception(
-          "DSA ${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.");
+        "DSA ${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.",
+      );
     }
 
     final signer = supportedAlgorithms[dsaName]!;

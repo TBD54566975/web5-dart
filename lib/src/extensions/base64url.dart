@@ -24,7 +24,7 @@ extension EncoderPadding on Base64Encoder {
   /// final noPaddingEncoded = encoder.convertNoPadding([72, 101, 108, 108]);
   /// ```
   String convertNoPadding(List<int> input) {
-    var converted = convert(input);
+    final converted = convert(input);
 
     return converted.replaceAll('=', '');
   }

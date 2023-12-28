@@ -2,15 +2,12 @@ import 'package:tbdex/tbdex.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('A group of tests', () {
-    final awesome = Awesome();
+  group('TBDex', () {
+    test('should create a valid DID', () async {
+      final keyManager = InMemoryKeyManager();
+      final did = await DidJwk.create(keyManager: keyManager);
 
-    setUp(() {
-      // Additional setup goes here.
-    });
-
-    test('First Test', () {
-      expect(awesome.isAwesome, isTrue);
+      expect(did.uri, startsWith('did:jwk:'));
     });
   });
 }

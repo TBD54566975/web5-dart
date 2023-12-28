@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:tbdex/src/crypto/dsa.dart';
 
-import './did.dart';
-import '../extensions/json.dart';
-import '../crypto/key_manager.dart';
+import 'package:tbdex/src/dids/did.dart';
+import 'package:tbdex/src/extensions/json.dart';
+import 'package:tbdex/src/crypto/key_manager.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
@@ -17,10 +17,10 @@ final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 /// [Specification](https://github.com/quartzjer/did-jwk/blob/main/spec.md)
 class DidJwk implements Did {
   @override
-  String uri;
+  final String uri;
 
   @override
-  KeyManager keyManager;
+  final KeyManager keyManager;
 
   static String methodName = 'jwk';
 
@@ -35,6 +35,8 @@ class DidJwk implements Did {
     final publicKeyJwkBase64Url = json.toBase64Url(publicKeyJwk);
 
     return DidJwk(
-        uri: "did:jwk:$publicKeyJwkBase64Url", keyManager: keyManager);
+      uri: "did:jwk:$publicKeyJwkBase64Url",
+      keyManager: keyManager,
+    );
   }
 }

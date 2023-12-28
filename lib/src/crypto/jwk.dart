@@ -6,27 +6,30 @@ import 'package:cryptography/dart.dart';
 const dartSha256 = DartSha256();
 
 class Jwk {
-  String kty; // Key Type
-  String? use; // Public Key Use
-  String? alg; // Algorithm
-  String? kid; // Key ID
-  String? crv; // Curve
-  String? d; // EC or OKP Private Key
-  String? x; // X Coordinate for EC, or Public Key for OKP
-  String? y; // Y Coordinate for EC
+  final String kty; // Key Type
+  final String? use; // Public Key Use
+  final String? alg; // Algorithm
+  late final String? kid; // Key ID
+  final String? crv; // Curve
+  final String? d; // EC or OKP Private Key
+  final String? x; // X Coordinate for EC, or Public Key for OKP
+  final String? y; // Y Coordinate for EC
 
-  Jwk(
-      {required this.kty,
-      this.use,
-      this.alg,
-      this.kid,
-      this.crv,
-      this.d,
-      this.x,
-      this.y,
-      bool kidFromThumbprint = true}) {
-    if (kid == null && kidFromThumbprint == true) {
-      kid = computeThumbprint();
+  Jwk({
+    required this.kty,
+    this.use,
+    this.alg,
+    String? kid,
+    this.crv,
+    this.d,
+    this.x,
+    this.y,
+    bool kidFromThumbprint = true,
+  }) {
+    if (kid == null && kidFromThumbprint) {
+      this.kid = computeThumbprint();
+    } else {
+      this.kid = kid;
     }
   }
 
@@ -60,18 +63,16 @@ class Jwk {
   }
 
   @override
-  String toString() {
-    return jsonEncode(toJson());
-  }
+  String toString() => jsonEncode(toJson());
 
   String computeThumbprint() {
-    var thumbprintPayload = {crv: crv, kty: kty, x: x, y: y};
+    final thumbprintPayload = {crv: crv, kty: kty, x: x, y: y};
     thumbprintPayload.removeWhere((key, value) => value == null);
 
-    var thumbprintPayloadBytes = utf8.encode(jsonEncode(thumbprintPayload));
-    var thumbprintPayloadDigest = dartSha256.hashSync(thumbprintPayloadBytes);
+    final thumbprintPayloadBytes = utf8.encode(jsonEncode(thumbprintPayload));
+    final thumbprintPayloadDigest = dartSha256.hashSync(thumbprintPayloadBytes);
 
-    var thumbprint =
+    final thumbprint =
         base64UrlEncode(thumbprintPayloadDigest.bytes).replaceAll("=", '');
 
     return thumbprint;
