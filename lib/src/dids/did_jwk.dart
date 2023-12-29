@@ -1,11 +1,14 @@
 import 'dart:convert';
 
-import 'package:tbdex/src/crypto/dsa.dart';
-
 import 'package:tbdex/src/dids/did.dart';
+import 'package:tbdex/src/crypto/dsa.dart';
 import 'package:tbdex/src/crypto/jwk.dart';
+import 'package:tbdex/src/dids/did_uri.dart';
 import 'package:tbdex/src/extensions/json.dart';
+import 'package:tbdex/src/dids/did_document.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
+import 'package:tbdex/src/dids/did_verification_method.dart';
+import 'package:tbdex/src/dids/did_resolution_result.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
@@ -46,7 +49,7 @@ class DidJwk implements Did {
 
     try {
       parsedDidUri = DidUri.parse(didUri);
-    } on FormatException {
+    } on Exception {
       return DidResolutionResult.invalidDid();
     }
 
@@ -62,7 +65,7 @@ class DidJwk implements Did {
       return DidResolutionResult.invalidDid();
     }
 
-    final verificationMethod = VerificationMethod(
+    final verificationMethod = DidVerificationMethod(
       id: "$didUri#0",
       type: "JsonWebKey2020",
       controller: didUri,
