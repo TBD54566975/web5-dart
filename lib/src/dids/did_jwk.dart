@@ -1,10 +1,14 @@
 import 'dart:convert';
 
-import 'package:tbdex/src/crypto/dsa.dart';
-
 import 'package:tbdex/src/dids/did.dart';
+import 'package:tbdex/src/crypto/dsa.dart';
+import 'package:tbdex/src/crypto/jwk.dart';
+import 'package:tbdex/src/dids/did_uri.dart';
 import 'package:tbdex/src/extensions/json.dart';
+import 'package:tbdex/src/dids/did_document.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
+import 'package:tbdex/src/dids/did_verification_method.dart';
+import 'package:tbdex/src/dids/did_resolution_result.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
@@ -38,5 +42,47 @@ class DidJwk implements Did {
       uri: "did:jwk:$publicKeyJwkBase64Url",
       keyManager: keyManager,
     );
+  }
+
+  static DidResolutionResult resolve(String didUri) {
+    final DidUri parsedDidUri;
+
+    try {
+      parsedDidUri = DidUri.parse(didUri);
+    } on Exception {
+      return DidResolutionResult.invalidDid();
+    }
+
+    if (parsedDidUri.method != 'jwk') {
+      return DidResolutionResult.invalidDid();
+    }
+
+    final dynamic jwk;
+
+    try {
+      jwk = json.fromBase64Url(parsedDidUri.id);
+    } on FormatException {
+      return DidResolutionResult.invalidDid();
+    }
+
+    final verificationMethod = DidVerificationMethod(
+      id: "$didUri#0",
+      type: "JsonWebKey2020",
+      controller: didUri,
+      publicKeyJwk: Jwk.fromJson(jwk),
+    );
+
+    final didDocument = DidDocument(
+      id: didUri,
+      verificationMethod: [verificationMethod],
+      assertionMethod: [verificationMethod.id],
+      authentication: [verificationMethod.id],
+      capabilityInvocation: [verificationMethod.id],
+      capabilityDelegation: [verificationMethod.id],
+    );
+
+    final didResolutionResult = DidResolutionResult(didDocument: didDocument);
+
+    return didResolutionResult;
   }
 }
