@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:tbdex/src/extensions/base64url.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;
+final base64UrlDecoder = Base64Codec.urlSafe().decoder;
 
 /// Extension on [JsonCodec] to provide additional encoding functionalities.
 ///
@@ -36,5 +37,15 @@ extension Encoders on JsonCodec {
     return padding
         ? base64UrlEncoder.convert(bytes)
         : base64UrlEncoder.convertNoPadding(bytes);
+  }
+
+  dynamic fromBase64Url(String input, {bool padding = false}) {
+    final bytes = padding
+        ? base64UrlDecoder.convert(input)
+        : base64UrlDecoder.convertNoPadding(input);
+
+    final stringified = utf8.decode(bytes);
+
+    return json.decode(stringified);
   }
 }

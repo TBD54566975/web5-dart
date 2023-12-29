@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:tbdex/src/crypto/dsa.dart';
 
 import 'package:tbdex/src/dids/did.dart';
+import 'package:tbdex/src/crypto/jwk.dart';
 import 'package:tbdex/src/extensions/json.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
 
@@ -38,5 +39,44 @@ class DidJwk implements Did {
       uri: "did:jwk:$publicKeyJwkBase64Url",
       keyManager: keyManager,
     );
+  }
+
+  static DidResolutionResult resolve(String didUri) {
+    final parsedDidUri = DidUri.parse(didUri);
+
+    if (parsedDidUri.method != 'jwk') {
+      throw Exception("Invalid DID Method");
+    }
+
+    final jwk = json.fromBase64Url(parsedDidUri.id);
+    final verificationMethod = VerificationMethod(
+      id: "$didUri#0",
+      type: "JsonWebKey2020",
+      controller: didUri,
+      publicKeyJwk: Jwk.fromJson(jwk),
+    );
+
+    final didDocument = DidDocument(
+      id: didUri,
+      verificationMethod: [
+        verificationMethod,
+      ],
+      assertionMethod: [
+        verificationMethod.id,
+      ],
+      authentication: [
+        verificationMethod.id,
+      ],
+      capabilityInvocation: [
+        verificationMethod.id,
+      ],
+      capabilityDelegation: [
+        verificationMethod.id,
+      ],
+    );
+
+    final didResolutionResult = DidResolutionResult(didDocument: didDocument);
+
+    return didResolutionResult;
   }
 }
