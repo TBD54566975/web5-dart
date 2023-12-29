@@ -42,13 +42,26 @@ class DidJwk implements Did {
   }
 
   static DidResolutionResult resolve(String didUri) {
-    final parsedDidUri = DidUri.parse(didUri);
+    final DidUri parsedDidUri;
 
-    if (parsedDidUri.method != 'jwk') {
-      throw Exception("Invalid DID Method");
+    try {
+      parsedDidUri = DidUri.parse(didUri);
+    } on FormatException {
+      return DidResolutionResult.invalidDid();
     }
 
-    final jwk = json.fromBase64Url(parsedDidUri.id);
+    if (parsedDidUri.method != 'jwk') {
+      return DidResolutionResult.invalidDid();
+    }
+
+    final dynamic jwk;
+
+    try {
+      jwk = json.fromBase64Url(parsedDidUri.id);
+    } on FormatException {
+      return DidResolutionResult.invalidDid();
+    }
+
     final verificationMethod = VerificationMethod(
       id: "$didUri#0",
       type: "JsonWebKey2020",
@@ -58,21 +71,11 @@ class DidJwk implements Did {
 
     final didDocument = DidDocument(
       id: didUri,
-      verificationMethod: [
-        verificationMethod,
-      ],
-      assertionMethod: [
-        verificationMethod.id,
-      ],
-      authentication: [
-        verificationMethod.id,
-      ],
-      capabilityInvocation: [
-        verificationMethod.id,
-      ],
-      capabilityDelegation: [
-        verificationMethod.id,
-      ],
+      verificationMethod: [verificationMethod],
+      assertionMethod: [verificationMethod.id],
+      authentication: [verificationMethod.id],
+      capabilityInvocation: [verificationMethod.id],
+      capabilityDelegation: [verificationMethod.id],
     );
 
     final didResolutionResult = DidResolutionResult(didDocument: didDocument);

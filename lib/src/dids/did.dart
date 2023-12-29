@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:tbdex/src/crypto/key_manager.dart';
 import 'package:tbdex/src/crypto/jwk.dart';
 
@@ -42,6 +40,10 @@ class DidUri {
     this.fragment,
   });
 
+  /// parses a DID URI in accordance to the ABNF rules specified in the
+  /// specification [here](https://www.w3.org/TR/did-core/#did-syntax). Returns
+  /// a [DidUri] instance if parsing is successful. Throws [Exception] if
+  /// parsing fails.
   static DidUri parse(String input) {
     final match = didUriPattern.firstMatch(input);
 
@@ -305,6 +307,13 @@ class DidResolutionResult {
   }) {
     didResolutionMetadata ??= DidResolutionMetadata();
     didDocumentMetadata ??= DidDocumentMetadata();
+  }
+
+  /// convenience constructor that returns a DID Resolution Result with an
+  /// invalidDid error.
+  DidResolutionResult.invalidDid() {
+    didResolutionMetadata = DidResolutionMetadata(error: 'invalidDid');
+    didDocumentMetadata = DidDocumentMetadata();
   }
 
   Map<String, dynamic> toJson() {
