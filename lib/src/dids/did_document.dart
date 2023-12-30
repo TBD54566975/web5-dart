@@ -13,8 +13,19 @@ import 'package:tbdex/src/dids/did_verification_method.dart';
 /// A DID Document can be retrieved by _resolving_ a DID URI
 class DidDocument {
   final String? context;
+
+  /// The DID URI for a particular DID subject is expressed using the id property
+  /// in the DID document.
   final String id;
+
+  /// A DID subject can have multiple identifiers for different purposes, or at
+  /// different times. The assertion that two or more DIDs (or other types of URI)
+  /// refer to the same DID subject can be made using the alsoKnownAs property.
   final List<String>? alsoKnownAs;
+
+  /// A DID controller is an entity that is authorized to make changes to a
+  /// DID document. The process of authorizing a DID controller is defined
+  /// by the DID method.
   final dynamic controller; // String or List<String>
 
   /// cryptographic public keys, which can be used to authenticate or authorize

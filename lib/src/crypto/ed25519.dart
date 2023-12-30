@@ -12,6 +12,11 @@ final base64UrlCodec = Base64Codec.urlSafe();
 final base64UrlEncoder = base64UrlCodec.encoder;
 final base64UrlDecoder = base64UrlCodec.decoder;
 
+/// Implements the Ed25519 Digital Signature Algorithm (DSA) for cryptographic
+/// operations.
+///
+/// `Ed25519` is an instance of the [Dsa] interface, providing methods to generate
+/// private keys, compute public keys, sign data, and verify signatures.
 class Ed25519 implements Dsa {
   @override
   final DsaName name = DsaName.ed25519;
@@ -55,7 +60,7 @@ class Ed25519 implements Dsa {
 
   @override
   Future<Uint8List> sign(Jwk privateKey, Uint8List payload) async {
-    final privateKeyBytes = base64UrlDecoder.convert(privateKey.d!);
+    final privateKeyBytes = base64UrlDecoder.convertNoPadding(privateKey.d!);
 
     final keyPair = await ed25519.newKeyPairFromSeed(privateKeyBytes);
     final signature = await ed25519.sign(payload, keyPair: keyPair);
@@ -69,7 +74,7 @@ class Ed25519 implements Dsa {
     Uint8List payload,
     Uint8List signatureBytes,
   ) async {
-    final publicKeyBytes = base64UrlDecoder.convert(publicKeyJwk.x!);
+    final publicKeyBytes = base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
     final publicKey = crypto.SimplePublicKey(
       publicKeyBytes,
       type: crypto.KeyPairType.ed25519,
