@@ -12,6 +12,11 @@ import 'package:tbdex/tbdex.dart';
 final base64UrlCodec = Base64Codec.urlSafe();
 final base64UrlEncoder = base64UrlCodec.encoder;
 
+/// A utility class for handling
+/// [JSON Web Tokens (JWTs)](https://datatracker.ietf.org/doc/html/rfc7519)
+///
+/// This class provides functionalities to parse, encode, and sign JWTs.
+/// It supports JWT signing with DID keys.
 class Jwt {
   JwtEncoded encoded;
   JwtDecoded decoded;
@@ -21,6 +26,11 @@ class Jwt {
 
   Jwt({required this.encoded, required this.decoded});
 
+  /// Parses a signed JWT string into its decoded form. returns both split
+  /// encoded and decoded forms
+  ///
+  /// Throws [Exception] if the JWT is malformed or if it does not meet
+  /// the expected structure and encoding requirements.
   factory Jwt.parse(String signedJwt) {
     final splitJwt = signedJwt.split('.');
 
@@ -74,6 +84,9 @@ class Jwt {
     );
   }
 
+  /// Signs a JWT payload using a specified [Did] and returns the signed JWT.
+  ///
+  /// Throws [Exception] if any error occurs during the signing process.
   static Future<String> sign({
     required Did did,
     required JwtPayload jwtPayload,
@@ -119,6 +132,10 @@ class Jwt {
   }
 }
 
+/// Represents the header portion of a JWT.
+///
+/// The header typically includes the type of token (JWT) and the
+/// signing algorithm used.
 class JwtHeader {
   String? typ;
   String? alg;
@@ -154,6 +171,10 @@ class JwtHeader {
   }
 }
 
+/// Represents the payload of a JWT.
+///
+/// This class contains the claims of the JWT, such as issuer, subject,
+/// audience, expiration time, etc.
 class JwtPayload {
   String? iss;
   String? sub;
@@ -167,6 +188,10 @@ class JwtPayload {
       {this.iss, this.sub, dynamic aud, this.exp, this.nbf, this.iat, this.jti})
       : _aud = aud;
 
+  /// Sets the audience claim.
+  ///
+  /// The value can be either a single string or a list of strings.
+  /// Throws [ArgumentError] if the value is not a string or list of strings.
   set aud(dynamic value) {
     if (value is String || value is List<String>) {
       _aud = value;
@@ -213,6 +238,9 @@ class JwtPayload {
   }
 }
 
+/// Represents a decoded JWT, including both its header and payload.
+///
+/// **Note**: Signature not included because its decoded form would be bytes
 class JwtDecoded {
   final JwtHeader header;
   final JwtPayload payload;
@@ -233,6 +261,9 @@ class JwtDecoded {
     };
   }
 }
+
+/// Represents an encoded JWT, including its encoded header, payload,
+/// and signature.
 
 class JwtEncoded {
   final String? header;
