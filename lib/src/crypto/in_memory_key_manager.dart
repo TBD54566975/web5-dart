@@ -32,10 +32,11 @@ class InMemoryKeyManager implements KeyManager {
       throw Exception("${alg.name} not supported");
     }
 
-    final keyGenerator = supportedAlgorithms[alg];
-    final privateKeyJwk = await keyGenerator!.generatePrivateKey();
+    final keyGenerator = supportedAlgorithms[alg]!;
+    final privateKeyJwk = await keyGenerator.generatePrivateKey();
 
-    final alias = privateKeyJwk.computeThumbprint();
+    final publicKeyJwk = await keyGenerator.computePublicKey(privateKeyJwk);
+    final alias = publicKeyJwk.computeThumbprint();
     keyStore[alias] = privateKeyJwk;
 
     return alias;
@@ -76,7 +77,7 @@ class InMemoryKeyManager implements KeyManager {
       DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv),
     );
 
-    if (dsaName != null) {
+    if (dsaName == null) {
       throw Exception(
         "DSA ${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.",
       );

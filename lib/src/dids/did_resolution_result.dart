@@ -82,4 +82,8 @@ class DidResolutionResult {
       'didDocumentMetadata': didDocumentMetadata.toJson(),
     };
   }
+
+  bool hasError() {
+    return didResolutionMetadata.error != null;
+  }
 }
