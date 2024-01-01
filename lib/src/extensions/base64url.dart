@@ -24,7 +24,7 @@ extension EncoderPadding on Base64Encoder {
   /// final noPaddingEncoded = encoder.convertNoPadding([72, 101, 108, 108]);
   /// ```
   String convertNoPadding(List<int> input) {
-    final converted = convert(input);
+    final converted = Base64Codec.urlSafe().encode(input);
 
     return converted.replaceAll('=', '');
   }
@@ -35,6 +35,6 @@ extension DecoderPadding on Base64Decoder {
     final missingPadding = (4 - input.length % 4) % 4;
     final paddedInput = input + '=' * missingPadding;
 
-    return convert(paddedInput);
+    return Base64Codec.urlSafe().decode(paddedInput);
   }
 }
