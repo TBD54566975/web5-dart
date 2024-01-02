@@ -25,7 +25,7 @@ class Jwt {
   static final didResolver = DidResolver(methodResolvers: [DidJwk.resolver]);
   static final signers = {
     DsaName.ed25519: Ed25519(),
-    DsaName.secp256k1: Secp256k1,
+    DsaName.secp256k1: Secp256k1(),
   };
 
   Jwt({required this.encoded, required this.decoded});
