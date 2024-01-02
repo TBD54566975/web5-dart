@@ -18,14 +18,35 @@ final base64UrlDecoder = base64UrlCodec.decoder;
 /// `Ed25519` is an instance of the [Dsa] interface, providing methods to generate
 /// private keys, compute public keys, sign data, and verify signatures.
 class Ed25519 implements Dsa {
+  /// [JOSE registered](https://datatracker.ietf.org/doc/html/draft-ietf-jose-cfrg-curves-06#section-2)
+  /// key type
+  static final String kty = 'OKP';
+
+  /// [JOSE registered](https://datatracker.ietf.org/doc/html/draft-ietf-jose-cfrg-curves-06#section-3)
+  /// algorithm
+  static final String alg = 'EdDSA';
+
+  /// [JOSE registered](https://datatracker.ietf.org/doc/html/draft-ietf-jose-cfrg-curves-06#section-3)
+  /// curve
+  static final String crv = 'Ed25519';
+
+  /// [JOSE registered](https://datatracker.ietf.org/doc/html/draft-ietf-jose-cfrg-curves-06#section-2)
+  /// key type
+  @override
+  final String keyType = kty;
+
+  /// [JOSE registered](https://datatracker.ietf.org/doc/html/draft-ietf-jose-cfrg-curves-06#section-3)
+  /// algorithm
+  @override
+  final String algorithm = alg;
+
+  /// [JOSE registered](https://datatracker.ietf.org/doc/html/draft-ietf-jose-cfrg-curves-06#section-3)
+  /// curve
+  @override
+  final String curve = crv;
+
   @override
   final DsaName name = DsaName.ed25519;
-
-  @override
-  final String algorithm = 'EdDSA';
-
-  @override
-  final String curve = 'Ed25519';
 
   @override
   Future<Jwk> computePublicKey(Jwk privateKey) async {
@@ -34,9 +55,9 @@ class Ed25519 implements Dsa {
     final keyPair = await ed25519.newKeyPairFromSeed(privateKeyBytes);
     final publicKey = await keyPair.extractPublicKey();
     final publicKeyJwk = Jwk(
-      kty: 'OKP',
-      alg: 'EdDSA',
-      crv: 'Ed25519',
+      kty: kty,
+      alg: alg,
+      crv: crv,
       x: base64UrlEncoder.convertNoPadding(publicKey.bytes),
     );
 
@@ -49,9 +70,9 @@ class Ed25519 implements Dsa {
 
     final privateKeyBytes = await keyPair.extractPrivateKeyBytes();
     final privateKeyJwk = Jwk(
-      kty: 'OKP',
-      alg: 'EdDSA',
-      crv: 'Ed25519',
+      kty: kty,
+      alg: alg,
+      crv: crv,
       d: base64UrlEncoder.convertNoPadding(privateKeyBytes),
     );
 

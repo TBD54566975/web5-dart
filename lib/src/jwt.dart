@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:tbdex/src/crypto/dsa.dart';
 import 'package:tbdex/src/crypto/ed25519.dart';
+import 'package:tbdex/src/crypto/secp256k1.dart';
 import 'package:tbdex/src/dids/did.dart';
 import 'package:tbdex/src/dids/did_resolver.dart';
 import 'package:tbdex/src/extensions/base64url.dart';
@@ -22,7 +23,10 @@ class Jwt {
   JwtDecoded decoded;
 
   static final didResolver = DidResolver(methodResolvers: [DidJwk.resolver]);
-  static final signers = {DsaName.ed25519: Ed25519()};
+  static final signers = {
+    DsaName.ed25519: Ed25519(),
+    DsaName.secp256k1: Secp256k1,
+  };
 
   Jwt({required this.encoded, required this.decoded});
 

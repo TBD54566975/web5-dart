@@ -16,14 +16,26 @@ final curveParams = ECCurve_secp256k1();
 final keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());
 
 class Secp256k1 implements Dsa {
-  @override
-  String get algorithm => 'ES256K';
+  /// [JOSE kty](https://www.iana.org/assignments/jose/jose.xhtml)
+  static final String kty = 'EC';
+
+  /// [JOSE alg](https://www.iana.org/assignments/jose/jose.xhtml)
+  static final String alg = 'ES256K';
+
+  /// [JOSE crv](https://www.iana.org/assignments/jose/jose.xhtml)
+  static final String crv = 'secp256k1';
 
   @override
-  String get curve => 'secp256k1';
+  final String keyType = kty;
 
   @override
-  DsaName get name => DsaName.secp256k1;
+  final String algorithm = alg;
+
+  @override
+  final String curve = crv;
+
+  @override
+  DsaName name = DsaName.secp256k1;
 
   @override
   Future<Jwk> computePublicKey(Jwk privateKey) {

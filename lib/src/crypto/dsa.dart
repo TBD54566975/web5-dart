@@ -10,8 +10,14 @@ enum DsaName {
   static final aliases = {
     DsaAlias(algorithm: 'EdDSA', curve: 'Ed25519'): DsaName.ed25519,
     DsaAlias(algorithm: null, curve: 'Ed25519'): DsaName.ed25519,
+    DsaAlias(algorithm: 'ES256K', curve: 'secp256k1'): DsaName.secp256k1,
+    DsaAlias(algorithm: 'ES256K', curve: null): DsaName.secp256k1,
+    DsaAlias(algorithm: null, curve: 'secp256k1'): DsaName.secp256k1,
   };
 
+  /// method that can be used to find [DsaName] using
+  /// [JWA](https://datatracker.ietf.org/doc/html/rfc7518.html) algorithm and
+  /// curve names
   static DsaName? findByAlias(DsaAlias alias) => aliases[alias];
 }
 
@@ -41,7 +47,14 @@ class DsaAlias {
 /// concretely implemented for specific DSA algorithms (e.g. Ed25519)
 abstract interface class Dsa {
   DsaName get name;
+
+  /// [JOSE kty](https://www.iana.org/assignments/jose/jose.xhtml)
+  String get keyType;
+
+  /// [JOSE alg](https://www.iana.org/assignments/jose/jose.xhtml)
   String get algorithm;
+
+  /// [JOSE crv](https://www.iana.org/assignments/jose/jose.xhtml)
   String get curve;
 
   /// generates a private key and returns it as a JWK

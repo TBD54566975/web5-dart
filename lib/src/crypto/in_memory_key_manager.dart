@@ -5,8 +5,12 @@ import 'package:tbdex/src/crypto/dsa.dart';
 import 'package:tbdex/src/crypto/jwk.dart';
 import 'package:tbdex/src/crypto/ed25519.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
+import 'package:tbdex/src/crypto/secp256k1.dart';
 
-final supportedAlgorithms = {DsaName.ed25519: Ed25519()};
+final supportedAlgorithms = {
+  DsaName.ed25519: Ed25519(),
+  DsaName.secp256k1: Secp256k1(),
+};
 
 /// A class for managing cryptographic keys in-memory.
 ///
