@@ -112,7 +112,8 @@ class Jwt {
 
     final publicKeyJwk = verificationMethod.publicKeyJwk!;
     final dsaName = DsaName.findByAlias(
-        DsaAlias(algorithm: publicKeyJwk.alg, curve: publicKeyJwk.crv));
+      DsaAlias(algorithm: publicKeyJwk.alg, curve: publicKeyJwk.crv),
+    );
 
     final signer = signers[dsaName];
     if (signer == null) {
@@ -188,9 +189,15 @@ class JwtPayload {
   int? iat;
   String? jti;
 
-  JwtPayload(
-      {this.iss, this.sub, dynamic aud, this.exp, this.nbf, this.iat, this.jti})
-      : _aud = aud;
+  JwtPayload({
+    this.iss,
+    this.sub,
+    dynamic aud,
+    this.exp,
+    this.nbf,
+    this.iat,
+    this.jti,
+  }) : _aud = aud;
 
   /// Sets the audience claim.
   ///
