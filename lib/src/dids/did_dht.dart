@@ -1,12 +1,16 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:tbdex/src/dids/did.dart';
+import 'package:tbdex/src/dids/did_document.dart';
 import 'package:tbdex/src/dids/did_uri.dart';
 import 'package:tbdex/src/dns_packet/packet.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
 import 'package:tbdex/src/dids/did_resolution_result.dart';
 import 'package:tbdex/src/dns_packet/txt_data.dart';
 import 'package:tbdex/src/dns_packet/type.dart';
+
+final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
 
 class DidDht implements Did {
   @override
@@ -50,17 +54,57 @@ class DidDht implements Did {
       bytes.addAll(byteList);
     }
 
+    // TODO: verify signature
     final signatureBytes = bytes.sublist(0, 64);
     final seq = bytes.sublist(64, 72);
+
     final v = bytes.sublist(72);
 
     final dnsPacket = DnsPacket.decode(v);
-    for (final answer in dnsPacket.answers) {
-      print("${answer.type} ${answer.name.name}");
+    final Map<String, List<String>> txtMap = {};
+    List<String>? rootRecord;
 
-      if (answer.type == DnsType.TXT) {
-        final txtData = answer.data as DnsTxtData;
-        print("txt data: ${txtData.data}");
+    for (final answer in dnsPacket.answers) {
+      if (answer.type != DnsType.TXT) {
+        continue;
+      }
+
+      final txtData = answer.data as DnsTxtData;
+      txtMap[answer.name.value] = txtData.value;
+
+      if (answer.name.value.startsWith('_did')) {
+        rootRecord = txtData.value;
+      }
+    }
+
+    if (rootRecord == null) {
+      // TODO: figure out more appopriate resolution error to use.
+      return DidResolutionResult.invalidDid();
+    }
+
+    final didDocument = DidDocument(id: didUri);
+    for (final entry in rootRecord) {
+      final splitEntry = entry.split('=');
+
+      if (splitEntry.length != 2) {
+        // TODO: figure out more appopriate resolution error to use.
+        return DidResolutionResult.invalidDid();
+      }
+
+      final [property, values] = splitEntry;
+      final splitValues = values.split(',');
+
+      if (!txtEntryNames.contains(property)) {
+        continue;
+      }
+
+      for (final value in splitValues) {
+        if (property == 'vm') {
+          final vmProperties = txtMap['${value}_did.'];
+          if (vmProperties == null) {
+            continue;
+          }
+        }
       }
     }
 

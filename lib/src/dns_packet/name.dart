@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 class DnsName {
-  final String name;
+  final String value;
   final int numBytes;
 
-  DnsName._(this.name, this.numBytes);
+  DnsName._(this.value, this.numBytes);
 
   factory DnsName.decode(Uint8List buf, int offset, {bool mail = false}) {
     int oldOffset = offset;
@@ -68,7 +68,7 @@ class DnsName {
   }
 
   int encodingLength() {
-    if (name == '.' || name == '..') return 1;
-    return utf8.encode(name.replaceAll(RegExp(r'^\.|\.$'), '')).length + 2;
+    if (value == '.' || value == '..') return 1;
+    return utf8.encode(value.replaceAll(RegExp(r'^\.|\.$'), '')).length + 2;
   }
 }

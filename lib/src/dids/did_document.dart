@@ -31,7 +31,7 @@ class DidDocument {
   /// cryptographic public keys, which can be used to authenticate or authorize
   /// interactions with the DID subject or associated parties.
   /// [spec reference](https://www.w3.org/TR/did-core/#verification-methods)
-  final List<DidVerificationMethod>? verificationMethod;
+  List<DidVerificationMethod>? verificationMethod;
 
   /// Services are used in DID documents to express ways of communicating with
   /// the DID subject or associated entities.
@@ -91,6 +91,11 @@ class DidDocument {
     this.capabilityDelegation,
     this.capabilityInvocation,
   });
+
+  void addVerificationMethod(DidVerificationMethod vm) {
+    verificationMethod ??= [];
+    verificationMethod!.add(vm);
+  }
 
   Map<String, dynamic> toJson() {
     final json = {

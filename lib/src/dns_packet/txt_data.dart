@@ -4,12 +4,12 @@ import 'dart:typed_data';
 import 'package:tbdex/src/dns_packet/rdata.dart';
 
 class DnsTxtData implements RData {
-  final List<String> data;
+  final List<String> value;
 
   @override
   int numBytes;
 
-  DnsTxtData._(this.data, this.numBytes);
+  DnsTxtData._(this.value, this.numBytes);
 
   factory DnsTxtData.decode(Uint8List buf, int offset) {
     final originalOffset = offset;
@@ -36,7 +36,7 @@ class DnsTxtData implements RData {
 
   int encodingLength() {
     int length = 2;
-    for (var buf in data) {
+    for (var buf in value) {
       length += utf8.encode(buf).length + 1;
     }
     return length;
