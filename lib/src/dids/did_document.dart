@@ -31,28 +31,28 @@ class DidDocument {
   /// cryptographic public keys, which can be used to authenticate or authorize
   /// interactions with the DID subject or associated parties.
   /// [spec reference](https://www.w3.org/TR/did-core/#verification-methods)
-  final List<DidVerificationMethod>? verificationMethod;
+  List<DidVerificationMethod>? verificationMethod;
 
   /// Services are used in DID documents to express ways of communicating with
   /// the DID subject or associated entities.
   /// A service can be any type of service the DID subject wants to advertise.
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#services)
-  final List<DidService>? service;
+  List<DidService>? service;
 
   /// The assertionMethod verification relationship is used to specify how the
   /// DID subject is expected to express claims, such as for the purposes of
   /// issuing a Verifiable Credential
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#assertion)
-  final List<String>? assertionMethod;
+  List<String>? assertionMethod;
 
   /// The authentication verification relationship is used to specify how the
   /// DID subject is expected to be authenticated, for purposes such as logging
   /// into a website or engaging in any sort of challenge-response protocol.
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#key-agreement)
-  final List<String>? authentication;
+  List<String>? authentication;
 
   /// The keyAgreement verification relationship is used to specify how an
   /// entity can generate encryption material in order to transmit confidential
@@ -60,7 +60,7 @@ class DidDocument {
   /// establishing a secure communication channel with the recipient
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#authentication)
-  final List<String>? keyAgreement;
+  List<String>? keyAgreement;
 
   /// The capabilityDelegation verification relationship is used to specify a
   /// mechanism that might be used by the DID subject to delegate a
@@ -68,7 +68,7 @@ class DidDocument {
   /// authority to access a specific HTTP API to a subordinate.
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-delegation)
-  final List<String>? capabilityDelegation;
+  List<String>? capabilityDelegation;
 
   /// The capabilityInvocation verification relationship is used to specify a
   /// verification method that might be used by the DID subject to invoke a
@@ -76,7 +76,7 @@ class DidDocument {
   /// DID Document
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-invocation)
-  final List<String>? capabilityInvocation;
+  List<String>? capabilityInvocation;
 
   DidDocument({
     this.context,
@@ -91,6 +91,38 @@ class DidDocument {
     this.capabilityDelegation,
     this.capabilityInvocation,
   });
+
+  void addVerificationMethod(DidVerificationMethod vm) {
+    verificationMethod ??= [];
+    verificationMethod!.add(vm);
+  }
+
+  void addVerificationRelationship(
+    VerificationRelationship relationship,
+    String id,
+  ) {
+    if (relationship == VerificationRelationship.authentication) {
+      authentication ??= [];
+      authentication!.add(id);
+    } else if (relationship == VerificationRelationship.assertionMethod) {
+      assertionMethod ??= [];
+      assertionMethod!.add(id);
+    } else if (relationship == VerificationRelationship.capabilityDelegation) {
+      capabilityDelegation ??= [];
+      capabilityDelegation!.add(id);
+    } else if (relationship == VerificationRelationship.capabilityInvocation) {
+      capabilityInvocation ??= [];
+      capabilityInvocation!.add(id);
+    } else if (relationship == VerificationRelationship.keyAgreement) {
+      keyAgreement ??= [];
+      keyAgreement!.add(id);
+    }
+  }
+
+  void addService(DidService svc) {
+    service ??= [];
+    service!.add(svc);
+  }
 
   Map<String, dynamic> toJson() {
     final json = {
@@ -112,4 +144,12 @@ class DidDocument {
 
     return json;
   }
+}
+
+enum VerificationRelationship {
+  authentication,
+  assertionMethod,
+  capabilityInvocation,
+  capabilityDelegation,
+  keyAgreement
 }

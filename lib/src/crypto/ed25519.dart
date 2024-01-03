@@ -8,9 +8,9 @@ import 'package:tbdex/src/crypto/dsa.dart';
 import 'package:tbdex/src/crypto/jwk.dart';
 
 final ed25519 = crypto.Ed25519();
-final base64UrlCodec = Base64Codec.urlSafe();
-final base64UrlEncoder = base64UrlCodec.encoder;
-final base64UrlDecoder = base64UrlCodec.decoder;
+final _base64UrlCodec = Base64Codec.urlSafe();
+final _base64UrlEncoder = _base64UrlCodec.encoder;
+final _base64UrlDecoder = _base64UrlCodec.decoder;
 
 /// Implements the Ed25519 Digital Signature Algorithm (DSA) for cryptographic
 /// operations.
@@ -50,7 +50,7 @@ class Ed25519 implements Dsa {
 
   @override
   Future<Jwk> computePublicKey(Jwk privateKey) async {
-    final privateKeyBytes = base64UrlDecoder.convertNoPadding(privateKey.d!);
+    final privateKeyBytes = _base64UrlDecoder.convertNoPadding(privateKey.d!);
 
     final keyPair = await ed25519.newKeyPairFromSeed(privateKeyBytes);
     final publicKey = await keyPair.extractPublicKey();
@@ -58,7 +58,7 @@ class Ed25519 implements Dsa {
       kty: kty,
       alg: alg,
       crv: crv,
-      x: base64UrlEncoder.convertNoPadding(publicKey.bytes),
+      x: _base64UrlEncoder.convertNoPadding(publicKey.bytes),
     );
 
     return publicKeyJwk;
@@ -69,11 +69,13 @@ class Ed25519 implements Dsa {
     final keyPair = await ed25519.newKeyPair();
 
     final privateKeyBytes = await keyPair.extractPrivateKeyBytes();
+    final publicKey = await keyPair.extractPublicKey();
     final privateKeyJwk = Jwk(
       kty: kty,
       alg: alg,
       crv: crv,
-      d: base64UrlEncoder.convertNoPadding(privateKeyBytes),
+      d: _base64UrlEncoder.convertNoPadding(privateKeyBytes),
+      x: _base64UrlEncoder.convertNoPadding(publicKey.bytes),
     );
 
     return privateKeyJwk;
@@ -81,7 +83,7 @@ class Ed25519 implements Dsa {
 
   @override
   Future<Uint8List> sign(Jwk privateKey, Uint8List payload) async {
-    final privateKeyBytes = base64UrlDecoder.convertNoPadding(privateKey.d!);
+    final privateKeyBytes = _base64UrlDecoder.convertNoPadding(privateKey.d!);
 
     final keyPair = await ed25519.newKeyPairFromSeed(privateKeyBytes);
     final signature = await ed25519.sign(payload, keyPair: keyPair);
@@ -95,7 +97,7 @@ class Ed25519 implements Dsa {
     Uint8List payload,
     Uint8List signatureBytes,
   ) async {
-    final publicKeyBytes = base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
+    final publicKeyBytes = _base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
     final publicKey = crypto.SimplePublicKey(
       publicKeyBytes,
       type: crypto.KeyPairType.ed25519,
@@ -107,5 +109,15 @@ class Ed25519 implements Dsa {
     if (isLegit == false) {
       throw Exception("Integrity check failed");
     }
+  }
+
+  @override
+  Jwk bytesToPublicKey(Uint8List input) {
+    return Jwk(
+      kty: kty,
+      alg: alg,
+      crv: crv,
+      x: _base64UrlEncoder.convertNoPadding(input),
+    );
   }
 }

@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:tbdex/src/crypto/dsa.dart';
-import 'package:tbdex/src/crypto/ed25519.dart';
-import 'package:tbdex/src/crypto/secp256k1.dart';
 import 'package:tbdex/src/dids/did.dart';
 import 'package:tbdex/src/dids/did_resolver.dart';
 import 'package:tbdex/src/extensions/base64url.dart';
@@ -22,11 +19,7 @@ class Jwt {
   JwtEncoded encoded;
   JwtDecoded decoded;
 
-  static final didResolver = DidResolver(methodResolvers: [DidJwk.resolver]);
-  static final signers = {
-    DsaName.ed25519: Ed25519(),
-    DsaName.secp256k1: Secp256k1(),
-  };
+  static final _didResolver = DidResolver(methodResolvers: [DidJwk.resolver]);
 
   Jwt({required this.encoded, required this.decoded});
 
@@ -95,7 +88,7 @@ class Jwt {
     required Did did,
     required JwtPayload jwtPayload,
   }) async {
-    final resolutionResult = didResolver.resolve(did.uri);
+    final resolutionResult = _didResolver.resolve(did.uri);
     if (resolutionResult.hasError()) {
       throw Exception("failed to resolve DID");
     }
@@ -112,15 +105,15 @@ class Jwt {
 
     final publicKeyJwk = verificationMethod.publicKeyJwk!;
     final dsaName = DsaName.findByAlias(
-      DsaAlias(algorithm: publicKeyJwk.alg, curve: publicKeyJwk.crv),
+      algorithm: publicKeyJwk.alg,
+      curve: publicKeyJwk.crv,
     );
 
-    final signer = signers[dsaName];
-    if (signer == null) {
+    if (dsaName == null) {
       throw Exception("$dsaName signing not supported");
     }
 
-    final jwtHeader = JwtHeader(typ: 'JWT', kid: kid, alg: signer.algorithm);
+    final jwtHeader = JwtHeader(typ: 'JWT', kid: kid, alg: dsaName.algorithm);
     final jwtHeaderBase64Url = jwtHeader.toBase64Url();
     final jwtPayloadBase64Url = jwtPayload.toBase64Url();
 

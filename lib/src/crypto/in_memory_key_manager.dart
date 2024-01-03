@@ -1,16 +1,9 @@
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:tbdex/src/crypto/dsa.dart';
+import 'package:tbdex/src/crypto/dsa_algorithms.dart';
 import 'package:tbdex/src/crypto/jwk.dart';
-import 'package:tbdex/src/crypto/ed25519.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
-import 'package:tbdex/src/crypto/secp256k1.dart';
-
-final supportedAlgorithms = {
-  DsaName.ed25519: Ed25519(),
-  DsaName.secp256k1: Secp256k1(),
-};
 
 /// A class for managing cryptographic keys in-memory.
 ///
@@ -28,68 +21,34 @@ final supportedAlgorithms = {
 /// ```
 ///
 class InMemoryKeyManager implements KeyManager {
-  final HashMap<String, Jwk> keyStore = HashMap();
+  final Map<String, Jwk> _keyStore = {};
 
   @override
   Future<String> generatePrivateKey(DsaName alg) async {
-    if (!supportedAlgorithms.containsKey(alg)) {
-      throw Exception("${alg.name} not supported");
-    }
+    final privateKeyJwk = await DsaAlgorithms.generatePrivateKey(alg);
+    final alias = privateKeyJwk.computeThumbprint();
 
-    final keyGenerator = supportedAlgorithms[alg]!;
-    final privateKeyJwk = await keyGenerator.generatePrivateKey();
-
-    final publicKeyJwk = await keyGenerator.computePublicKey(privateKeyJwk);
-    final alias = publicKeyJwk.computeThumbprint();
-    keyStore[alias] = privateKeyJwk;
+    _keyStore[alias] = privateKeyJwk;
 
     return alias;
   }
 
   @override
-  Future<Jwk> getPublicKey(String keyAlias) async {
-    if (!keyStore.containsKey(keyAlias)) {
-      throw Exception("key with alias $keyAlias not found.");
-    }
-
-    final privateKeyJwk = keyStore[keyAlias]!;
-
-    final dsaName = DsaName.findByAlias(
-      DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv),
-    );
-
-    if (dsaName == null) {
-      throw Exception(
-        "${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.",
-      );
-    }
-
-    final keyGenerator = supportedAlgorithms[dsaName]!;
-    final publicKeyJwk = await keyGenerator.computePublicKey(privateKeyJwk);
-
-    return publicKeyJwk;
-  }
+  Future<Jwk> getPublicKey(String keyAlias) async =>
+      DsaAlgorithms.computePublicKey(_retrievePrivateKeyJwk(keyAlias));
 
   @override
   Future<Uint8List> sign(String keyAlias, Uint8List payload) async {
-    if (!keyStore.containsKey(keyAlias)) {
+    final privateKeyJwk = _retrievePrivateKeyJwk(keyAlias);
+    return DsaAlgorithms.sign(privateKeyJwk, payload);
+  }
+
+  Jwk _retrievePrivateKeyJwk(String keyAlias) {
+    final privateKeyJwk = _keyStore[keyAlias];
+    if (privateKeyJwk == null) {
       throw Exception("key with alias $keyAlias not found.");
     }
 
-    final privateKeyJwk = keyStore[keyAlias]!;
-    final dsaName = DsaName.findByAlias(
-      DsaAlias(algorithm: privateKeyJwk.alg, curve: privateKeyJwk.crv),
-    );
-
-    if (dsaName == null) {
-      throw Exception(
-        "DSA ${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.",
-      );
-    }
-
-    final signer = supportedAlgorithms[dsaName]!;
-    final signatureBytes = await signer.sign(privateKeyJwk, payload);
-
-    return signatureBytes;
+    return privateKeyJwk;
   }
 }
