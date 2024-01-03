@@ -12,8 +12,8 @@ final _base64UrlCodec = Base64Codec.urlSafe();
 final _base64UrlEncoder = _base64UrlCodec.encoder;
 final _base64UrlDecoder = _base64UrlCodec.decoder;
 
-final curveParams = ECCurve_secp256k1();
-final keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());
+final _curveParams = ECCurve_secp256k1();
+final _keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());
 
 class Secp256k1 implements Dsa {
   /// [JOSE kty](https://www.iana.org/assignments/jose/jose.xhtml)
@@ -42,7 +42,7 @@ class Secp256k1 implements Dsa {
     final privateKeyBytes = _base64UrlDecoder.convertNoPadding(privateKey.d!);
     final d = bytesToBigInt(privateKeyBytes).toUnsigned(256);
 
-    final Q = (curveParams.G * d)!;
+    final Q = (_curveParams.G * d)!;
     final x = Q.x!.toBigInteger();
     final y = Q.y!.toBigInteger();
 
@@ -72,7 +72,7 @@ class Secp256k1 implements Dsa {
     final rand = FortunaRandom();
     rand.seed(KeyParameter(seed));
 
-    keyGenerator.init(ParametersWithRandom(keyGenParams, rand));
+    keyGenerator.init(ParametersWithRandom(_keyGenParams, rand));
     final keyPair = keyGenerator.generateKeyPair();
 
     final privateKey = keyPair.privateKey as ECPrivateKey;
@@ -129,9 +129,9 @@ class Secp256k1 implements Dsa {
     //can be created by adding the base point, G, to itself repeatedly.
     // G - AKA generator point is a
     // predefined point on an elliptic curve.
-    final halfN = curveParams.n >> 2;
+    final halfN = _curveParams.n >> 2;
     if (signature.s >= halfN) {
-      final lowS = curveParams.n - signature.s;
+      final lowS = _curveParams.n - signature.s;
       sBytes = lowS.toBytes();
     } else {
       sBytes = signature.s.toBytes();
@@ -152,8 +152,8 @@ class Secp256k1 implements Dsa {
     final yBytes = _base64UrlDecoder.convertNoPadding(publicKeyJwk.y!);
     final y = bytesToBigInt(yBytes);
 
-    final Q = curveParams.curve.createPoint(x, y);
-    final publicKey = ECPublicKey(Q, curveParams);
+    final Q = _curveParams.curve.createPoint(x, y);
+    final publicKey = ECPublicKey(Q, _curveParams);
 
     final sha256 = SHA256Digest();
     final verifier = ECDSASigner(sha256, HMac(sha256, 64));
