@@ -8,9 +8,9 @@ import 'package:tbdex/src/crypto/jwk.dart';
 import "package:tbdex/src/extensions/base64url.dart";
 import 'package:tbdex/src/extensions/bigint.dart';
 
-final base64UrlCodec = Base64Codec.urlSafe();
-final base64UrlEncoder = base64UrlCodec.encoder;
-final base64UrlDecoder = base64UrlCodec.decoder;
+final _base64UrlCodec = Base64Codec.urlSafe();
+final _base64UrlEncoder = _base64UrlCodec.encoder;
+final _base64UrlDecoder = _base64UrlCodec.decoder;
 
 final curveParams = ECCurve_secp256k1();
 final keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());
@@ -39,7 +39,7 @@ class Secp256k1 implements Dsa {
 
   @override
   Future<Jwk> computePublicKey(Jwk privateKey) {
-    final privateKeyBytes = base64UrlDecoder.convertNoPadding(privateKey.d!);
+    final privateKeyBytes = _base64UrlDecoder.convertNoPadding(privateKey.d!);
     final d = bytesToBigInt(privateKeyBytes).toUnsigned(256);
 
     final Q = (curveParams.G * d)!;
@@ -54,8 +54,8 @@ class Secp256k1 implements Dsa {
       kty: 'EC',
       alg: algorithm,
       crv: curve,
-      x: base64UrlEncoder.convertNoPadding(x.toBytes()),
-      y: base64UrlEncoder.convertNoPadding(y.toBytes()),
+      x: _base64UrlEncoder.convertNoPadding(x.toBytes()),
+      y: _base64UrlEncoder.convertNoPadding(y.toBytes()),
     );
 
     return Future.value(publicKeyJwk);
@@ -83,9 +83,9 @@ class Secp256k1 implements Dsa {
     final x = Q.x!.toBigInteger()!.toUnsigned(256);
     final y = Q.y!.toBigInteger()!.toUnsigned(256);
 
-    final privateKeyBase64Url = base64UrlEncoder.convertNoPadding(d.toBytes());
-    final publicKeyXBase64Url = base64UrlEncoder.convertNoPadding(x.toBytes());
-    final publicKeyYBase64Url = base64UrlEncoder.convertNoPadding(y.toBytes());
+    final privateKeyBase64Url = _base64UrlEncoder.convertNoPadding(d.toBytes());
+    final publicKeyXBase64Url = _base64UrlEncoder.convertNoPadding(x.toBytes());
+    final publicKeyYBase64Url = _base64UrlEncoder.convertNoPadding(y.toBytes());
 
     final privateKeyJwk = Jwk(
       kty: 'EC',
@@ -103,7 +103,8 @@ class Secp256k1 implements Dsa {
   Future<Uint8List> sign(Jwk privateKeyJwk, Uint8List payload) {
     final sha256 = SHA256Digest();
 
-    final privateKeyBytes = base64UrlDecoder.convertNoPadding(privateKeyJwk.d!);
+    final privateKeyBytes =
+        _base64UrlDecoder.convertNoPadding(privateKeyJwk.d!);
     final privateKeyBigInt = bytesToBigInt(privateKeyBytes);
     final privateKey = ECPrivateKey(privateKeyBigInt, ECCurve_secp256k1());
 
@@ -145,10 +146,10 @@ class Secp256k1 implements Dsa {
     Uint8List payload,
     Uint8List signature,
   ) {
-    final xBytes = base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
+    final xBytes = _base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
     final x = bytesToBigInt(xBytes);
 
-    final yBytes = base64UrlDecoder.convertNoPadding(publicKeyJwk.y!);
+    final yBytes = _base64UrlDecoder.convertNoPadding(publicKeyJwk.y!);
     final y = bytesToBigInt(yBytes);
 
     final Q = curveParams.curve.createPoint(x, y);
