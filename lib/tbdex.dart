@@ -10,3 +10,4 @@ export 'src/crypto/jwk.dart';
 export 'src/crypto/dsa_algorithms.dart';
 export 'src/dids/did.dart';
 export 'src/dids/did_resolver.dart';
+export 'src/dids/did_dht.dart';

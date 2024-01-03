@@ -18,9 +18,8 @@ import 'package:tbdex/src/dns_packet/type.dart';
 import 'package:tbdex/src/extensions/base64url.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
-final base64UrlCodec = Base64Codec.urlSafe();
-final base64UrlEncoder = base64UrlCodec.encoder;
-final base64UrlDecoder = base64UrlCodec.decoder;
+final _base64UrlCodec = Base64Codec.urlSafe();
+final _base64UrlDecoder = _base64UrlCodec.decoder;
 
 class DidDht implements Did {
   @override
@@ -145,7 +144,8 @@ class DidDht implements Did {
           throw Exception("idk rn");
         }
 
-        final publicKeyBytes = base64UrlDecoder.convertNoPadding(valueMap['k']);
+        final publicKeyBytes =
+            _base64UrlDecoder.convertNoPadding(valueMap['k']);
         final publicKeyJwk = dsa.bytesToPublicKey(publicKeyBytes);
         final verificationMethod = DidVerificationMethod(
           controller: didUri,
