@@ -8,3 +8,4 @@ export 'src/crypto/ed25519.dart';
 export 'src/crypto/dsa.dart';
 export 'src/crypto/jwk.dart';
 export 'src/crypto/dsa_algorithms.dart';
+export 'src/dids/did.dart';
