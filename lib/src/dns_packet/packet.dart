@@ -32,7 +32,6 @@ class DnsPacket {
 
     final List<DnsAnswer> answers = [];
     for (var i = 0; i < header.numAnswers; i += 1) {
-      print('offset $offset');
       final answer = DnsAnswer.decode(bytes, offset);
       answers.add(answer);
       offset += answer.numBytes;

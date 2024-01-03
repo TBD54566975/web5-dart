@@ -1,16 +1,26 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:tbdex/src/crypto/dsa.dart';
+import 'package:tbdex/src/crypto/ed25519.dart';
+import 'package:tbdex/src/crypto/secp256k1.dart';
 import 'package:tbdex/src/dids/did.dart';
 import 'package:tbdex/src/dids/did_document.dart';
+import 'package:tbdex/src/dids/did_service.dart';
 import 'package:tbdex/src/dids/did_uri.dart';
+import 'package:tbdex/src/dids/did_verification_method.dart';
 import 'package:tbdex/src/dns_packet/packet.dart';
 import 'package:tbdex/src/crypto/key_manager.dart';
 import 'package:tbdex/src/dids/did_resolution_result.dart';
 import 'package:tbdex/src/dns_packet/txt_data.dart';
 import 'package:tbdex/src/dns_packet/type.dart';
+import 'package:tbdex/src/extensions/base64url.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
+final base64UrlCodec = Base64Codec.urlSafe();
+final base64UrlEncoder = base64UrlCodec.encoder;
+final base64UrlDecoder = base64UrlCodec.decoder;
 
 class DidDht implements Did {
   @override
@@ -54,6 +64,8 @@ class DidDht implements Did {
       bytes.addAll(byteList);
     }
 
+    httpClient.close(force: false);
+
     // TODO: verify signature
     final signatureBytes = bytes.sublist(0, 64);
     final seq = bytes.sublist(64, 72);
@@ -70,11 +82,13 @@ class DidDht implements Did {
       }
 
       final txtData = answer.data as DnsTxtData;
-      txtMap[answer.name.value] = txtData.value;
 
       if (answer.name.value.startsWith('_did')) {
         rootRecord = txtData.value;
+        continue;
       }
+
+      txtMap[answer.name.value] = txtData.value;
     }
 
     if (rootRecord == null) {
@@ -82,8 +96,8 @@ class DidDht implements Did {
       return DidResolutionResult.invalidDid();
     }
 
-    final didDocument = DidDocument(id: didUri);
-    for (final entry in rootRecord) {
+    final Map<String, List<String>> relationshipsMap = {};
+    for (final entry in rootRecord[0].split(';')) {
       final splitEntry = entry.split('=');
 
       if (splitEntry.length != 2) {
@@ -99,17 +113,84 @@ class DidDht implements Did {
       }
 
       for (final value in splitValues) {
-        if (property == 'vm') {
-          final vmProperties = txtMap['${value}_did.'];
-          if (vmProperties == null) {
-            continue;
-          }
-        }
+        relationshipsMap[value] ??= [];
+        relationshipsMap[value]!.add(value);
       }
     }
 
-    httpClient.close(force: false);
+    final didDocument = DidDocument(id: didUri);
+    for (final property in txtMap.entries) {
+      final values = property.value[0].split(',');
+      final valueMap = {};
 
-    return DidResolutionResult.invalidDid();
+      for (var value in values) {
+        final [k, v] = value.split('=');
+        valueMap[k] = v;
+      }
+
+      if (property.key.startsWith('_k')) {
+        Dsa? dsa;
+        switch (valueMap['t']) {
+          case '0':
+            dsa = Ed25519();
+            break;
+          case '1':
+            dsa = Secp256k1();
+            break;
+          default:
+            break;
+        }
+
+        if (dsa == null) {
+          throw Exception("idk rn");
+        }
+
+        final publicKeyBytes = base64UrlDecoder.convertNoPadding(valueMap['k']);
+        final publicKeyJwk = dsa.bytesToPublicKey(publicKeyBytes);
+        final verificationMethod = DidVerificationMethod(
+          controller: didUri,
+          id: valueMap['id'],
+          type: 'JsonWebKey2020',
+          publicKeyJwk: publicKeyJwk,
+        );
+
+        didDocument.addVerificationMethod(verificationMethod);
+        final entryId = property.key.substring(1).split('.')[0];
+        final relationships = relationshipsMap[entryId];
+
+        if (relationships == null) {
+          continue;
+        }
+
+        for (final relationship in relationships) {
+          VerificationRelationship? vr;
+          if (relationship == 'auth') {
+            vr = VerificationRelationship.authentication;
+          } else if (relationship == 'asm') {
+            vr = VerificationRelationship.assertionMethod;
+          } else if (relationship == 'agm') {
+            vr = VerificationRelationship.keyAgreement;
+          } else if (relationship == 'inv') {
+            vr = VerificationRelationship.capabilityInvocation;
+          } else if (relationship == 'del') {
+            vr = VerificationRelationship.capabilityDelegation;
+          }
+
+          if (vr != null) {
+            didDocument.addVerificationRelationship(vr, verificationMethod.id);
+          }
+        }
+      } else if (property.key.startsWith('_s')) {
+        final service = DidService(
+          id: valueMap['id'],
+          type: valueMap['t'],
+          serviceEndpoint: valueMap['uri'],
+        );
+
+        didDocument.addService(service);
+      }
+    }
+
+    return DidResolutionResult(didDocument: didDocument);
   }
 }

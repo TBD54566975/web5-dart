@@ -108,4 +108,14 @@ class Ed25519 implements Dsa {
       throw Exception("Integrity check failed");
     }
   }
+
+  @override
+  Jwk bytesToPublicKey(Uint8List input) {
+    return Jwk(
+      kty: kty,
+      alg: alg,
+      crv: crv,
+      x: base64UrlEncoder.convertNoPadding(input),
+    );
+  }
 }

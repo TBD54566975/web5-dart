@@ -72,4 +72,6 @@ abstract interface class Dsa {
   /// Verifies the given signature provided with the given public key and
   /// payload.
   Future<void> verify(Jwk publicKey, Uint8List payload, Uint8List signature);
+
+  Jwk bytesToPublicKey(Uint8List input);
 }

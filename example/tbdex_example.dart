@@ -1,3 +1,4 @@
+import 'dart:convert';
 
 import 'package:tbdex/src/dids/did_dht.dart';
 
@@ -13,7 +14,10 @@ void main() async {
   // final zb32 = base32.encodeString('hello', encoding: Encoding.zbase32);
   // print(zb32);
 
-  await DidDht.resolve(
+  final resolutionResult = await DidDht.resolve(
     "did:dht:5nzzr8izm434fukrjiiq164jb9tdctyhdmt5pnf7zywbpw9itkzo",
   );
+
+  final jenc = JsonEncoder.withIndent('  ');
+  print(jenc.convert(resolutionResult.toJson()));
 }

@@ -141,7 +141,10 @@ class Secp256k1 implements Dsa {
 
   @override
   Future<void> verify(
-      Jwk publicKeyJwk, Uint8List payload, Uint8List signature,) {
+    Jwk publicKeyJwk,
+    Uint8List payload,
+    Uint8List signature,
+  ) {
     final xBytes = base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
     final x = bytesToBigInt(xBytes);
 
@@ -176,5 +179,11 @@ class Secp256k1 implements Dsa {
     }
 
     return result;
+  }
+
+  @override
+  Jwk bytesToPublicKey(Uint8List input) {
+    // TODO: implement bytesToPublicKey
+    throw UnimplementedError();
   }
 }
