@@ -69,11 +69,13 @@ class Ed25519 implements Dsa {
     final keyPair = await ed25519.newKeyPair();
 
     final privateKeyBytes = await keyPair.extractPrivateKeyBytes();
+    final publicKey = await keyPair.extractPublicKey();
     final privateKeyJwk = Jwk(
       kty: kty,
       alg: alg,
       crv: crv,
       d: _base64UrlEncoder.convertNoPadding(privateKeyBytes),
+      x: _base64UrlEncoder.convertNoPadding(publicKey.bytes),
     );
 
     return privateKeyJwk;

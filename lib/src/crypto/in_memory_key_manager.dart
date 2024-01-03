@@ -26,8 +26,7 @@ class InMemoryKeyManager implements KeyManager {
   @override
   Future<String> generatePrivateKey(DsaName alg) async {
     final privateKeyJwk = await DsaAlgorithms.generatePrivateKey(alg);
-    final publicKeyJwk = await DsaAlgorithms.computePublicKey(privateKeyJwk);
-    final alias = publicKeyJwk.computeThumbprint();
+    final alias = privateKeyJwk.computeThumbprint();
 
     _keyStore[alias] = privateKeyJwk;
 
