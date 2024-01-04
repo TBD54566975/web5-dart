@@ -1,3 +1,6 @@
+clean:
+  cd packages/web5_flutter && flutter clean
+
 get:
   #!/bin/bash
   echo "Getting dependencies for packages"
