@@ -1,0 +1,35 @@
+name: tbdex_flutter
+description: "Flutter plugin for TBDex"
+version: 0.1.0
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  tbdex:
+    git:
+      url: https://github.com/TBD54566975/tbdex-dart.git
+      ref: main
+
+  plugin_platform_interface: ^2.0.2
+  flutter_secure_storage: ^9.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  mocktail: ^1.0.2
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: xyz.block.tbdex_flutter
+        pluginClass: TbdexFlutterPlugin
+      ios:
+        pluginClass: TbdexFlutterPlugin

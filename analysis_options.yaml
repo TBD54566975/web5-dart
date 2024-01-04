@@ -1,8 +1,0 @@
-include: package:lints/recommended.yaml
-
-linter:
-  rules:
-    - always_use_package_imports
-    - prefer_final_locals
-    - require_trailing_commas
-    - unnecessary_late
