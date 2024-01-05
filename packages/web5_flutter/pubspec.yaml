@@ -12,10 +12,10 @@ dependencies:
     sdk: flutter
 
   web5:
-    path: ../web5
-    # git:
-    #   url: https://github.com/TBD54566975/web5-dart.git
-    #   ref: main
+    git:
+      url: https://github.com/TBD54566975/web5-dart.git
+      path: packages/web5
+      ref: main
 
   plugin_platform_interface: ^2.0.2
   flutter_secure_storage: ^9.0.0
