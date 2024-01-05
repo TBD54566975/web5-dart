@@ -415,9 +415,11 @@ packages:
   web5:
     dependency: transitive
     description:
-      path: "../../web5"
-      relative: true
-    source: path
+      path: "packages/web5"
+      ref: main
+      resolved-ref: "692b5c823c30953c13d9cc2622c1e746df09e92b"
+      url: "https://github.com/TBD54566975/web5-dart.git"
+    source: git
     version: "0.1.0"
   web5_flutter:
     dependency: "direct main"
