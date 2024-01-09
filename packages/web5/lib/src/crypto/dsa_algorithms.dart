@@ -26,6 +26,22 @@ class DsaAlgorithms {
     return _getDsa(privateKeyJwk).sign(privateKeyJwk, payload);
   }
 
+  static Future<void> verify({
+    required DsaName algName,
+    required Jwk publicKey,
+    required Uint8List payload,
+    required Uint8List signature,
+  }) {
+    final dsa = _supportedAlgorithms[algName];
+    if (dsa == null) {
+      throw Exception(
+        "DSA ${algName.algorithm}:${algName.curve} not supported.",
+      );
+    }
+
+    return dsa.verify(publicKey, payload, signature);
+  }
+
   static Dsa _getDsa(Jwk privateKeyJwk) {
     final dsa = _supportedAlgorithms[DsaName.findByAlias(
       algorithm: privateKeyJwk.alg,

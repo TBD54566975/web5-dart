@@ -1,4 +1,5 @@
 import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/dids/did_resource.dart';
 
 /// A DID document can express verification methods, such as cryptographic
 /// public keys, which can be used to authenticate or authorize interactions
@@ -8,7 +9,8 @@ import 'package:web5/src/crypto/jwk.dart';
 /// signer could use the associated cryptographic private key
 ///
 /// [Specification Reference](https://www.w3.org/TR/did-core/#verification-methods)
-class DidVerificationMethod {
+class DidVerificationMethod implements DidResource {
+  @override
   final String id;
   final String type;
   final String controller;

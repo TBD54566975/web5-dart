@@ -8,8 +8,8 @@ import 'package:web5/src/extensions/json.dart';
 import 'package:web5/src/dids/did_document.dart';
 import 'package:web5/src/crypto/key_manager.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/dids/did_resolution_result.dart';
-import 'package:web5/src/dids/did_verification_method.dart';
+import 'package:web5/src/dids/resolution_result.dart';
+import 'package:web5/src/dids/verification_method.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
@@ -64,17 +64,17 @@ class DidJwk implements Did {
   /// an invalid [DidResolutionResult].
   ///
   /// Throws [FormatException] if the JWK parsing fails.
-  static DidResolutionResult resolve(String didUri) {
+  static Future<DidResolutionResult> resolve(String didUri) {
     final DidUri parsedDidUri;
 
     try {
       parsedDidUri = DidUri.parse(didUri);
     } on Exception {
-      return DidResolutionResult.invalidDid();
+      return Future.value(DidResolutionResult.invalidDid());
     }
 
     if (parsedDidUri.method != 'jwk') {
-      return DidResolutionResult.invalidDid();
+      return Future.value(DidResolutionResult.invalidDid());
     }
 
     final dynamic jwk;
@@ -82,7 +82,7 @@ class DidJwk implements Did {
     try {
       jwk = json.fromBase64Url(parsedDidUri.id);
     } on FormatException {
-      return DidResolutionResult.invalidDid();
+      return Future.value(DidResolutionResult.invalidDid());
     }
 
     final verificationMethod = DidVerificationMethod(
@@ -103,6 +103,6 @@ class DidJwk implements Did {
 
     final didResolutionResult = DidResolutionResult(didDocument: didDocument);
 
-    return didResolutionResult;
+    return Future.value(didResolutionResult);
   }
 }

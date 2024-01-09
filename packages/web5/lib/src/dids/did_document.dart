@@ -1,5 +1,7 @@
-import 'package:web5/src/dids/did_service.dart';
-import 'package:web5/src/dids/did_verification_method.dart';
+import 'package:web5/src/dids/did_resource.dart';
+import 'package:web5/src/dids/service.dart';
+import 'package:web5/src/dids/verification_method.dart';
+import 'package:web5/src/dids/verification_relationship.dart';
 
 /// A set of data describing the DID subject including mechanisms such as:
 ///  * cryptographic public keys - used to authenticate itself and prove
@@ -11,11 +13,12 @@ import 'package:web5/src/dids/did_verification_method.dart';
 ///               and verifiable credential repository services.
 ///
 /// A DID Document can be retrieved by _resolving_ a DID URI
-class DidDocument {
+class DidDocument implements DidResource {
   final String? context;
 
   /// The DID URI for a particular DID subject is expressed using the id property
   /// in the DID document.
+  @override
   final String id;
 
   /// A DID subject can have multiple identifiers for different purposes, or at
@@ -124,6 +127,34 @@ class DidDocument {
     service!.add(svc);
   }
 
+  DidResource? getResourceById(String resourceId) {
+    if (resourceId == id) {
+      return this;
+    }
+
+    final Set<String> idVariations = {resourceId};
+    if (resourceId.startsWith('#')) {
+      idVariations.add('$id$resourceId');
+    } else {
+      final splitId = resourceId.split('#');
+      if (splitId.length > 1) {
+        idVariations.add('#${splitId[1]}');
+      }
+    }
+
+    DidResource? resource =
+        verificationMethod?.firstWhere((vm) => idVariations.contains(vm.id));
+
+    if (resource != null) {
+      return resource;
+    }
+
+    resource = service?.firstWhere((vm) => idVariations.contains(vm.id));
+
+    return resource;
+  }
+
+  @override
   Map<String, dynamic> toJson() {
     final json = {
       'context': context,
@@ -144,12 +175,4 @@ class DidDocument {
 
     return json;
   }
-}
-
-enum VerificationRelationship {
-  authentication,
-  assertionMethod,
-  capabilityInvocation,
-  capabilityDelegation,
-  keyAgreement
 }

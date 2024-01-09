@@ -6,12 +6,13 @@ import 'package:web5/src/crypto/ed25519.dart';
 import 'package:web5/src/crypto/secp256k1.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_document.dart';
-import 'package:web5/src/dids/did_service.dart';
+import 'package:web5/src/dids/did_method_resolver.dart';
+import 'package:web5/src/dids/service.dart';
 import 'package:web5/src/dids/did_uri.dart';
-import 'package:web5/src/dids/did_verification_method.dart';
+import 'package:web5/src/dids/verification_method.dart';
 import 'package:web5/src/dns_packet/packet.dart';
 import 'package:web5/src/crypto/key_manager.dart';
-import 'package:web5/src/dids/did_resolution_result.dart';
+import 'package:web5/src/dids/resolution_result.dart';
 import 'package:web5/src/dns_packet/txt_data.dart';
 import 'package:web5/src/dns_packet/type.dart';
 import 'package:web5/src/extensions/base64url.dart';
@@ -31,7 +32,7 @@ class DidDht implements Did {
 
   static const String methodName = 'dht';
 
-  // static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
+  static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
   static Future<DidResolutionResult> resolve(
     String didUri, {

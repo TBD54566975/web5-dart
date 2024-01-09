@@ -11,7 +11,7 @@ void main() {
     });
 
     test('should resolve with error if kaka DID', () async {
-      final resolutionResult = DidJwk.resolve('hi');
+      final resolutionResult = await DidJwk.resolve('hi');
 
       expect(resolutionResult.didDocument, isNull);
       expect(
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('should resolve with error if not did:jwk', () async {
-      final resolutionResult = DidJwk.resolve(
+      final resolutionResult = await DidJwk.resolve(
         'did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH',
       );
 
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('should resolve with error if id is not valid base64url', () async {
-      final resolutionResult = DidJwk.resolve('did:jwk:!!!');
+      final resolutionResult = await DidJwk.resolve('did:jwk:!!!');
 
       expect(resolutionResult.didDocument, isNull);
       expect(
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('should resolve with didDocument if legit', () async {
-      final resolutionResult = DidJwk.resolve(
+      final resolutionResult = await DidJwk.resolve(
         'did:jwk:eyJraWQiOiJ1cm46aWV0ZjpwYXJhbXM6b2F1dGg6andrLXRodW1icHJpbnQ6c2hhLTI1NjpGZk1iek9qTW1RNGVmVDZrdndUSUpqZWxUcWpsMHhqRUlXUTJxb2JzUk1NIiwia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsImFsZyI6IkVkRFNBIiwieCI6IkFOUmpIX3p4Y0tCeHNqUlBVdHpSYnA3RlNWTEtKWFE5QVBYOU1QMWo3azQifQ',
       );
 

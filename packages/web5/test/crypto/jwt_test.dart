@@ -9,7 +9,7 @@ void main() {
       final did = await DidJwk.create(keyManager: km);
 
       final signedJwt =
-          await Jwt.sign(did: did, jwtPayload: JwtPayload(iss: did.uri));
+          await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
 
       final parsedJwt = Jwt.parse(signedJwt);
       expect(parsedJwt.decoded.header.kid, contains("${did.uri}#"));

@@ -1,12 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:web5/src/extensions/base64url.dart';
 import 'package:web5/src/extensions/json.dart';
+import 'package:web5/src/jws.dart';
 import 'package:web5/web5.dart';
-
-final base64UrlCodec = Base64Codec.urlSafe();
-final base64UrlEncoder = base64UrlCodec.encoder;
 
 /// A utility class for handling
 /// [JSON Web Tokens (JWTs)](https://datatracker.ietf.org/doc/html/rfc7519)
@@ -16,8 +12,6 @@ final base64UrlEncoder = base64UrlCodec.encoder;
 class Jwt {
   JwtEncoded encoded;
   JwtDecoded decoded;
-
-  static final _didResolver = DidResolver(methodResolvers: [DidJwk.resolver]);
 
   Jwt({required this.encoded, required this.decoded});
 
@@ -41,28 +35,28 @@ class Jwt {
       base64UrlEncodedSignature
     ] = splitJwt;
 
-    final JwtHeader jwtHeader;
+    final JwtHeader header;
 
     try {
-      jwtHeader = JwtHeader.fromBase64Url(base64UrlEncodedHeader);
+      header = JwtHeader.fromBase64Url(base64UrlEncodedHeader);
     } on Exception {
       throw Exception(
         'Malformed JWT. Invalid base64url encoding for JWT header',
       );
     }
 
-    if (jwtHeader.typ == null || jwtHeader.typ != 'JWT') {
+    if (header.typ == null || header.typ != 'JWT') {
       throw Exception('Expected JWT header to contain typ property set to JWT');
     }
 
-    if (jwtHeader.alg == null || jwtHeader.kid == null) {
+    if (header.alg == null || header.kid == null) {
       throw Exception('Expected JWT header to contain alg and kid');
     }
 
-    final JwtPayload jwtPayload;
+    final JwtClaims payload;
 
     try {
-      jwtPayload = JwtPayload.fromBase64Url(base64UrlEncodedPayload);
+      payload = JwtClaims.fromBase64Url(base64UrlEncodedPayload);
     } on Exception {
       throw Exception(
         'Malformed JWT. Invalid base64url encoding for JWT payload',
@@ -70,7 +64,7 @@ class Jwt {
     }
 
     return Jwt(
-      decoded: JwtDecoded(header: jwtHeader, payload: jwtPayload),
+      decoded: JwtDecoded(header: header, payload: payload),
       encoded: JwtEncoded(
         header: base64UrlEncodedHeader,
         payload: base64UrlEncodedPayload,
@@ -84,103 +78,70 @@ class Jwt {
   /// Throws [Exception] if any error occurs during the signing process.
   static Future<String> sign({
     required Did did,
-    required JwtPayload jwtPayload,
+    required JwtClaims payload,
   }) async {
-    final resolutionResult = _didResolver.resolve(did.uri);
-    if (resolutionResult.hasError()) {
-      throw Exception("failed to resolve DID");
-    }
+    final header = JwtHeader(typ: 'JWT');
+    final payloadBytes = json.toBytes(payload.toJson());
 
-    final verificationMethod =
-        resolutionResult.didDocument!.verificationMethod!.first;
-
-    final String kid;
-    if (verificationMethod.id.startsWith('#')) {
-      kid = "${did.uri}${verificationMethod.id}";
-    } else {
-      kid = verificationMethod.id;
-    }
-
-    final publicKeyJwk = verificationMethod.publicKeyJwk!;
-    final dsaName = DsaName.findByAlias(
-      algorithm: publicKeyJwk.alg,
-      curve: publicKeyJwk.crv,
-    );
-
-    if (dsaName == null) {
-      throw Exception("$dsaName signing not supported");
-    }
-
-    final jwtHeader = JwtHeader(typ: 'JWT', kid: kid, alg: dsaName.algorithm);
-    final jwtHeaderBase64Url = jwtHeader.toBase64Url();
-    final jwtPayloadBase64Url = jwtPayload.toBase64Url();
-
-    final toSign = "$jwtHeaderBase64Url.$jwtPayloadBase64Url";
-    final toSignBytes = Uint8List.fromList(utf8.encode(toSign));
-
-    final keyAlias = publicKeyJwk.computeThumbprint();
-
-    final signatureBytes = await did.keyManager.sign(keyAlias, toSignBytes);
-    final signatureBase64Url =
-        base64UrlEncoder.convertNoPadding(signatureBytes);
-
-    return "$jwtHeaderBase64Url.$jwtPayloadBase64Url.$signatureBase64Url";
+    return Jws.sign(did: did, payload: payloadBytes, header: header);
   }
+
+  // static Future<void> verify(String signedJwt) {
+  //   final parsedJwt = Jwt.parse(signedJwt);
+  //   final header = parsedJwt.decoded.header;
+  // }
 }
 
-/// Represents the header portion of a JWT.
+/// JWT Headers are JWS Headers. type aliasing because this could cause confusion
+/// for non-neckbeards
+typedef JwtHeader = JwsHeader;
+
+/// Represents JWT Claims
 ///
-/// The header typically includes the type of token (JWT) and the
-/// signing algorithm used.
-class JwtHeader {
-  String? typ;
-  String? alg;
-  String? kid;
-
-  JwtHeader({this.typ, this.alg, this.kid});
-
-  Map<String, dynamic> toJson() {
-    return {
-      if (typ != null) 'typ': typ,
-      if (alg != null) 'alg': alg,
-      if (kid != null) 'kid': kid,
-    };
-  }
-
-  factory JwtHeader.fromBase64Url(String base64UrlEncodedHeader) {
-    final jsonHeader = json.fromBase64Url(base64UrlEncodedHeader);
-
-    return JwtHeader.fromJson(jsonHeader);
-  }
-
-  factory JwtHeader.fromJson(Map<String, dynamic> json) {
-    return JwtHeader(
-      typ: json['typ'] as String?,
-      alg: json['alg'] as String?,
-      kid: json['kid'] as String?,
-    );
-  }
-
-  String toBase64Url() {
-    final jsonHeader = toJson();
-    return json.toBase64Url(jsonHeader);
-  }
-}
-
-/// Represents the payload of a JWT.
-///
-/// This class contains the claims of the JWT, such as issuer, subject,
-/// audience, expiration time, etc.
-class JwtPayload {
+/// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4)
+class JwtClaims {
+  /// The "iss" (issuer) claim identifies the principal that issued the
+  /// JWT.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1)
   String? iss;
+
+  /// The "sub" (subject) claim identifies the principal that is the
+  /// subject of the JWT.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2)
   String? sub;
+
+  /// The "aud" (audience) claim identifies the recipients that the JWT is
+  /// intended for.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3)
   dynamic _aud;
+
+  /// The "exp" (expiration time) claim identifies the expiration time on
+  /// or after which the JWT must not be accepted for processing.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4)
   int? exp;
+
+  /// The "nbf" (not before) claim identifies the time before which the JWT
+  /// must not be accepted for processing.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5)
   int? nbf;
+
+  /// The "iat" (issued at) claim identifies the time at which the JWT was
+  /// issued.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.6)
   int? iat;
+
+  /// The "jti" (JWT ID) claim provides a unique identifier for the JWT.
+  ///
+  /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.7)
   String? jti;
 
-  JwtPayload({
+  JwtClaims({
     this.iss,
     this.sub,
     dynamic aud,
@@ -216,8 +177,8 @@ class JwtPayload {
     };
   }
 
-  factory JwtPayload.fromJson(Map<String, dynamic> json) {
-    return JwtPayload(
+  factory JwtClaims.fromJson(Map<String, dynamic> json) {
+    return JwtClaims(
       iss: json['iss'] as String?,
       sub: json['sub'] as String?,
       aud: json['aud'],
@@ -228,10 +189,10 @@ class JwtPayload {
     );
   }
 
-  factory JwtPayload.fromBase64Url(String base64UrlEncodedPayload) {
+  factory JwtClaims.fromBase64Url(String base64UrlEncodedPayload) {
     final jsonPayload = json.fromBase64Url(base64UrlEncodedPayload);
 
-    return JwtPayload.fromJson(jsonPayload);
+    return JwtClaims.fromJson(jsonPayload);
   }
 
   String toBase64Url() {
@@ -245,14 +206,14 @@ class JwtPayload {
 /// **Note**: Signature not included because its decoded form would be bytes
 class JwtDecoded {
   final JwtHeader header;
-  final JwtPayload payload;
+  final JwtClaims payload;
 
   JwtDecoded({required this.header, required this.payload});
 
   factory JwtDecoded.fromJson(Map<String, dynamic> json) {
     return JwtDecoded(
       header: JwtHeader.fromJson(json['header']),
-      payload: JwtPayload.fromJson(json['payload']),
+      payload: JwtClaims.fromJson(json['payload']),
     );
   }
 

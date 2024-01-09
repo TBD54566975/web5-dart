@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:web5/src/extensions/base64url.dart';
 
@@ -17,7 +18,7 @@ extension Encoders on JsonCodec {
   ///
   ///
   /// Returns a [List<int>] representing the byte array.
-  List<int> toBytes(Object object) {
+  Uint8List toBytes(Object object) {
     final stringified = encode(object);
 
     return utf8.encoder.convert(stringified);

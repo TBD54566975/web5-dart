@@ -1,6 +1,6 @@
 import 'package:web5/src/dids/did_document.dart';
 import 'package:web5/src/dids/did_document_metadata.dart';
-import 'package:web5/src/dids/did_resolution_metadata.dart';
+import 'package:web5/src/dids/resolution_metadata.dart';
 
 /// A class representing the result of a DID (Decentralized Identifier)
 /// resolution.
