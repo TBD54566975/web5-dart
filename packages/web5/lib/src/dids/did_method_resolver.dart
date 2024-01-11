@@ -28,10 +28,8 @@ class DidMethodResolver {
     }
 
     final resource = didResolutionResult.didDocument!.getResourceById(didUri);
-    if (resource != null) {
-      return DidDereferenceResult(contentStream: resource);
-    } else {
-      return DidDereferenceResult.withError('notFound');
-    }
+    return resource != null
+        ? DidDereferenceResult(contentStream: resource)
+        : DidDereferenceResult.withError('notFound');
   }
 }
