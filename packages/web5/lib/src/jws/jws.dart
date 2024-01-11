@@ -119,7 +119,6 @@ class Jws {
     }
 
     final dereferenceResult = await _didResolver.dereference(header.kid!);
-
     if (dereferenceResult.hasError()) {
       throw Exception(
         'Verification failed. Failed to dereference kid. Error: ${dereferenceResult.dereferencingMetadata.error}',

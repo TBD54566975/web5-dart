@@ -8,6 +8,15 @@ import 'package:web5/src/jwt/jwt_decoded.dart';
 import 'package:web5/src/jwt/jwt_encoded.dart';
 import 'package:web5/src/jwt/jwt_header.dart';
 
+/**
+ * TODO: refactor. awkward implementation:
+ *   * Jwt.parse() returns an instance of Jwt but you can't call sign on an
+ *     an instance of Jwt. Likely makes most sense for Jwt to have static methods
+ *     only and potentially return something like ParsedJwt instead
+ *   * Jwt.verify calls Jwt.parse first then calls Jws.verify which effectively
+ *     performs the same logic as Jwt.parse
+ */
+
 /// A utility class for handling
 /// [JSON Web Tokens (JWTs)](https://datatracker.ietf.org/doc/html/rfc7519)
 ///
@@ -40,7 +49,6 @@ class Jwt {
     ] = splitJwt;
 
     final JwtHeader header;
-
     try {
       header = JwtHeader.fromBase64Url(base64UrlEncodedHeader);
     } on Exception {
@@ -58,7 +66,6 @@ class Jwt {
     }
 
     final JwtClaims payload;
-
     try {
       payload = JwtClaims.fromBase64Url(base64UrlEncodedPayload);
     } on Exception {
@@ -90,8 +97,9 @@ class Jwt {
     return Jws.sign(did: did, payload: payloadBytes, header: header);
   }
 
-  // static Future<void> verify(String signedJwt) {
-  //   final parsedJwt = Jwt.parse(signedJwt);
-  //   final header = parsedJwt.decoded.header;
-  // }
+  static Future<void> verify(String signedJwt) async {
+    Jwt.parse(signedJwt);
+
+    return Jws.verify(signedJwt);
+  }
 }
