@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:web5/src/dids/data_models/service.dart';
 import 'package:web5/src/dids/data_models/did_resource.dart';
 import 'package:web5/src/dids/data_models/verification_method.dart';
@@ -142,14 +143,14 @@ class DidDocument implements DidResource {
       }
     }
 
-    DidResource? resource =
-        verificationMethod?.firstWhere((vm) => idVariations.contains(vm.id));
+    DidResource? resource = verificationMethod
+        ?.firstWhereOrNull((vm) => idVariations.contains(vm.id));
 
     if (resource != null) {
       return resource;
     }
 
-    resource = service?.firstWhere((vm) => idVariations.contains(vm.id));
+    resource = service?.firstWhereOrNull((vm) => idVariations.contains(vm.id));
 
     return resource;
   }
