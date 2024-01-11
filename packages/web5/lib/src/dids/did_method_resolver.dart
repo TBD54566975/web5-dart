@@ -1,5 +1,4 @@
-import 'package:web5/src/dids/dereference_result.dart';
-import 'package:web5/src/dids/resolution_result.dart';
+import 'package:web5/src/dids/data_models.dart';
 
 /// Represents a method resolver for a specific DID method.
 class DidMethodResolver {
@@ -21,9 +20,9 @@ class DidMethodResolver {
       );
     }
 
-    if (!didUri.contains("#")) {
+    if (!didUri.contains('#')) {
       return DidDereferenceResult(
-        contentStream: didResolutionResult.didDocument,
+        contentStream: didResolutionResult.didDocument as DidResource,
         contentMetadata: didResolutionResult.didDocumentMetadata,
       );
     }

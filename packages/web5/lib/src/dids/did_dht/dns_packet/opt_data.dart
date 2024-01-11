@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:web5/src/dns_packet/option_code.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/option_code.dart';
 
 class DnsOptData {
   final List<Option> options;

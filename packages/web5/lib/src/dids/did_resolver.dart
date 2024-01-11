@@ -1,7 +1,6 @@
-import 'package:web5/src/dids/dereference_result.dart';
-import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/dids/resolution_result.dart';
 import 'package:web5/src/dids/did_uri.dart';
+import 'package:web5/src/dids/data_models.dart';
+import 'package:web5/src/dids/did_method_resolver.dart';
 
 /// A resolver for Decentralized Identifiers (DIDs).
 ///
@@ -28,7 +27,7 @@ class DidResolver {
     final resolver = methodResolvers[parsedDidUri.method];
 
     if (resolver == null) {
-      throw Exception("no resolver available for did:${parsedDidUri.method}");
+      throw Exception('no resolver available for did:${parsedDidUri.method}');
     }
 
     return resolver.resolve(didUri);
@@ -42,7 +41,7 @@ class DidResolver {
     final resolver = methodResolvers[parsedDidUri.method];
 
     if (resolver == null) {
-      throw Exception("no resolver available for did:${parsedDidUri.method}");
+      throw Exception('no resolver available for did:${parsedDidUri.method}');
     }
 
     return resolver.dereference(didUri);

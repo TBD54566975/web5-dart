@@ -1,4 +1,4 @@
-import 'package:web5/src/dids/did_resource.dart';
+import 'package:web5/src/dids/data_models/did_resource.dart';
 
 /// Services are used in DID documents to express ways of communicating with
 /// the DID subject or associated entities.

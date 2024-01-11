@@ -1,12 +1,12 @@
-import "dart:convert";
-import "dart:math";
+import 'dart:math';
+import 'dart:convert';
 import 'dart:typed_data';
 
-import "package:pointycastle/export.dart";
+import 'package:pointycastle/export.dart';
 import 'package:web5/src/crypto/dsa.dart';
 import 'package:web5/src/crypto/jwk.dart';
-import "package:web5/src/extensions/base64url.dart";
-import 'package:web5/src/extensions/bigint.dart';
+import 'package:web5/src/extensions.dart';
+import 'package:web5/src/crypto/dsa_name.dart';
 
 final _base64UrlCodec = Base64Codec.urlSafe();
 final _base64UrlEncoder = _base64UrlCodec.encoder;
@@ -47,7 +47,7 @@ class Secp256k1 implements Dsa {
     final y = Q.y!.toBigInteger();
 
     if (x == null || y == null) {
-      throw Exception("Failed to generate public key from private key");
+      throw Exception('Failed to generate public key from private key');
     }
 
     final publicKeyJwk = Jwk(
@@ -166,7 +166,7 @@ class Secp256k1 implements Dsa {
     final isLegit = verifier.verifySignature(payload, ecSignature);
 
     if (!isLegit) {
-      throw Exception("Integrity check failed");
+      throw Exception('Integrity check failed');
     }
 
     return Future.value();

@@ -3,9 +3,10 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart' as crypto;
 
-import 'package:web5/src/extensions/base64url.dart';
+import 'package:web5/src/extensions.dart';
 import 'package:web5/src/crypto/dsa.dart';
 import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/crypto/dsa_name.dart';
 
 final ed25519 = crypto.Ed25519();
 final _base64UrlCodec = Base64Codec.urlSafe();
@@ -107,7 +108,7 @@ class Ed25519 implements Dsa {
     final isLegit = await ed25519.verify(payload, signature: signature);
 
     if (isLegit == false) {
-      throw Exception("Integrity check failed");
+      throw Exception('Integrity check failed');
     }
   }
 

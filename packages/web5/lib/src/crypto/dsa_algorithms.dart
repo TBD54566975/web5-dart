@@ -1,6 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:web5/web5.dart';
+import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/crypto/dsa.dart';
+import 'package:web5/src/crypto/ed25519.dart';
+import 'package:web5/src/crypto/dsa_name.dart';
+import 'package:web5/src/crypto/secp256k1.dart';
 
 class DsaAlgorithms {
   static final _supportedAlgorithms = {
@@ -12,7 +16,7 @@ class DsaAlgorithms {
     final dsa = _supportedAlgorithms[alg];
 
     if (dsa == null) {
-      throw Exception("${alg.name} not supported");
+      throw Exception('${alg.name} not supported');
     }
 
     return dsa.generatePrivateKey();
@@ -35,7 +39,7 @@ class DsaAlgorithms {
     final dsa = _supportedAlgorithms[algName];
     if (dsa == null) {
       throw Exception(
-        "DSA ${algName.algorithm}:${algName.curve} not supported.",
+        'DSA ${algName.algorithm}:${algName.curve} not supported.',
       );
     }
 
@@ -50,7 +54,7 @@ class DsaAlgorithms {
 
     if (dsa == null) {
       throw Exception(
-        "DSA ${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.",
+        'DSA ${privateKeyJwk.alg}:${privateKeyJwk.crv} not supported.',
       );
     }
     return dsa;

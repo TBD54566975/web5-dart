@@ -1,0 +1,11 @@
+export './data_models/service.dart';
+export './data_models/did_resource.dart';
+export './data_models/did_document.dart';
+export './data_models/resolution_result.dart';
+export './data_models/dereference_result.dart';
+export './data_models/verification_method.dart';
+export './data_models/resolution_metadata.dart';
+export './data_models/dereference_options.dart';
+export './data_models/dereference_metadata.dart';
+export './data_models/did_document_metadata.dart';
+export './data_models/verification_relationship.dart';
