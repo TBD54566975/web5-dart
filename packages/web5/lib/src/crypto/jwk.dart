@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:cryptography/dart.dart';
-import 'package:web5/src/extensions/base64url.dart';
-import 'package:web5/src/extensions/json.dart';
+import 'package:web5/src/extensions.dart';
 
 // TODO: refactor into PrivateJwk PublicJwk classes
 
-const dartSha256 = DartSha256();
+const _dartSha256 = DartSha256();
+final _base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
 /// Represents a [JSON Web Key (JWK)](https://datatracker.ietf.org/doc/html/rfc7517).
 ///
@@ -135,10 +135,11 @@ class Jwk {
     thumbprintPayload.removeWhere((key, value) => value == null);
 
     final thumbprintPayloadBytes = utf8.encode(jsonEncode(thumbprintPayload));
-    final thumbprintPayloadDigest = dartSha256.hashSync(thumbprintPayloadBytes);
+    final thumbprintPayloadDigest =
+        _dartSha256.hashSync(thumbprintPayloadBytes);
 
     final thumbprint =
-        base64UrlEncoder.convertNoPadding(thumbprintPayloadDigest.bytes);
+        _base64UrlEncoder.convertNoPadding(thumbprintPayloadDigest.bytes);
 
     return thumbprint;
   }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:web5/src/dns_packet/rdata.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/rdata.dart';
 
 class DnsTxtData implements RData {
   final List<String> value;

@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dns_packet/class.dart';
-import 'package:web5/src/dns_packet/consts.dart';
-import 'package:web5/src/dns_packet/name.dart';
-import 'package:web5/src/dns_packet/type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/class.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/consts.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/type.dart';
 
 class DnsQuestion {
   late DnsName name;

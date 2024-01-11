@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dns_packet/answer.dart';
-import 'package:web5/src/dns_packet/header.dart';
-import 'package:web5/src/dns_packet/question.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/answer.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/header.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/question.dart';
 
 class DnsPacket {
   DnsHeader header;

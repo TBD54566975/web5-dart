@@ -10,7 +10,7 @@ void main() {
       final secp256k1 = Secp256k1();
 
       final privateKeyJwk = await secp256k1.generatePrivateKey();
-      final payload = Uint8List.fromList(utf8.encode("hello"));
+      final payload = Uint8List.fromList(utf8.encode('hello'));
       final signature = await secp256k1.sign(privateKeyJwk, payload);
 
       final publicKeyJwk = await secp256k1.computePublicKey(privateKeyJwk);

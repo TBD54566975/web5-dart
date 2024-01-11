@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:web5/web5.dart';
 
 void main() async {
   final keyManager = InMemoryKeyManager();
 
-  final did = await DidJwk.create(keyManager: keyManager);
-  print(did.uri);
+  // LOAD PRE-EXISTING
+  // final did = DidJwk(uri: "some_uri", keyManager: keyManager);
 
-  final didResolutionResult = DidJwk.resolve(did.uri);
-  print(jsonEncode(didResolutionResult));
+  // CREATE
+  // final did = DidJwk.create(keyManager: keyManager);
 }

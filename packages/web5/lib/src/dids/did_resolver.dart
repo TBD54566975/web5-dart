@@ -1,6 +1,6 @@
-import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/dids/did_resolution_result.dart';
 import 'package:web5/src/dids/did_uri.dart';
+import 'package:web5/src/dids/data_models.dart';
+import 'package:web5/src/dids/did_method_resolver.dart';
 
 /// A resolver for Decentralized Identifiers (DIDs).
 ///
@@ -22,14 +22,28 @@ class DidResolver {
   /// Resolves a DID URI into a [DidResolutionResult].
   ///
   /// Throws an [Exception] if no resolver is available for the given method.
-  DidResolutionResult resolve(String didUri) {
+  Future<DidResolutionResult> resolve(String didUri) {
     final parsedDidUri = DidUri.parse(didUri);
     final resolver = methodResolvers[parsedDidUri.method];
 
     if (resolver == null) {
-      throw Exception("no resolver available for did:${parsedDidUri.method}");
+      throw Exception('no resolver available for did:${parsedDidUri.method}');
     }
 
     return resolver.resolve(didUri);
+  }
+
+  /// Resolves a DID URI into a [DidResolutionResult].
+  ///
+  /// Throws an [Exception] if no resolver is available for the given method.
+  Future<DidDereferenceResult> dereference(String didUri) {
+    final parsedDidUri = DidUri.parse(didUri);
+    final resolver = methodResolvers[parsedDidUri.method];
+
+    if (resolver == null) {
+      throw Exception('no resolver available for did:${parsedDidUri.method}');
+    }
+
+    return resolver.dereference(didUri);
   }
 }

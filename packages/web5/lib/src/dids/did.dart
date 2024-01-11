@@ -1,4 +1,4 @@
-import 'package:web5/src/crypto/key_manager.dart';
+import 'package:web5/src/crypto.dart';
 
 abstract class Did {
   String get uri;

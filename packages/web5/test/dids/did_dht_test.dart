@@ -1,4 +1,4 @@
-import 'package:web5/src/dids/did_dht.dart';
+import 'package:web5/src/dids/did_dht/did_dht.dart';
 import 'package:test/test.dart';
 
 void main() {

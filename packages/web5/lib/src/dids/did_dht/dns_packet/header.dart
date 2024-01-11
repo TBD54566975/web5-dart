@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dns_packet/opcode.dart';
-import 'package:web5/src/dns_packet/rcode.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/opcode.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/rcode.dart';
 
 class DnsHeader {
   int id;

@@ -1,0 +1,11 @@
+export 'structures/service.dart';
+export 'structures/did_resource.dart';
+export 'structures/did_document.dart';
+export 'structures/resolution_result.dart';
+export 'structures/dereference_result.dart';
+export 'structures/verification_method.dart';
+export 'structures/resolution_metadata.dart';
+export 'structures/dereference_options.dart';
+export 'structures/dereference_metadata.dart';
+export 'structures/did_document_metadata.dart';
+export 'structures/verification_relationship.dart';

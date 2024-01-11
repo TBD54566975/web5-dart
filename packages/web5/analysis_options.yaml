@@ -6,3 +6,4 @@ linter:
     - prefer_final_locals
     - require_trailing_commas
     - unnecessary_late
+    - prefer_single_quotes

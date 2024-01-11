@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/crypto/dsa.dart';
+import 'package:web5/src/crypto/dsa_name.dart';
 
 /// A key management interface that provides functionality for generating,
 /// storing, and utilizing private keys and their associated public keys.

@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dns_packet/type.dart';
-import 'package:web5/src/dns_packet/name.dart';
-import 'package:web5/src/dns_packet/rdata.dart';
-import 'package:web5/src/dns_packet/class.dart';
-import 'package:web5/src/dns_packet/consts.dart';
-import 'package:web5/src/dns_packet/opt_data.dart';
-import 'package:web5/src/dns_packet/txt_data.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/rdata.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/class.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/consts.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/opt_data.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 
 /// Represents an answer section in a DNS packet.
 class DnsAnswer {

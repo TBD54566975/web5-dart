@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/dsa.dart';
-import 'package:web5/src/crypto/dsa_algorithms.dart';
 import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/crypto/dsa_name.dart';
 import 'package:web5/src/crypto/key_manager.dart';
+import 'package:web5/src/crypto/dsa_algorithms.dart';
 
 /// A class for managing cryptographic keys in-memory.
 ///
@@ -46,7 +46,7 @@ class InMemoryKeyManager implements KeyManager {
   Jwk _retrievePrivateKeyJwk(String keyAlias) {
     final privateKeyJwk = _keyStore[keyAlias];
     if (privateKeyJwk == null) {
-      throw Exception("key with alias $keyAlias not found.");
+      throw Exception('key with alias $keyAlias not found.');
     }
 
     return privateKeyJwk;

@@ -1,15 +1,11 @@
 import 'dart:convert';
 
+import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
-import 'package:web5/src/crypto/dsa.dart';
-import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/extensions.dart';
 import 'package:web5/src/dids/did_uri.dart';
-import 'package:web5/src/extensions/json.dart';
-import 'package:web5/src/dids/did_document.dart';
-import 'package:web5/src/crypto/key_manager.dart';
+import 'package:web5/src/dids/data_models.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/dids/did_resolution_result.dart';
-import 'package:web5/src/dids/did_verification_method.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
@@ -42,7 +38,7 @@ class DidJwk implements Did {
     final publicKeyJwkBase64Url = json.toBase64Url(publicKeyJwk);
 
     return DidJwk(
-      uri: "did:jwk:$publicKeyJwkBase64Url",
+      uri: 'did:jwk:$publicKeyJwkBase64Url',
       keyManager: keyManager,
     );
   }
@@ -64,17 +60,17 @@ class DidJwk implements Did {
   /// an invalid [DidResolutionResult].
   ///
   /// Throws [FormatException] if the JWK parsing fails.
-  static DidResolutionResult resolve(String didUri) {
+  static Future<DidResolutionResult> resolve(String didUri) {
     final DidUri parsedDidUri;
 
     try {
       parsedDidUri = DidUri.parse(didUri);
     } on Exception {
-      return DidResolutionResult.invalidDid();
+      return Future.value(DidResolutionResult.invalidDid());
     }
 
     if (parsedDidUri.method != 'jwk') {
-      return DidResolutionResult.invalidDid();
+      return Future.value(DidResolutionResult.invalidDid());
     }
 
     final dynamic jwk;
@@ -82,12 +78,12 @@ class DidJwk implements Did {
     try {
       jwk = json.fromBase64Url(parsedDidUri.id);
     } on FormatException {
-      return DidResolutionResult.invalidDid();
+      return Future.value(DidResolutionResult.invalidDid());
     }
 
     final verificationMethod = DidVerificationMethod(
-      id: "$didUri#0",
-      type: "JsonWebKey2020",
+      id: '$didUri#0',
+      type: 'JsonWebKey2020',
       controller: didUri,
       publicKeyJwk: Jwk.fromJson(jwk),
     );
@@ -103,6 +99,6 @@ class DidJwk implements Did {
 
     final didResolutionResult = DidResolutionResult(didDocument: didDocument);
 
-    return didResolutionResult;
+    return Future.value(didResolutionResult);
   }
 }

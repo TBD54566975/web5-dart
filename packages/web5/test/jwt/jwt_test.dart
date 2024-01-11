@@ -1,4 +1,3 @@
-import 'package:web5/src/jwt.dart';
 import 'package:web5/web5.dart';
 import 'package:test/test.dart';
 
@@ -9,10 +8,10 @@ void main() {
       final did = await DidJwk.create(keyManager: km);
 
       final signedJwt =
-          await Jwt.sign(did: did, jwtPayload: JwtPayload(iss: did.uri));
+          await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
 
       final parsedJwt = Jwt.parse(signedJwt);
-      expect(parsedJwt.decoded.header.kid, contains("${did.uri}#"));
+      expect(parsedJwt.decoded.header.kid, contains('${did.uri}#'));
       expect(parsedJwt.decoded.payload.iss, equals(did.uri));
     });
   });

@@ -85,7 +85,7 @@ class DidUri {
     final match = didUriPattern.firstMatch(input);
 
     if (match == null) {
-      throw Exception("Invalid DID URI");
+      throw Exception('Invalid DID URI');
     }
 
     final [
