@@ -57,7 +57,7 @@ class Jwt {
       );
     }
 
-    if (header.typ == null || header.typ != 'JWT') {
+    if (header.typ == null || header.typ?.toUpperCase() != 'JWT') {
       throw Exception('Expected JWT header to contain typ property set to JWT');
     }
 
