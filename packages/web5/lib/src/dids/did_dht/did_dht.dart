@@ -105,7 +105,7 @@ class DidDht implements Did {
 
       for (final value in splitValues) {
         relationshipsMap[value] ??= [];
-        relationshipsMap[value]!.add(value);
+        relationshipsMap[value]!.add(property);
       }
     }
 
