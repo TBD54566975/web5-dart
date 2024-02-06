@@ -39,4 +39,16 @@ class DidVerificationMethod implements DidResource {
 
     return json;
   }
+
+  factory DidVerificationMethod.fromJson(Map<String, dynamic> json) {
+    return DidVerificationMethod(
+      id: json['id'],
+      type: json['type'],
+      controller: json['controller'],
+      publicKeyJwk: json['publicKeyJwk'] != null
+          ? Jwk.fromJson(json['publicKeyJwk'])
+          : null,
+      publicKeyMultibase: json['publicKeyMultibase'],
+    );
+  }
 }

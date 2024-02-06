@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:web5/src/dids/structures/service.dart';
+import 'package:web5/src/dids/structures/did_service.dart';
 import 'package:web5/src/dids/structures/did_resource.dart';
-import 'package:web5/src/dids/structures/verification_method.dart';
-import 'package:web5/src/dids/structures/verification_relationship.dart';
+import 'package:web5/src/dids/structures/did_verification_method.dart';
+import 'package:web5/src/dids/structures/did_verification_relationship.dart';
 
 /// A set of data describing the DID subject including mechanisms such as:
 ///  * cryptographic public keys - used to authenticate itself and prove
@@ -175,5 +175,25 @@ class DidDocument implements DidResource {
     json.removeWhere((key, value) => value == null);
 
     return json;
+  }
+
+  factory DidDocument.fromJson(Map<String, dynamic> json) {
+    return DidDocument(
+      context: json['context'],
+      id: json['id'],
+      alsoKnownAs: json['alsoKnownAs']?.cast<String>(),
+      controller: json['controller'],
+      verificationMethod: (json['verificationMethod'] as List<dynamic>?)
+          ?.map((item) => DidVerificationMethod.fromJson(item))
+          .toList(),
+      service: (json['service'] as List<dynamic>?)
+          ?.map((item) => DidService.fromJson(item))
+          .toList(),
+      assertionMethod: json['assertionMethod']?.cast<String>(),
+      authentication: json['authentication']?.cast<String>(),
+      keyAgreement: json['keyAgreement']?.cast<String>(),
+      capabilityDelegation: json['capabilityDelegation']?.cast<String>(),
+      capabilityInvocation: json['capabilityInvocation']?.cast<String>(),
+    );
   }
 }
