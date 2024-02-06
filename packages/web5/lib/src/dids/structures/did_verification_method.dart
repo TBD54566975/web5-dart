@@ -40,7 +40,6 @@ class DidVerificationMethod implements DidResource {
     return json;
   }
 
-  // Assuming Jwk has a fromJson constructor
   factory DidVerificationMethod.fromJson(Map<String, dynamic> json) {
     return DidVerificationMethod(
       id: json['id'],
