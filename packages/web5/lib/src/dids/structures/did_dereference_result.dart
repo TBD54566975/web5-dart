@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:web5/src/dids/structures/dereference_metadata.dart';
+import 'package:web5/src/dids/structures/did_dereference_metadata.dart';
 import 'package:web5/src/dids/structures/did_document_metadata.dart';
 import 'package:web5/src/dids/structures/did_resource.dart';
 
