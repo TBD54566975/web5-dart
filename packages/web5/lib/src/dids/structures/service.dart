@@ -35,4 +35,12 @@ class DidService implements DidResource {
       'serviceEndpoint': serviceEndpoint,
     };
   }
+
+  factory DidService.fromJson(Map<String, dynamic> json) {
+    return DidService(
+      id: json['id'],
+      type: json['type'],
+      serviceEndpoint: json['serviceEndpoint'].toString(),
+    );
+  }
 }
