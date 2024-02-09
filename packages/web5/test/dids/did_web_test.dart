@@ -9,5 +9,12 @@ void main() {
 
       expect('did:web:www.linkedin.com', result.didDocument!.id);
     });
+
+    test('should resolve with paths', () async {
+      final result = await DidWeb.resolve('did:web:localhost%3A8892:ingress');
+      expect(result.didDocument, isNotNull);
+
+      expect('did:web:localhost%3A8892:ingress', result.didDocument!.id);
+    });
   });
 }

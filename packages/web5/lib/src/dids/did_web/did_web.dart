@@ -41,15 +41,11 @@ class DidWeb implements Did {
       resolutionUrl = 'https://$resolutionUrl';
     }
 
-    if (parsedDidUri.path != null) {
-      resolutionUrl = '$resolutionUrl/${parsedDidUri.path}';
-    } else {
+    if (Uri.parse(resolutionUrl).path.isEmpty) {
       resolutionUrl = '$resolutionUrl/.well-known';
     }
 
-    resolutionUrl += '/did.json';
-    resolutionUrl = Uri.decodeFull(resolutionUrl);
-
+    resolutionUrl = Uri.decodeFull('$resolutionUrl/did.json');
     final parsedUrl = Uri.parse(resolutionUrl);
 
     final httpClient = HttpClient();
