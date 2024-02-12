@@ -29,7 +29,7 @@ class Jws {
       header = JwsHeader.fromBase64Url(parts[0]);
     } on Exception {
       throw Exception(
-        'Malformed JWT. Invalid base64url encoding for JWT header',
+        'Malformed JWT. failed to decode header',
       );
     }
 
@@ -38,7 +38,7 @@ class Jws {
       payload = _base64UrlDecoder.convertNoPadding(parts[1]);
     } on Exception {
       throw Exception(
-        'Malformed JWT. Invalid base64url encoding for JWT payload',
+        'Malformed JWT. failed to decode claims',
       );
     }
 
@@ -47,7 +47,7 @@ class Jws {
       signature = base64.decoder.convertNoPadding(parts[2]);
     } on Exception {
       throw Exception(
-        'Malformed JWT. Invalid base64url encoding for JWT payload',
+        'Malformed JWT. faild to decode signature',
       );
     }
 
