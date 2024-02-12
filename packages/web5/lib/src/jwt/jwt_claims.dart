@@ -1,6 +1,16 @@
 import 'dart:convert';
 import 'package:web5/src/extensions.dart';
 
+final Set<String> reservedClaims = {
+  'iss',
+  'sub',
+  'aud',
+  'exp',
+  'nbf',
+  'iat',
+  'jti',
+};
+
 /// Represents JWT Claims
 ///
 /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4)
@@ -21,7 +31,7 @@ class JwtClaims {
   /// intended for.
   ///
   /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.3)
-  dynamic _aud;
+  String? aud;
 
   /// The "exp" (expiration time) claim identifies the expiration time on
   /// or after which the JWT must not be accepted for processing.
@@ -46,51 +56,57 @@ class JwtClaims {
   /// [Specification Reference](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.7)
   String? jti;
 
+  Map<String, dynamic>? misc; // Additional arbitrary claims.
+
   JwtClaims({
     this.iss,
     this.sub,
-    dynamic aud,
+    this.aud,
     this.exp,
     this.nbf,
     this.iat,
     this.jti,
-  }) : _aud = aud;
-
-  /// Sets the audience claim.
-  ///
-  /// The value can be either a single string or a list of strings.
-  /// Throws [ArgumentError] if the value is not a string or list of strings.
-  set aud(dynamic value) {
-    if (value is String || value is List<String>) {
-      _aud = value;
-    } else {
-      throw ArgumentError('aud must be either String or List<String>');
-    }
-  }
-
-  dynamic get aud => _aud;
+    misc,
+  }) : misc = misc ?? {};
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = {
       if (iss != null) 'iss': iss,
       if (sub != null) 'sub': sub,
-      if (_aud != null) 'aud': _aud,
+      if (aud != null) 'aud': aud,
       if (exp != null) 'exp': exp,
       if (nbf != null) 'nbf': nbf,
       if (iat != null) 'iat': iat,
       if (jti != null) 'jti': jti,
     };
+
+    if (misc != null) {
+      map.addAll(misc!);
+    }
+
+    return map;
   }
 
   factory JwtClaims.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> miscClaims = {};
+
+    for (final key in json.keys) {
+      if (reservedClaims.contains(key)) {
+        continue;
+      }
+
+      miscClaims[key] = json[key];
+    }
+
     return JwtClaims(
       iss: json['iss'] as String?,
       sub: json['sub'] as String?,
-      aud: json['aud'],
+      aud: json['aud'] as String?,
       exp: json['exp'] as int?,
       nbf: json['nbf'] as int?,
       iat: json['iat'] as int?,
       jti: json['jti'] as String?,
+      misc: miscClaims,
     );
   }
 

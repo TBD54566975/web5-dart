@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:web5/src/dids.dart';
 import 'package:web5/src/crypto.dart';
-import 'package:web5/src/extensions.dart';
+import 'package:web5/src/dids.dart';
+import 'package:web5/src/extensions/base64url.dart';
+import 'package:web5/src/jws/decoded_jws.dart';
 import 'package:web5/src/jws/jws_header.dart';
 
 final _base64UrlCodec = Base64Codec.urlSafe();
@@ -13,6 +14,50 @@ final _base64UrlDecoder = _base64UrlCodec.decoder;
 class Jws {
   static final _didResolver =
       DidResolver(methodResolvers: [DidJwk.resolver, DidDht.resolver]);
+
+  static DecodedJws decode(String jws) {
+    final parts = jws.split('.');
+
+    if (parts.length != 3) {
+      throw Exception(
+        'Malformed JWT. expected 3 parts. got ${parts.length}',
+      );
+    }
+
+    final JwsHeader header;
+    try {
+      header = JwsHeader.fromBase64Url(parts[0]);
+    } on Exception {
+      throw Exception(
+        'Malformed JWT. failed to decode header',
+      );
+    }
+
+    final Uint8List payload;
+    try {
+      payload = _base64UrlDecoder.convertNoPadding(parts[1]);
+    } on Exception {
+      throw Exception(
+        'Malformed JWT. failed to decode claims',
+      );
+    }
+
+    final Uint8List signature;
+    try {
+      signature = base64.decoder.convertNoPadding(parts[2]);
+    } on Exception {
+      throw Exception(
+        'Malformed JWT. faild to decode signature',
+      );
+    }
+
+    return DecodedJws(
+      header: header,
+      payload: payload,
+      signature: signature,
+      parts: parts,
+    );
+  }
 
   /// Signs a JWT payload using a specified [Did] and returns the signed JWT.
   ///
@@ -71,86 +116,13 @@ class Jws {
     }
   }
 
-  static Future<void> verify(String compactJws, {Uint8List? payload}) async {
-    final splitJws = compactJws.split('.');
-
-    if (splitJws.length != 3) {
-      throw Exception(
-        'Malformed JWS. expected 3 parts. got ${splitJws.length}',
-      );
-    }
-
-    final [
-      base64UrlEncodedHeader,
-      base64UrlEncodedPayload,
-      base64UrlEncodedSignature
-    ] = splitJws;
-
-    final JwsHeader header;
+  static Future<DecodedJws> verify(String jws) async {
     try {
-      header = JwsHeader.fromBase64Url(base64UrlEncodedHeader);
-    } on Exception {
-      throw Exception(
-        'Malformed JWS. Invalid base64url encoding for JWS header',
-      );
+      final decodedJws = decode(jws);
+      await decodedJws.verify();
+      return decodedJws;
+    } on Exception catch (e) {
+      throw Exception('Verification failed. $e');
     }
-
-    if (header.kid == null || header.alg == null) {
-      throw Exception(
-        'Malformed JWS. expected header to contain kid and alg.',
-      );
-    }
-
-    try {
-      payload ??= _base64UrlDecoder.convertNoPadding(base64UrlEncodedPayload);
-    } on Exception {
-      throw Exception(
-        'Malformed JWS. Invalid base64url encoding for JWS payload',
-      );
-    }
-
-    final Uint8List signature;
-    try {
-      signature = _base64UrlDecoder.convertNoPadding(base64UrlEncodedSignature);
-    } on Exception {
-      throw Exception(
-        'Malformed JWS. Invalid base64url encoding for JWS signature',
-      );
-    }
-
-    final dereferenceResult = await _didResolver.dereference(header.kid!);
-    if (dereferenceResult.hasError()) {
-      throw Exception(
-        'Verification failed. Failed to dereference kid. Error: ${dereferenceResult.dereferencingMetadata.error}',
-      );
-    }
-
-    final didResource = dereferenceResult.contentStream;
-    if (didResource == null) {
-      throw Exception(
-        'Verification failed. Expected header kid to dereference a verification method',
-      );
-    }
-
-    if (didResource is! DidVerificationMethod) {
-      throw Exception(
-        'Verification failed. Expected header kid to dereference a verification method',
-      );
-    }
-
-    final publicKeyJwk = didResource.publicKeyJwk;
-    final dsaName =
-        DsaName.findByAlias(algorithm: header.alg, curve: publicKeyJwk!.crv);
-
-    if (dsaName == null) {
-      throw Exception('${header.alg}:${publicKeyJwk.crv} not supported.');
-    }
-
-    return DsaAlgorithms.verify(
-      algName: dsaName,
-      publicKey: publicKeyJwk,
-      payload: payload,
-      signature: signature,
-    );
   }
 }
