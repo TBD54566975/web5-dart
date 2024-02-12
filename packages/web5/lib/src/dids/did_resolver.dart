@@ -1,5 +1,5 @@
 import 'package:web5/src/dids/did_uri.dart';
-import 'package:web5/src/dids/data_models.dart';
+import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
 
 /// A resolver for Decentralized Identifiers (DIDs).

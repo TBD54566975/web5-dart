@@ -78,4 +78,33 @@ class DidDocumentMetadata {
 
     return json;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is DidDocumentMetadata &&
+        other.created == created &&
+        other.updated == updated &&
+        other.deactivated == deactivated &&
+        other.versionId == versionId &&
+        other.nextUpdate == nextUpdate &&
+        other.nextVersionId == nextVersionId &&
+        other.equivalentId == equivalentId &&
+        other.canonicalId == canonicalId;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      created,
+      updated,
+      deactivated,
+      versionId,
+      nextUpdate,
+      nextVersionId,
+      equivalentId,
+      canonicalId,
+    );
+  }
 }

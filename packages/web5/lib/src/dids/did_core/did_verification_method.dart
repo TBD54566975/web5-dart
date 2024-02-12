@@ -1,5 +1,5 @@
 import 'package:web5/src/crypto.dart';
-import 'package:web5/src/dids/structures/did_resource.dart';
+import 'package:web5/src/dids/did_core/did_resource.dart';
 
 /// A DID document can express verification methods, such as cryptographic
 /// public keys, which can be used to authenticate or authorize interactions

@@ -1,20 +1,148 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+import 'package:web5/src/dids/did_core/did_resolution_result.dart';
 import 'package:web5/src/dids/did_web/did_web.dart';
 
-void main() {
-  group('DidWeb', () {
-    test('should resolve successfully', () async {
-      final result = await DidWeb.resolve('did:web:www.linkedin.com');
-      expect(result.didDocument, isNotNull);
+class MockHttpClient extends Mock implements HttpClient {}
 
-      expect('did:web:www.linkedin.com', result.didDocument!.id);
+class MockHttpRequest extends Mock implements HttpClientRequest {}
+
+class MockHttpResponse extends Mock implements HttpClientResponse {}
+
+const validDidWebDocument = '''{
+        "id": "did:web:www.linkedin.com",
+        "@context": [
+          "https://www.w3.org/ns/did/v1",
+          {
+            "@base": "did:web:www.linkedin.com"
+          }
+        ],
+        "service": [
+          {
+            "id": "#linkeddomains",
+            "type": "LinkedDomains",
+            "serviceEndpoint": {
+              "origins": [
+                "https://www.linkedin.com/"
+              ]
+            }
+          },
+          {
+            "id": "#hub",
+            "type": "IdentityHub",
+            "serviceEndpoint": {
+              "instances": [
+                "https://hub.did.msidentity.com/v1.0/658728e7-1632-412a-9815-fe53f53ec58b"
+              ]
+            }
+          }
+        ],
+        "verificationMethod": [
+          {
+            "id": "#074cfbf193f046bcba5841ac4751e91bvcSigningKey-46682",
+            "controller": "did:web:www.linkedin.com",
+            "type": "EcdsaSecp256k1VerificationKey2019",
+            "publicKeyJwk": {
+              "crv": "secp256k1",
+              "kty": "EC",
+              "x": "NHIQivVR0HX7c0flpxgWQ7vRtbWDvr0UPN1nJ--0lyU",
+              "y": "hYiIldgLRShym7vzflFrEkg6NYkayUHkDpV0RMjUEYE"
+            }
+          }
+        ],
+        "authentication": [
+          "#074cfbf193f046bcba5841ac4751e91bvcSigningKey-46682"
+        ],
+        "assertionMethod": [
+          "#074cfbf193f046bcba5841ac4751e91bvcSigningKey-46682"
+        ]
+      }''';
+
+void main() {
+  final MockHttpClient mockClient = MockHttpClient();
+  final MockHttpRequest request = MockHttpRequest();
+  final MockHttpResponse response = MockHttpResponse();
+
+  setUpAll(() {
+    registerFallbackValue(Uri());
+  });
+
+  setUp(() {
+    reset(mockClient);
+    reset(request);
+    reset(response);
+  });
+
+  group('DidWeb', () {
+    test('should return invalid did with bad data', () async {
+      final result = await DidWeb.resolve('bogus');
+      expect(result, DidResolutionResult.invalidDid());
     });
 
-    test('should resolve with paths', () async {
-      final result = await DidWeb.resolve('did:web:localhost%3A8892:ingress');
+    test('should return invalid did with wrong method', () async {
+      final result = await DidWeb.resolve('did:bad:www.linkedin.com');
+      expect(result, DidResolutionResult.invalidDid());
+    });
+
+    test('should return invalid did with failed http request', () async {
+      when(() => response.statusCode).thenReturn(400);
+      when(() => request.close()).thenAnswer((_) async => response);
+      when(() => mockClient.getUrl(any())).thenAnswer((_) async => request);
+
+      final result = await DidWeb.resolve(
+        'did:web:www.linkedin.com',
+        client: mockClient,
+      );
+      expect(result, DidResolutionResult.invalidDid());
+    });
+
+    test('should resolve successfully', () async {
+      when(() => response.statusCode).thenReturn(200);
+      when(() => response.transform(utf8.decoder))
+          .thenAnswer((_) => Stream.value(validDidWebDocument));
+      when(() => request.close()).thenAnswer((_) async => response);
+      when(
+        () => mockClient.getUrl(
+          Uri.parse('https://www.linkedin.com/.well-known/did.json'),
+        ),
+      ).thenAnswer((_) async => request);
+
+      final result =
+          await DidWeb.resolve('did:web:www.linkedin.com', client: mockClient);
+
+      expect(result.didDocument, isNotNull);
+      expect('did:web:www.linkedin.com', result.didDocument!.id);
+
+      verify(
+        () => mockClient
+            .getUrl(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
+      );
+    });
+
+    test('should resolve successfully with paths', () async {
+      when(() => response.statusCode).thenReturn(200);
+      when(() => response.transform(utf8.decoder))
+          .thenAnswer((_) => Stream.value(validDidWebDocument));
+      when(() => request.close()).thenAnswer((_) async => response);
+      when(
+        () => mockClient.getUrl(
+          Uri.parse('http://localhost:8892/ingress/did.json'),
+        ),
+      ).thenAnswer((_) async => request);
+
+      final result = await DidWeb.resolve(
+        'did:web:localhost%3A8892:ingress',
+        client: mockClient,
+      );
       expect(result.didDocument, isNotNull);
 
-      expect('did:web:localhost%3A8892:ingress', result.didDocument!.id);
+      verify(
+        () => mockClient
+            .getUrl(Uri.parse('http://localhost:8892/ingress/did.json')),
+      );
     });
   });
 }
