@@ -1,0 +1,11 @@
+export 'did_core/did_service.dart';
+export 'did_core/did_resource.dart';
+export 'did_core/did_document.dart';
+export 'did_core/did_resolution_result.dart';
+export 'did_core/did_dereference_result.dart';
+export 'did_core/did_verification_method.dart';
+export 'did_core/did_resolution_metadata.dart';
+export 'did_core/did_dereference_options.dart';
+export 'did_core/did_dereference_metadata.dart';
+export 'did_core/did_document_metadata.dart';
+export 'did_core/did_verification_relationship.dart';

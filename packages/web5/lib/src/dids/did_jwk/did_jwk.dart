@@ -4,7 +4,7 @@ import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/extensions.dart';
 import 'package:web5/src/dids/did_uri.dart';
-import 'package:web5/src/dids/data_models.dart';
+import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
 
 final base64UrlEncoder = Base64Codec.urlSafe().encoder;

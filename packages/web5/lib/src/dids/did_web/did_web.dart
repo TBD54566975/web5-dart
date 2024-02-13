@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:web5/src/crypto/key_manager.dart';
-import 'package:web5/src/dids/data_models.dart';
+import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
 import 'package:web5/src/dids/did_uri.dart';
@@ -20,7 +20,10 @@ class DidWeb implements Did {
 
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
-  static Future<DidResolutionResult> resolve(String didUri) async {
+  static Future<DidResolutionResult> resolve(
+    String didUri, {
+    HttpClient? client,
+  }) async {
     final DidUri parsedDidUri;
 
     try {
@@ -48,7 +51,7 @@ class DidWeb implements Did {
     resolutionUrl = Uri.decodeFull('$resolutionUrl/did.json');
     final parsedUrl = Uri.parse(resolutionUrl);
 
-    final httpClient = HttpClient();
+    final httpClient = client ??= HttpClient();
     final request = await httpClient.getUrl(parsedUrl);
     final response = await request.close();
 

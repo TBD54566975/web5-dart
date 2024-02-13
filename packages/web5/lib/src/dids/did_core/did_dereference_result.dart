@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:web5/src/dids/structures/did_dereference_metadata.dart';
-import 'package:web5/src/dids/structures/did_document_metadata.dart';
-import 'package:web5/src/dids/structures/did_resource.dart';
+import 'package:web5/src/dids/did_core/did_dereference_metadata.dart';
+import 'package:web5/src/dids/did_core/did_document_metadata.dart';
+import 'package:web5/src/dids/did_core/did_resource.dart';
 
 class DidDereferenceResult {
   DidDereferenceMetadata dereferencingMetadata;

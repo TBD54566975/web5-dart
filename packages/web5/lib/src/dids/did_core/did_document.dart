@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:web5/src/dids/structures/did_service.dart';
-import 'package:web5/src/dids/structures/did_resource.dart';
-import 'package:web5/src/dids/structures/did_verification_method.dart';
-import 'package:web5/src/dids/structures/did_verification_relationship.dart';
+import 'package:web5/src/dids/did_core/did_service.dart';
+import 'package:web5/src/dids/did_core/did_resource.dart';
+import 'package:web5/src/dids/did_core/did_verification_method.dart';
+import 'package:web5/src/dids/did_core/did_verification_relationship.dart';
 
 /// A set of data describing the DID subject including mechanisms such as:
 ///  * cryptographic public keys - used to authenticate itself and prove

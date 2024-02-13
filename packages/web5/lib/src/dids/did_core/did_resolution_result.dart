@@ -1,6 +1,6 @@
-import 'package:web5/src/dids/structures/did_document.dart';
-import 'package:web5/src/dids/structures/did_document_metadata.dart';
-import 'package:web5/src/dids/structures/did_resolution_metadata.dart';
+import 'package:web5/src/dids/did_core/did_document.dart';
+import 'package:web5/src/dids/did_core/did_document_metadata.dart';
+import 'package:web5/src/dids/did_core/did_resolution_metadata.dart';
 
 /// A class representing the result of a DID (Decentralized Identifier)
 /// resolution.
@@ -85,5 +85,24 @@ class DidResolutionResult {
 
   bool hasError() {
     return didResolutionMetadata.error != null;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is DidResolutionResult &&
+        other.didResolutionMetadata == didResolutionMetadata &&
+        other.didDocument == didDocument &&
+        other.didDocumentMetadata == didDocumentMetadata;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      didResolutionMetadata,
+      didDocument,
+      didDocumentMetadata,
+    );
   }
 }

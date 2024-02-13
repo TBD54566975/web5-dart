@@ -36,4 +36,16 @@ class DidResolutionMetadata {
 
     return json;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is DidResolutionMetadata &&
+        other.contentType == contentType &&
+        other.error == error;
+  }
+
+  @override
+  int get hashCode => Object.hash(contentType, error);
 }

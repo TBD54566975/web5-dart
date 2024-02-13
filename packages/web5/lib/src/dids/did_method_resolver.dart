@@ -1,4 +1,4 @@
-import 'package:web5/src/dids/data_models.dart';
+import 'package:web5/src/dids/did_core.dart';
 
 /// Represents a method resolver for a specific DID method.
 class DidMethodResolver {
