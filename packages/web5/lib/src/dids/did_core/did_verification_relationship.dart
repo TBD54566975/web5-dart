@@ -6,7 +6,7 @@
 /// appropriate verification relationship property of the DID Document.
 ///
 /// [Specification Reference](https://www.w3.org/TR/did-core/#verification-relationships)
-enum VerificationRelationship {
+enum VerificationPurpose {
   /// The authentication verification relationship is used to specify how the
   /// DID subject is expected to be authenticated, for purposes such as logging
   /// into a website or engaging in any sort of challenge-response protocol.

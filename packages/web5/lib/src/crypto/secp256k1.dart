@@ -1,45 +1,26 @@
 import 'dart:math';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:web5/src/crypto/dsa.dart';
+import 'package:web5/src/encoders/base64url.dart';
 import 'package:web5/src/crypto/jwk.dart';
 import 'package:web5/src/extensions.dart';
-import 'package:web5/src/crypto/dsa_name.dart';
-
-final _base64UrlCodec = Base64Codec.urlSafe();
-final _base64UrlEncoder = _base64UrlCodec.encoder;
-final _base64UrlDecoder = _base64UrlCodec.decoder;
 
 final _curveParams = ECCurve_secp256k1();
 final _keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());
 
-class Secp256k1 implements Dsa {
+class Secp256k1 {
   /// [JOSE kty](https://www.iana.org/assignments/jose/jose.xhtml)
-  static final String kty = 'EC';
+  static const String kty = 'EC';
 
   /// [JOSE alg](https://www.iana.org/assignments/jose/jose.xhtml)
-  static final String alg = 'ES256K';
+  static const String alg = 'ES256K';
 
   /// [JOSE crv](https://www.iana.org/assignments/jose/jose.xhtml)
-  static final String crv = 'secp256k1';
+  static const String crv = 'secp256k1';
 
-  @override
-  final String keyType = kty;
-
-  @override
-  final String algorithm = alg;
-
-  @override
-  final String curve = crv;
-
-  @override
-  DsaName name = DsaName.secp256k1;
-
-  @override
-  Future<Jwk> computePublicKey(Jwk privateKey) {
-    final privateKeyBytes = _base64UrlDecoder.convertNoPadding(privateKey.d!);
+  static Future<Jwk> computePublicKey(Jwk privateKey) {
+    final privateKeyBytes = Base64Url.decode(privateKey.d!);
     final d = bytesToBigInt(privateKeyBytes).toUnsigned(256);
 
     final Q = (_curveParams.G * d)!;
@@ -52,17 +33,16 @@ class Secp256k1 implements Dsa {
 
     final publicKeyJwk = Jwk(
       kty: 'EC',
-      alg: algorithm,
-      crv: curve,
-      x: _base64UrlEncoder.convertNoPadding(x.toBytes()),
-      y: _base64UrlEncoder.convertNoPadding(y.toBytes()),
+      alg: alg,
+      crv: crv,
+      x: Base64Url.encode(x.toBytes()),
+      y: Base64Url.encode(y.toBytes()),
     );
 
     return Future.value(publicKeyJwk);
   }
 
-  @override
-  Future<Jwk> generatePrivateKey() {
+  static Future<Jwk> generatePrivateKey() {
     final keyGenerator = ECKeyGenerator();
 
     final seedGen = Random.secure();
@@ -83,14 +63,14 @@ class Secp256k1 implements Dsa {
     final x = Q.x!.toBigInteger()!.toUnsigned(256);
     final y = Q.y!.toBigInteger()!.toUnsigned(256);
 
-    final privateKeyBase64Url = _base64UrlEncoder.convertNoPadding(d.toBytes());
-    final publicKeyXBase64Url = _base64UrlEncoder.convertNoPadding(x.toBytes());
-    final publicKeyYBase64Url = _base64UrlEncoder.convertNoPadding(y.toBytes());
+    final privateKeyBase64Url = Base64Url.encode(d.toBytes());
+    final publicKeyXBase64Url = Base64Url.encode(x.toBytes());
+    final publicKeyYBase64Url = Base64Url.encode(y.toBytes());
 
     final privateKeyJwk = Jwk(
       kty: 'EC',
-      alg: algorithm,
-      crv: curve,
+      alg: alg,
+      crv: crv,
       d: privateKeyBase64Url,
       x: publicKeyXBase64Url,
       y: publicKeyYBase64Url,
@@ -99,12 +79,10 @@ class Secp256k1 implements Dsa {
     return Future.value(privateKeyJwk);
   }
 
-  @override
-  Future<Uint8List> sign(Jwk privateKeyJwk, Uint8List payload) {
+  static Future<Uint8List> sign(Jwk privateKeyJwk, Uint8List payload) {
     final sha256 = SHA256Digest();
 
-    final privateKeyBytes =
-        _base64UrlDecoder.convertNoPadding(privateKeyJwk.d!);
+    final privateKeyBytes = Base64Url.decode(privateKeyJwk.d!);
     final privateKeyBigInt = bytesToBigInt(privateKeyBytes);
     final privateKey = ECPrivateKey(privateKeyBigInt, ECCurve_secp256k1());
 
@@ -140,16 +118,15 @@ class Secp256k1 implements Dsa {
     return Future.value(Uint8List.fromList(rBytes + sBytes));
   }
 
-  @override
-  Future<void> verify(
+  static Future<void> verify(
     Jwk publicKeyJwk,
     Uint8List payload,
     Uint8List signature,
   ) {
-    final xBytes = _base64UrlDecoder.convertNoPadding(publicKeyJwk.x!);
+    final xBytes = Base64Url.decode(publicKeyJwk.x!);
     final x = bytesToBigInt(xBytes);
 
-    final yBytes = _base64UrlDecoder.convertNoPadding(publicKeyJwk.y!);
+    final yBytes = Base64Url.decode(publicKeyJwk.y!);
     final y = bytesToBigInt(yBytes);
 
     final Q = _curveParams.curve.createPoint(x, y);
@@ -182,8 +159,7 @@ class Secp256k1 implements Dsa {
     return result;
   }
 
-  @override
-  Jwk bytesToPublicKey(Uint8List input) {
+  static Jwk bytesToPublicKey(Uint8List input) {
     // TODO: implement bytesToPublicKey
     throw UnimplementedError();
   }

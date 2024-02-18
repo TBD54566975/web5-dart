@@ -11,9 +11,6 @@ class DecodedJws {
   final Uint8List signature;
   final List<String> parts;
 
-  static final _didResolver =
-      DidResolver(methodResolvers: [DidJwk.resolver, DidDht.resolver]);
-
   DecodedJws({
     required this.header,
     required this.payload,
@@ -28,7 +25,7 @@ class DecodedJws {
       );
     }
 
-    final dereferenceResult = await _didResolver.dereference(header.kid!);
+    final dereferenceResult = await DidResolver.dereference(header.kid!);
     if (dereferenceResult.hasError()) {
       throw Exception(
         'Verification failed. Failed to dereference kid. Error: ${dereferenceResult.dereferencingMetadata.error}',
@@ -48,17 +45,14 @@ class DecodedJws {
       );
     }
 
-    final publicKeyJwk = didResource.publicKeyJwk;
-    final dsaName =
-        DsaName.findByAlias(algorithm: header.alg, curve: publicKeyJwk!.crv);
-
-    if (dsaName == null) {
-      throw Exception('${header.alg}:${publicKeyJwk.crv} not supported.');
+    if (didResource.publicKeyJwk == null) {
+      throw Exception(
+        'Verification failed. Expected header kid to dereference a verification method with a public key',
+      );
     }
 
-    await DsaAlgorithms.verify(
-      algName: dsaName,
-      publicKey: publicKeyJwk,
+    await Crypto.verify(
+      publicKey: didResource.publicKeyJwk!,
       payload: payload,
       signature: signature,
     );

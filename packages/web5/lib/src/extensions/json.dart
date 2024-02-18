@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:web5/src/extensions/base64url.dart';
-
-final _base64UrlEncoder = Base64Codec.urlSafe().encoder;
-final _base64UrlDecoder = Base64Codec.urlSafe().decoder;
+import 'package:web5/src/encoders.dart';
 
 /// Extension on [JsonCodec] to provide additional encoding functionalities.
 ///
@@ -32,19 +29,14 @@ extension Encoders on JsonCodec {
   ///
   ///
   /// Returns a [String] representing the Base64 URL encoded value.
-  String toBase64Url(Object object, {bool padding = false}) {
+  String toBase64Url(Object object) {
     final bytes = toBytes(object);
 
-    return padding
-        ? _base64UrlEncoder.convert(bytes)
-        : _base64UrlEncoder.convertNoPadding(bytes);
+    return Base64Url.encode(bytes);
   }
 
-  dynamic fromBase64Url(String input, {bool padding = false}) {
-    final bytes = padding
-        ? _base64UrlDecoder.convert(input)
-        : _base64UrlDecoder.convertNoPadding(input);
-
+  dynamic fromBase64Url(String input) {
+    final bytes = Base64Url.decode(input);
     final stringified = utf8.decode(bytes);
 
     return json.decode(stringified);

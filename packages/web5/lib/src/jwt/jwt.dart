@@ -30,11 +30,11 @@ class Jwt {
     );
   }
 
-  /// Signs a JWT payload using a specified [Did] and returns the signed JWT.
+  /// Signs a JWT payload using a specified [BearerDid] and returns the signed JWT.
   ///
   /// Throws [Exception] if any error occurs during the signing process.
   static Future<String> sign({
-    required Did did,
+    required BearerDid did,
     required JwtClaims payload,
   }) async {
     final header = JwtHeader(typ: 'JWT');

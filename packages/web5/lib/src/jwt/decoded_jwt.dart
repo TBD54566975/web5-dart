@@ -1,8 +1,9 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:web5/src/encoders.dart';
 import 'package:web5/src/jws/decoded_jws.dart';
-import 'package:web5/web5.dart';
+import 'package:web5/src/jwt/jwt_claims.dart';
+import 'package:web5/src/jwt/jwt_header.dart';
 
 class DecodedJwt {
   final JwtHeader header;
@@ -20,7 +21,7 @@ class DecodedJwt {
   Future<void> verify() async {
     final decodedJws = DecodedJws(
       header: header,
-      payload: Base64Codec.urlSafe().decoder.convertNoPadding(parts[1]),
+      payload: Base64Url.decode(parts[1]),
       signature: signature,
       parts: parts,
     );

@@ -1,49 +1,29 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
-import 'package:web5/src/extensions.dart';
-import 'package:web5/src/dids/did_uri.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
+import 'package:web5/src/encoders.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
-final _base64UrlCodec = Base64Codec.urlSafe();
-final _base64UrlDecoder = _base64UrlCodec.decoder;
 
-class DidDht implements Did {
-  @override
-  // TODO: implement keyManager
-  KeyManager get keyManager => throw UnimplementedError();
-
-  @override
-  // TODO: implement uri
-  String get uri => throw UnimplementedError();
-
+class DidDht {
   static const String methodName = 'dht';
 
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
   static Future<DidResolutionResult> resolve(
-    String didUri, {
+    Did did, {
     String relayUrl = 'https://diddht.tbddev.org',
   }) async {
-    final DidUri parsedDidUri;
-
-    try {
-      parsedDidUri = DidUri.parse(didUri);
-    } on Exception {
-      return DidResolutionResult.invalidDid();
-    }
-
-    if (parsedDidUri.method != methodName) {
+    if (did.method != methodName) {
       return DidResolutionResult.invalidDid();
     }
 
     final parsedRelayUrl = Uri.parse(relayUrl);
-    final resolutionUrl = parsedRelayUrl.replace(path: parsedDidUri.id);
+    final resolutionUrl = parsedRelayUrl.replace(path: did.id);
 
     final httpClient = HttpClient();
     final request = await httpClient.getUrl(resolutionUrl);
@@ -109,7 +89,7 @@ class DidDht implements Did {
       }
     }
 
-    final didDocument = DidDocument(id: didUri);
+    final didDocument = DidDocument(id: did.uri);
     for (final property in txtMap.entries) {
       final values = property.value[0].split(',');
       final valueMap = {};
@@ -120,27 +100,22 @@ class DidDht implements Did {
       }
 
       if (property.key.startsWith('_k')) {
-        Dsa? dsa;
+        AlgorithmId algId;
         switch (valueMap['t']) {
           case '0':
-            dsa = Ed25519();
+            algId = AlgorithmId.ed25519;
             break;
           case '1':
-            dsa = Secp256k1();
+            algId = AlgorithmId.secp256k1;
             break;
           default:
-            break;
+            throw Exception('unsupported algorithm type: ${valueMap['t']}');
         }
 
-        if (dsa == null) {
-          throw Exception('idk rn');
-        }
-
-        final publicKeyBytes =
-            _base64UrlDecoder.convertNoPadding(valueMap['k']);
-        final publicKeyJwk = dsa.bytesToPublicKey(publicKeyBytes);
+        final publicKeyBytes = Base64Url.decode(valueMap['k']);
+        final publicKeyJwk = Crypto.bytesToPublicKey(algId, publicKeyBytes);
         final verificationMethod = DidVerificationMethod(
-          controller: didUri,
+          controller: did.uri,
           id: valueMap['id'],
           type: 'JsonWebKey2020',
           publicKeyJwk: publicKeyJwk,
@@ -155,21 +130,21 @@ class DidDht implements Did {
         }
 
         for (final relationship in relationships) {
-          VerificationRelationship? vr;
+          VerificationPurpose? vr;
           if (relationship == 'auth') {
-            vr = VerificationRelationship.authentication;
+            vr = VerificationPurpose.authentication;
           } else if (relationship == 'asm') {
-            vr = VerificationRelationship.assertionMethod;
+            vr = VerificationPurpose.assertionMethod;
           } else if (relationship == 'agm') {
-            vr = VerificationRelationship.keyAgreement;
+            vr = VerificationPurpose.keyAgreement;
           } else if (relationship == 'inv') {
-            vr = VerificationRelationship.capabilityInvocation;
+            vr = VerificationPurpose.capabilityInvocation;
           } else if (relationship == 'del') {
-            vr = VerificationRelationship.capabilityDelegation;
+            vr = VerificationPurpose.capabilityDelegation;
           }
 
           if (vr != null) {
-            didDocument.addVerificationRelationship(vr, verificationMethod.id);
+            didDocument.addVerificationPurpose(vr, verificationMethod.id);
           }
         }
       } else if (property.key.startsWith('_s')) {

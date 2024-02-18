@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/extensions.dart';
-import 'package:web5/src/dids/did_uri.dart';
 import 'package:web5/src/dids/did_core.dart';
+import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
-
-final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 
 /// Class that can be used to create and resolve `did:jwk` DIDs.
 /// `did:jwk` is useful in scenarios where:
@@ -16,30 +14,32 @@ final base64UrlEncoder = Base64Codec.urlSafe().encoder;
 /// * [Service](https://www.w3.org/TR/did-core/#services) endpoints are not necessary
 ///
 /// [Specification](https://github.com/quartzjer/did-jwk/blob/main/spec.md)
-class DidJwk implements Did {
-  @override
-  final String uri;
-
-  @override
-  final KeyManager keyManager;
-
+class DidJwk {
   static const String methodName = 'jwk';
 
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
-  DidJwk({required this.uri, required this.keyManager});
-
   /// Creates a new `did:jwk`. Stores associated private key in provided
   /// key manager.
-  static Future<DidJwk> create({required KeyManager keyManager}) async {
-    final keyAlias = await keyManager.generatePrivateKey(DsaName.ed25519);
+  static Future<BearerDid> create({
+    AlgorithmId? algorithmId,
+    KeyManager? keyManager,
+  }) async {
+    algorithmId ??= AlgorithmId.ed25519;
+    keyManager ??= InMemoryKeyManager();
+
+    final keyAlias = await keyManager.generatePrivateKey(algorithmId);
 
     final publicKeyJwk = await keyManager.getPublicKey(keyAlias);
     final publicKeyJwkBase64Url = json.toBase64Url(publicKeyJwk);
 
-    return DidJwk(
-      uri: 'did:jwk:$publicKeyJwkBase64Url',
+    final uri = 'did:jwk:$publicKeyJwkBase64Url';
+    final did = Did.parse(uri);
+
+    return BearerDid(
+      uri: uri,
       keyManager: keyManager,
+      document: _createDidDocument(did, publicKeyJwk),
     );
   }
 
@@ -60,45 +60,48 @@ class DidJwk implements Did {
   /// an invalid [DidResolutionResult].
   ///
   /// Throws [FormatException] if the JWK parsing fails.
-  static Future<DidResolutionResult> resolve(String didUri) {
-    final DidUri parsedDidUri;
-
-    try {
-      parsedDidUri = DidUri.parse(didUri);
-    } on Exception {
-      return Future.value(DidResolutionResult.invalidDid());
-    }
-
-    if (parsedDidUri.method != 'jwk') {
+  static Future<DidResolutionResult> resolve(Did did) {
+    if (did.method != methodName) {
       return Future.value(DidResolutionResult.invalidDid());
     }
 
     final dynamic jwk;
 
     try {
-      jwk = json.fromBase64Url(parsedDidUri.id);
+      jwk = json.fromBase64Url(did.id);
     } on FormatException {
       return Future.value(DidResolutionResult.invalidDid());
     }
 
+    final Jwk parsedJwk;
+
+    try {
+      parsedJwk = Jwk.fromJson(jwk);
+    } on Exception {
+      return Future.value(DidResolutionResult.invalidDid());
+    }
+
+    final didDocument = _createDidDocument(did, parsedJwk);
+    final didResolutionResult = DidResolutionResult(didDocument: didDocument);
+
+    return Future.value(didResolutionResult);
+  }
+
+  static DidDocument _createDidDocument(Did did, Jwk jwk) {
     final verificationMethod = DidVerificationMethod(
-      id: '$didUri#0',
+      id: '${did.id}#0',
       type: 'JsonWebKey2020',
-      controller: didUri,
-      publicKeyJwk: Jwk.fromJson(jwk),
+      controller: did.id,
+      publicKeyJwk: jwk,
     );
 
-    final didDocument = DidDocument(
-      id: didUri,
+    return DidDocument(
+      id: did.id,
       verificationMethod: [verificationMethod],
       assertionMethod: [verificationMethod.id],
       authentication: [verificationMethod.id],
       capabilityInvocation: [verificationMethod.id],
       capabilityDelegation: [verificationMethod.id],
     );
-
-    final didResolutionResult = DidResolutionResult(didDocument: didDocument);
-
-    return Future.value(didResolutionResult);
   }
 }

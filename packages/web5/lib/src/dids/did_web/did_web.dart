@@ -1,43 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:web5/src/crypto/key_manager.dart';
 import 'package:web5/src/dids/did_core.dart';
-import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/dids/did_uri.dart';
+import 'package:web5/src/dids/did.dart';
 
-class DidWeb implements Did {
-  @override
-  // TODO: implement keyManager
-  KeyManager get keyManager => throw UnimplementedError();
-
-  @override
-  // TODO: implement uri
-  String get uri => throw UnimplementedError();
-
+class DidWeb {
   static const String methodName = 'web';
-
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
   static Future<DidResolutionResult> resolve(
-    String didUri, {
+    Did did, {
     HttpClient? client,
   }) async {
-    final DidUri parsedDidUri;
-
-    try {
-      parsedDidUri = DidUri.parse(didUri);
-    } on Exception {
-      return DidResolutionResult.invalidDid();
-    }
-
-    if (parsedDidUri.method != methodName) {
+    if (did.method != methodName) {
       return DidResolutionResult.invalidDid();
     }
 
     // TODO: http technically not supported. remove after temp use
-    var resolutionUrl = parsedDidUri.id.replaceAll(':', '/');
+    var resolutionUrl = did.id.replaceAll(':', '/');
     if (resolutionUrl.contains('localhost')) {
       resolutionUrl = 'http://$resolutionUrl';
     } else {
