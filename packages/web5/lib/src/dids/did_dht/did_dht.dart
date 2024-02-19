@@ -41,6 +41,10 @@ class DidDht {
     // final signatureBytes = bytes.sublist(0, 64);
     // final seq = bytes.sublist(64, 72);
 
+    if (bytes.length < 72) {
+      return DidResolutionResult.invalidDid();
+    }
+
     final v = bytes.sublist(72);
 
     final dnsPacket = DnsPacket.decode(v);

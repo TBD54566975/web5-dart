@@ -33,7 +33,7 @@ void main() {
     });
 
     test('should resolve with error if id is not valid base64url', () async {
-      final did = Did.parse('did:jwk:!!!');
+      final did = Did.parse('did:jwk:abc_123');
       final resolutionResult = await DidJwk.resolve(did);
 
       expect(resolutionResult.didDocument, isNull);

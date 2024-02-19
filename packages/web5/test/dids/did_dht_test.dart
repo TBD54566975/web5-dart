@@ -27,7 +27,7 @@ void main() {
     });
 
     test('should resolve with error if id is not valid zbase32', () async {
-      final did = Did.parse('did:dht:!!!');
+      final did = Did.parse('did:dht:abc_123');
       final resolutionResult = await DidDht.resolve(did);
 
       expect(resolutionResult.didDocument, isNull);
@@ -43,8 +43,8 @@ void main() {
       );
       final resolutionResult = await DidDht.resolve(did);
 
-      expect(resolutionResult.didDocument, isNotNull);
       expect(resolutionResult.didResolutionMetadata.isEmpty(), isTrue);
+      expect(resolutionResult.didDocument, isNotNull);
     });
   });
 }
