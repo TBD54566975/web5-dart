@@ -5,3 +5,4 @@ export 'src/jwt.dart';
 export 'src/dids.dart';
 export 'src/crypto.dart';
 export 'src/extensions.dart';
+export 'src/encoders.dart';
