@@ -134,7 +134,7 @@ class DidDocument implements DidResource {
     String? id,
     VerificationPurpose? purpose,
   }) {
-    if (id == null && verificationMethod == null) {
+    if (id == null && purpose == null) {
       return verificationMethod?.first;
     }
 
