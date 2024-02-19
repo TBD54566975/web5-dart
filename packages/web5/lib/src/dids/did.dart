@@ -49,6 +49,8 @@ class Did {
   /// The complete DID URI.
   String uri;
 
+  String url;
+
   /// The method specified in the DID URI e.g. jwk, dht, key etc.
   String method;
 
@@ -67,10 +69,9 @@ class Did {
   /// Optional fragment component of the DID URI.
   String? fragment;
 
-  get url => uri;
-
   Did({
     required this.uri,
+    required this.url,
     required this.method,
     required this.id,
     this.params,
@@ -99,8 +100,9 @@ class Did {
       fragmentMatch
     ] = match.groups([1, 2, 4, 6, 7, 8]);
 
-    final didUri = Did(
+    final did = Did(
       uri: 'did:$methodMatch:$idMatch',
+      url: input,
       method: methodMatch!,
       id: idMatch!,
     );
@@ -112,13 +114,13 @@ class Did {
         final kv = p.split('=');
         parsedParams[kv[0]] = kv[1];
       }
-      didUri.params = parsedParams;
+      did.params = parsedParams;
     }
 
-    if (pathMatch != null) didUri.path = pathMatch;
-    if (queryMatch != null) didUri.query = queryMatch.substring(1);
-    if (fragmentMatch != null) didUri.fragment = fragmentMatch.substring(1);
+    if (pathMatch != null) did.path = pathMatch;
+    if (queryMatch != null) did.query = queryMatch.substring(1);
+    if (fragmentMatch != null) did.fragment = fragmentMatch.substring(1);
 
-    return didUri;
+    return did;
   }
 }

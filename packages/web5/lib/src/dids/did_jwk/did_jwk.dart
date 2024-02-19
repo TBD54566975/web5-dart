@@ -89,7 +89,7 @@ class DidJwk {
 
   static DidDocument _createDidDocument(Did did, Jwk jwk) {
     final verificationMethod = DidVerificationMethod(
-      id: '${did.id}#0',
+      id: '${did.uri}#0',
       type: 'JsonWebKey2020',
       controller: did.id,
       publicKeyJwk: jwk,

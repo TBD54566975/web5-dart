@@ -13,9 +13,9 @@ class DidResolver {
   /// A map of method resolvers keyed by their names.
   Map<String, DidMethodResolver> methodResolvers = {};
 
-  DidResolver._default() {
+  factory DidResolver._default() {
     // Register resolvers that we provide out of the box
-    DidResolver(
+    return DidResolver(
       methodResolvers: [
         DidJwk.resolver,
         DidDht.resolver,
@@ -49,6 +49,7 @@ class DidResolver {
   /// Throws an [Exception] if no resolver is available for the given method.
   Future<DidResolutionResult> resolveDid(String uri) {
     final did = Did.parse(uri);
+
     final resolver = methodResolvers[did.method];
 
     if (resolver == null) {

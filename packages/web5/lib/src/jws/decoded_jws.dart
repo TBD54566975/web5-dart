@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:web5/src/crypto.dart';
@@ -51,9 +52,12 @@ class DecodedJws {
       );
     }
 
+    final toSign = [parts[0], parts[1]].join('.');
+    final toSignBytes = utf8.encode(toSign);
+
     await Crypto.verify(
       publicKey: didResource.publicKeyJwk!,
-      payload: payload,
+      payload: toSignBytes,
       signature: signature,
     );
   }
