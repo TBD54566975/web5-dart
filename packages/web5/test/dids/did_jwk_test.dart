@@ -10,16 +10,6 @@ void main() {
       expect(did.uri, startsWith('did:jwk:'));
     });
 
-    // test('should resolve with error if kaka DID', () async {
-    //   final resolutionResult = await DidJwk.resolve('hi');
-
-    //   expect(resolutionResult.didDocument, isNull);
-    //   expect(
-    //     resolutionResult.didResolutionMetadata.error,
-    //     equals('invalidDid'),
-    //   );
-    // });
-
     test('should resolve with error if not did:jwk', () async {
       final did =
           Did.parse('did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH');

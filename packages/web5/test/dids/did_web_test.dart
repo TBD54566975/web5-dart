@@ -78,11 +78,6 @@ void main() {
   });
 
   group('DidWeb', () {
-    // test('should return invalid did with bad data', () async {
-    //   final result = await DidWeb.resolve('bogus');
-    //   expect(result, DidResolutionResult.invalidDid());
-    // });
-
     test('should return invalid did with wrong method', () async {
       final did = Did.parse('did:bad:www.linkedin.com');
       final result = await DidWeb.resolve(did);

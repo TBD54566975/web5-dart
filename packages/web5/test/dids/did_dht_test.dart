@@ -4,16 +4,6 @@ import 'package:test/test.dart';
 
 void main() {
   group('DidDht', () {
-    // test('should resolve with error if dookie DID', () async {
-    //   final resolutionResult = await DidDht.resolve('hi');
-
-    //   expect(resolutionResult.didDocument, isNull);
-    //   expect(
-    //     resolutionResult.didResolutionMetadata.error,
-    //     equals('invalidDid'),
-    //   );
-    // });
-
     test('should resolve with error if not did:dht', () async {
       final did =
           Did.parse('did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH');

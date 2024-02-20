@@ -48,7 +48,12 @@ class DidResolver {
   ///
   /// Throws an [Exception] if no resolver is available for the given method.
   Future<DidResolutionResult> resolveDid(String uri) {
-    final did = Did.parse(uri);
+    final Did did;
+    try {
+      did = Did.parse(uri);
+    } catch (e) {
+      return Future.value(DidResolutionResult.invalidDid());
+    }
 
     final resolver = methodResolvers[did.method];
 
