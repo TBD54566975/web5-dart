@@ -11,4 +11,21 @@ class PortableDid {
     required this.document,
     this.privateKeys = const [],
   });
+
+  factory PortableDid.fromJson(Map<String, dynamic> json) {
+    return PortableDid(
+      uri: json['uri'],
+      document: DidDocument.fromJson(json['document']),
+      privateKeys:
+          (json['privateKeys'] as List).map((e) => Jwk.fromJson(e)).toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'uri': uri,
+      'document': document.toJson(),
+      'privateKeys': privateKeys.map((e) => e.toJson()).toList(),
+    };
+  }
 }
