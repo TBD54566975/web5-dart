@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:web5/src/crypto.dart';
