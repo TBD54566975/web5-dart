@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:web5/src/crypto/algorithm_id.dart';
 import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/crypto/dsa_name.dart';
 import 'package:web5/src/crypto/key_manager.dart';
-import 'package:web5/src/crypto/dsa_algorithms.dart';
+import 'package:web5/src/crypto/crypto.dart';
 
 /// A class for managing cryptographic keys in-memory.
 ///
@@ -20,12 +20,12 @@ import 'package:web5/src/crypto/dsa_algorithms.dart';
 /// final signatureBytes = await keyManager.sign(keyAlias, Uint8List.fromList([20, 32]));
 /// ```
 ///
-class InMemoryKeyManager implements KeyManager {
+class InMemoryKeyManager implements KeyManager, KeyImporter, KeyExporter {
   final Map<String, Jwk> _keyStore = {};
 
   @override
-  Future<String> generatePrivateKey(DsaName alg) async {
-    final privateKeyJwk = await DsaAlgorithms.generatePrivateKey(alg);
+  Future<String> generatePrivateKey(AlgorithmId algId) async {
+    final privateKeyJwk = await Crypto.generatePrivateKey(algId);
     final alias = privateKeyJwk.computeThumbprint();
 
     _keyStore[alias] = privateKeyJwk;
@@ -34,13 +34,13 @@ class InMemoryKeyManager implements KeyManager {
   }
 
   @override
-  Future<Jwk> getPublicKey(String keyAlias) async =>
-      DsaAlgorithms.computePublicKey(_retrievePrivateKeyJwk(keyAlias));
+  Future<Jwk> getPublicKey(String keyId) async =>
+      Crypto.computePublicKey(_retrievePrivateKeyJwk(keyId));
 
   @override
   Future<Uint8List> sign(String keyAlias, Uint8List payload) async {
     final privateKeyJwk = _retrievePrivateKeyJwk(keyAlias);
-    return DsaAlgorithms.sign(privateKeyJwk, payload);
+    return Crypto.sign(privateKeyJwk, payload);
   }
 
   Jwk _retrievePrivateKeyJwk(String keyAlias) {
@@ -50,5 +50,22 @@ class InMemoryKeyManager implements KeyManager {
     }
 
     return privateKeyJwk;
+  }
+
+  @override
+  Future<Jwk> export(String keyId) {
+    if (_keyStore.containsKey(keyId)) {
+      return Future.value(_keyStore[keyId]);
+    } else {
+      return Future.error('Key not found');
+    }
+  }
+
+  @override
+  Future<String> import(Jwk jwk) {
+    final keyId = jwk.computeThumbprint();
+    _keyStore[keyId] = jwk;
+
+    return Future.value(keyId);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 
 /// Represents a method resolver for a specific DID method.
@@ -6,13 +7,13 @@ class DidMethodResolver {
   String name;
 
   /// The function to resolve a DID URI using this method.
-  Future<DidResolutionResult> Function(String) resolve;
+  Future<DidResolutionResult> Function(Did) resolve;
 
   /// Constructs a [DidMethodResolver] with a given [name] and [resolve] function.
   DidMethodResolver({required this.name, required this.resolve});
 
-  Future<DidDereferenceResult> dereference(String didUri) async {
-    final didResolutionResult = await resolve(didUri);
+  Future<DidDereferenceResult> dereference(Did did) async {
+    final didResolutionResult = await resolve(did);
 
     if (didResolutionResult.hasError()) {
       return DidDereferenceResult.withError(
@@ -20,14 +21,14 @@ class DidMethodResolver {
       );
     }
 
-    if (!didUri.contains('#')) {
+    if (did.fragment == null) {
       return DidDereferenceResult(
         contentStream: didResolutionResult.didDocument as DidResource,
         contentMetadata: didResolutionResult.didDocumentMetadata,
       );
     }
 
-    final resource = didResolutionResult.didDocument!.getResourceById(didUri);
+    final resource = didResolutionResult.didDocument!.getResourceById(did.url);
     return resource != null
         ? DidDereferenceResult(contentStream: resource)
         : DidDereferenceResult.withError('notFound');

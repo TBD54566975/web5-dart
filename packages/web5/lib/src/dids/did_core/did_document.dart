@@ -96,31 +96,77 @@ class DidDocument implements DidResource {
     this.capabilityInvocation,
   });
 
-  void addVerificationMethod(DidVerificationMethod vm) {
+  void addVerificationMethod(
+    DidVerificationMethod vm, {
+    VerificationPurpose? purpose,
+  }) {
     verificationMethod ??= [];
     verificationMethod!.add(vm);
+
+    if (purpose != null) {
+      addVerificationPurpose(purpose, vm.id);
+    }
   }
 
-  void addVerificationRelationship(
-    VerificationRelationship relationship,
+  void addVerificationPurpose(
+    VerificationPurpose purpose,
     String id,
   ) {
-    if (relationship == VerificationRelationship.authentication) {
+    if (purpose == VerificationPurpose.authentication) {
       authentication ??= [];
       authentication!.add(id);
-    } else if (relationship == VerificationRelationship.assertionMethod) {
+    } else if (purpose == VerificationPurpose.assertionMethod) {
       assertionMethod ??= [];
       assertionMethod!.add(id);
-    } else if (relationship == VerificationRelationship.capabilityDelegation) {
+    } else if (purpose == VerificationPurpose.capabilityDelegation) {
       capabilityDelegation ??= [];
       capabilityDelegation!.add(id);
-    } else if (relationship == VerificationRelationship.capabilityInvocation) {
+    } else if (purpose == VerificationPurpose.capabilityInvocation) {
       capabilityInvocation ??= [];
       capabilityInvocation!.add(id);
-    } else if (relationship == VerificationRelationship.keyAgreement) {
+    } else if (purpose == VerificationPurpose.keyAgreement) {
       keyAgreement ??= [];
       keyAgreement!.add(id);
     }
+  }
+
+  DidVerificationMethod? getVerificationMethod({
+    String? id,
+    VerificationPurpose? purpose,
+  }) {
+    if (id == null && purpose == null) {
+      return verificationMethod?.first;
+    }
+
+    if (id != null) {
+      final idVariations = getResourceIdVariations(id);
+
+      return verificationMethod
+          ?.firstWhereOrNull((vm) => idVariations.contains(vm.id));
+    }
+
+    String? vmId;
+
+    if (purpose == VerificationPurpose.authentication) {
+      vmId = authentication?.first;
+    } else if (purpose == VerificationPurpose.assertionMethod) {
+      vmId = assertionMethod?.first;
+    } else if (purpose == VerificationPurpose.capabilityDelegation) {
+      vmId = capabilityDelegation?.first;
+    } else if (purpose == VerificationPurpose.capabilityInvocation) {
+      vmId = capabilityInvocation?.first;
+    } else if (purpose == VerificationPurpose.keyAgreement) {
+      vmId = keyAgreement?.first;
+    }
+
+    if (vmId == null) {
+      return null;
+    }
+
+    final idVariations = getResourceIdVariations(vmId);
+
+    return verificationMethod
+        ?.firstWhereOrNull((vm) => idVariations.contains(vm.id));
   }
 
   void addService(DidService svc) {
@@ -133,15 +179,7 @@ class DidDocument implements DidResource {
       return this;
     }
 
-    final Set<String> idVariations = {resourceId};
-    if (resourceId.startsWith('#')) {
-      idVariations.add('$id$resourceId');
-    } else {
-      final splitId = resourceId.split('#');
-      if (splitId.length > 1) {
-        idVariations.add('#${splitId[1]}');
-      }
-    }
+    final Set<String> idVariations = getResourceIdVariations(resourceId);
 
     DidResource? resource = verificationMethod
         ?.firstWhereOrNull((vm) => idVariations.contains(vm.id));
@@ -153,6 +191,20 @@ class DidDocument implements DidResource {
     resource = service?.firstWhereOrNull((vm) => idVariations.contains(vm.id));
 
     return resource;
+  }
+
+  Set<String> getResourceIdVariations(String providedId) {
+    final Set<String> idVariations = {providedId};
+    if (providedId.startsWith('#')) {
+      idVariations.add('$id$providedId');
+    } else {
+      final splitId = providedId.split('#');
+      if (splitId.length > 1) {
+        idVariations.add('#${splitId[1]}');
+      }
+    }
+
+    return idVariations;
   }
 
   @override
