@@ -1,18 +1,87 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:web5/src/crypto.dart';
+import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
 import 'package:web5/src/encoders.dart';
+import 'package:web5/src/encoders/zbase.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
+
+enum DidDhtRegisteredDidType {
+  /// Type 0 is reserved for DIDs that do not wish to associate themselves
+  /// with a specific type but wish to make themselves discoverable.
+  discoverable,
+
+  /// Organization: https://schema.org/Organization
+  organization,
+
+  /// Government Organization: https://schema.org/GovernmentOrganization
+  government,
+
+  /// Corporation: https://schema.org/Corporation
+  corporation,
+
+  /// Local Business: https://schema.org/LocalBusiness
+  localBusiness,
+
+  /// Software Package: https://schema.org/SoftwareSourceCode
+  softwarePackage,
+
+  /// Web App: https://schema.org/WebApplication
+  webApp,
+
+  /// Financial Institution: https://schema.org/FinancialService
+  financialInstitution,
+}
 
 class DidDht {
   static const String methodName = 'dht';
 
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
+
+  static Future<BearerDid> create({
+    List<String>? alsoKnownAs,
+    List<String>? controllers,
+    String? gatewayUri,
+    bool? publish,
+    List<DidService>? services,
+    List<DidDhtRegisteredDidType>? types,
+    List<DidVerificationMethod>? verificationMethods,
+  }) async {
+    // Generate random key material for the Identity Key.
+    final Jwk identityKeyUri = await Ed25519.generatePrivateKey();
+    final Jwk identityKey = await Ed25519.computePublicKey(identityKeyUri);
+
+    final String didUri = identityKeyToIdentifier(identityKey: identityKey);
+    final DidDocument doc = DidDocument(
+      id: didUri,
+      alsoKnownAs: alsoKnownAs,
+      controller: controllers,
+    );
+
+    return BearerDid(
+      uri: didUri,
+      keyManager: InMemoryKeyManager(),
+      document: doc,
+    );
+  }
+
+  static String identityKeyToIdentifier({
+    required Jwk identityKey,
+  }) {
+    // Convert the key from JWK format to a byte array.
+    final Uint8List publicKeyBytes = Ed25519.publicKeyToBytes(
+      publicKey: identityKey,
+    );
+
+    final String identifier = ZBase32.encode(publicKeyBytes);
+    return 'did:${DidDht.methodName}:$identifier';
+  }
 
   static Future<DidResolutionResult> resolve(
     Did did, {
