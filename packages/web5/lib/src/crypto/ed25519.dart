@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart' as crypto;
-import 'package:web5/src/encoders/base64url.dart';
 
+import 'package:web5/src/encoders/base64url.dart';
 import 'package:web5/src/crypto/jwk.dart';
 
 final ed25519 = crypto.Ed25519();
@@ -49,6 +50,17 @@ class Ed25519 {
     );
 
     return privateKeyJwk;
+  }
+
+  static Uint8List publicKeyToBytes({required Jwk publicKey}) {
+    if (publicKey.x == null) {
+      throw Error();
+    }
+
+    final Uint8List encodedKey = utf8.encode(publicKey.x!);
+    final String base64Url = base64UrlEncode(encodedKey);
+
+    return utf8.encode(base64Url);
   }
 
   static Future<Uint8List> sign(Jwk privateKey, Uint8List payload) async {
