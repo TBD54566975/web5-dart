@@ -52,7 +52,7 @@ class DidDht {
     bool? publish,
     List<DidService>? services,
     List<DidDhtRegisteredDidType>? types,
-    List<DidVerificationMethod>? verificationMethods,
+    List<DidCreateVerificationMethod>? verificationMethods,
   }) async {
     // Generate random key material for the Identity Key.
     final Jwk identityKeyUri = await Ed25519.generatePrivateKey();
@@ -62,14 +62,82 @@ class DidDht {
     final DidDocument doc = DidDocument(
       id: didUri,
       alsoKnownAs: alsoKnownAs,
-      controller: controllers,
+      controller: controllers ?? didUri,
     );
 
-    return BearerDid(
+    // If the given verification methods do not contain an Identity Key, add one.
+    final List<DidCreateVerificationMethod> methodsToAdd =
+        verificationMethods ?? [];
+
+    final Iterable<DidCreateVerificationMethod> identityMethods =
+        methodsToAdd.where(
+      (vm) => vm.id?.split('#').last == '0',
+    );
+
+    if (identityMethods.isEmpty) {
+      methodsToAdd.add(
+        DidCreateVerificationMethod(
+          id: '0',
+          type: 'JsonWebKey',
+          controller: didUri,
+          purposes: [
+            VerificationPurpose.authentication,
+            VerificationPurpose.assertionMethod,
+            VerificationPurpose.capabilityDelegation,
+            VerificationPurpose.capabilityInvocation,
+          ],
+        ),
+      );
+    }
+
+    // Generate random key material for the Identity Key and any additional verification methods.
+    // Add verification methods to the DID document.
+    for (final DidCreateVerificationMethod vm in methodsToAdd) {
+      // Generate a random key for the verification method, or if its the Identity Key's
+      // verification method (`id` is 0) use the key previously generated.
+      late Jwk keyUri;
+
+      if (vm.id?.split('#').last == '0') {
+        keyUri = identityKeyUri;
+      } else {
+        keyUri = await Ed25519.generatePrivateKey();
+      }
+
+      final Jwk publicKey = await Ed25519.computePublicKey(keyUri);
+
+      // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
+      String methodId = vm.id ?? publicKey.kid ?? publicKey.computeThumbprint();
+      methodId = '$didUri#${methodId.split('#').last}';
+
+      doc.addVerificationMethod(
+        DidVerificationMethod(
+          id: methodId,
+          type: vm.type,
+          controller: vm.controller,
+          publicKeyJwk: publicKey,
+        ),
+      );
+
+      for (final VerificationPurpose purpose in vm.purposes) {
+        doc.addVerificationPurpose(purpose, methodId);
+      }
+    }
+
+    for (final DidService service in (services ?? [])) {
+      doc.addService(service);
+    }
+
+    final BearerDid did = BearerDid(
       uri: didUri,
       keyManager: IosKeyManager(),
       document: doc,
     );
+
+    if (publish ?? true) {
+      DidDht.publish(did: did);
+    }
+
+    return did;
   }
 
   static String identityKeyToIdentifier({
@@ -83,6 +151,11 @@ class DidDht {
     final String identifier = ZBase32.encode(publicKeyBytes);
     return 'did:${DidDht.methodName}:$identifier';
   }
+
+  static Future<void> publish({
+    required BearerDid did,
+    String? gatewayUri,
+  }) async {}
 
   static Future<DidResolutionResult> resolve(
     Did did, {
