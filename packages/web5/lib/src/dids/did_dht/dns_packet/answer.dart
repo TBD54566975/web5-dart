@@ -8,6 +8,22 @@ import 'package:web5/src/dids/did_dht/dns_packet/consts.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/opt_data.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 
+class BaseAnswer<D> {
+  BaseAnswer({
+    required this.type,
+    required this.name,
+    this.ttl,
+    this.classType,
+    required this.data,
+  });
+
+  DnsType type;
+  String name;
+  int? ttl;
+  String? classType;
+  D data;
+}
+
 /// Represents an answer section in a DNS packet.
 class DnsAnswer {
   /// The domain name to which this resource record pertains.
