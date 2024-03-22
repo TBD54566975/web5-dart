@@ -7,13 +7,6 @@
 ///
 /// [Specification Reference](https://www.w3.org/TR/did-core/#verification-relationships)
 enum VerificationPurpose {
-  /// The authentication verification relationship is used to specify how the
-  /// DID subject is expected to be authenticated, for purposes such as logging
-  /// into a website or engaging in any sort of challenge-response protocol.
-  ///
-  /// [Specification Reference](https://www.w3.org/TR/did-core/#authentication)
-  authentication,
-
   /// The assertionMethod verification relationship is used to specify how the
   /// DID subject is expected to express claims, such as for the purposes of
   /// issuing a Verifiable Credential.
@@ -21,13 +14,12 @@ enum VerificationPurpose {
   /// [Specification Reference](https://www.w3.org/TR/did-core/#assertion)
   assertionMethod,
 
-  /// The capabilityInvocation verification relationship is used to specify a
-  /// verification method that might be used by the DID subject to invoke a
-  /// cryptographic capability, such as the authorization to update the DID
-  /// Document.
+  /// The authentication verification relationship is used to specify how the
+  /// DID subject is expected to be authenticated, for purposes such as logging
+  /// into a website or engaging in any sort of challenge-response protocol.
   ///
-  /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-invocation)
-  capabilityInvocation,
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#authentication)
+  authentication,
 
   /// The capabilityDelegation verification relationship is used to specify a
   /// verification method that might be used by the DID subject to delegate
@@ -37,11 +29,38 @@ enum VerificationPurpose {
   /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-delegation)
   capabilityDelegation,
 
+  /// The capabilityInvocation verification relationship is used to specify a
+  /// verification method that might be used by the DID subject to invoke a
+  /// cryptographic capability, such as the authorization to update the DID
+  /// Document.
+  ///
+  /// [Specification Reference](https://www.w3.org/TR/did-core/#capability-invocation)
+  capabilityInvocation,
+
   /// The keyAgreement verification relationship is used to specify a
   /// verification method that might be used by the DID subject to perform
   /// cryptographic key agreement, such as when establishing secure communication
   /// channels.
   ///
   /// [Specification Reference](https://www.w3.org/TR/did-core/#key-agreement)
-  keyAgreement
+  keyAgreement,
+}
+
+extension VerificationPurposeValue on VerificationPurpose {
+  String get value {
+    switch (this) {
+      case VerificationPurpose.assertionMethod:
+        return 'assertionMethod';
+      case VerificationPurpose.authentication:
+        return 'authentication';
+      case VerificationPurpose.capabilityDelegation:
+        return 'capabilityDelegation';
+      case VerificationPurpose.capabilityInvocation:
+        return 'capabilityInvocation';
+      case VerificationPurpose.keyAgreement:
+        return 'keyAgreement';
+      default:
+        throw 'Unable to determine verification purpose value for $this';
+    }
+  }
 }
