@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:keymaster/keymaster.dart';
+import 'package:keychain/keychain.dart';
 import 'package:web5/web5.dart';
 
 class IosKeyManager implements KeyManager, KeyImporter, KeyExporter {
@@ -10,7 +10,7 @@ class IosKeyManager implements KeyManager, KeyImporter, KeyExporter {
     final Jwk privateKeyJwk = await Crypto.generatePrivateKey(algId);
     final String alias = privateKeyJwk.computeThumbprint();
 
-    await Keymaster.set(alias, json.encode(privateKeyJwk.toJson()));
+    await Keychain.set(alias, json.encode(privateKeyJwk.toJson()));
     return alias;
   }
 
@@ -26,7 +26,7 @@ class IosKeyManager implements KeyManager, KeyImporter, KeyExporter {
   }
 
   Future<Jwk> _retrievePrivateKeyJwk(String keyAlias) async {
-    final String? encoded = await Keymaster.fetch(keyAlias);
+    final String? encoded = await Keychain.fetch(keyAlias);
 
     if (encoded == null) {
       throw Exception('key with alias $keyAlias not found.');
@@ -38,7 +38,7 @@ class IosKeyManager implements KeyManager, KeyImporter, KeyExporter {
 
   @override
   Future<Jwk> export(String keyId) async {
-    final String? encoded = await Keymaster.fetch(keyId);
+    final String? encoded = await Keychain.fetch(keyId);
 
     if (encoded != null) {
       return Jwk.fromJson(json.decode(encoded));
@@ -51,7 +51,7 @@ class IosKeyManager implements KeyManager, KeyImporter, KeyExporter {
   Future<String> import(Jwk jwk) async {
     final keyId = jwk.computeThumbprint();
 
-    await Keymaster.set(keyId, json.encode(jwk.toJson()));
+    await Keychain.set(keyId, json.encode(jwk.toJson()));
     return Future.value(keyId);
   }
 }
