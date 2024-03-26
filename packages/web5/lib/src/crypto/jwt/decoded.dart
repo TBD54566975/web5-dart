@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/encoders.dart';
-import 'package:web5/src/jws/decoded_jws.dart';
-import 'package:web5/src/jwt/jwt_claims.dart';
-import 'package:web5/src/jwt/jwt_header.dart';
+import 'package:web5/src/common.dart';
+import 'package:web5/src/crypto/jws/decoded.dart';
+import 'package:web5/src/crypto/jwt/claims.dart';
+import 'package:web5/src/crypto/jwt/header.dart';
 
 class DecodedJwt {
   final JwtHeader header;

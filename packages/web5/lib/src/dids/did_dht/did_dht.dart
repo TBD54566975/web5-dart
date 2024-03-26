@@ -2,15 +2,13 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:web5/src/crypto.dart';
-import 'package:web5/src/crypto/ios_key_manager.dart';
 import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/registered_did_type.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/encoders.dart';
-import 'package:web5/src/encoders/zbase.dart';
+import 'package:web5/src/common.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
 

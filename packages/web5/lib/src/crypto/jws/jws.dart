@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto.dart';
-import 'package:web5/src/encoders.dart';
+import 'package:web5/src/common.dart';
+import 'package:web5/src/crypto/crypto.dart';
 import 'package:web5/src/dids.dart';
-import 'package:web5/src/jws/decoded_jws.dart';
-import 'package:web5/src/jws/jws_header.dart';
+import 'package:web5/src/crypto/jws/decoded.dart';
+import 'package:web5/src/crypto/jws/header.dart';
 
 class Jws {
   static DecodedJws decode(String jws) {
@@ -40,7 +40,7 @@ class Jws {
       signature = Base64Url.decode(parts[2]);
     } on Exception {
       throw Exception(
-        'Malformed JWT. faild to decode signature',
+        'Malformed JWT: Failed to decode signature',
       );
     }
 

@@ -1,12 +1,11 @@
 import 'dart:convert';
 
+import 'package:web5/src/common.dart';
 import 'package:web5/src/dids.dart';
-import 'package:web5/src/extensions.dart';
-import 'package:web5/src/jws.dart';
-import 'package:web5/src/jws/jws.dart';
-import 'package:web5/src/jwt/decoded_jwt.dart';
-import 'package:web5/src/jwt/jwt_claims.dart';
-import 'package:web5/src/jwt/jwt_header.dart';
+import 'package:web5/src/crypto/jws/jws.dart';
+import 'package:web5/src/crypto/jwt/decoded.dart';
+import 'package:web5/src/crypto/jwt/claims.dart';
+import 'package:web5/src/crypto/jwt/header.dart';
 
 class Jwt {
   static DecodedJwt decode(String jwt) {

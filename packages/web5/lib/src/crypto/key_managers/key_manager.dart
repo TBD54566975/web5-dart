@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/algorithm_id.dart';
-import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/crypto/encryption/algorithm_id.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
 
 abstract interface class KeyImporter {
   /// Imports a private key. Returns

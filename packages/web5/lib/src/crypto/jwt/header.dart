@@ -1,4 +1,4 @@
-import 'package:web5/src/jws/jws_header.dart';
+import 'package:web5/src/crypto/jws/header.dart';
 
 /// JWT Headers are JWS Headers. type aliasing because this could cause confusion
 /// for non-neckbeards

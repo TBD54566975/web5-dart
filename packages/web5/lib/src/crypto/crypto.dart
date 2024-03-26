@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/algorithm_id.dart';
-import 'package:web5/src/crypto/ecdsa.dart';
-import 'package:web5/src/crypto/eddsa.dart';
-import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/crypto/ed25519.dart';
-import 'package:web5/src/crypto/secp256k1.dart';
+import 'package:web5/src/crypto/encryption/algorithm_id.dart';
+import 'package:web5/src/crypto/encryption/ecdsa.dart';
+import 'package:web5/src/crypto/encryption/eddsa.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
+import 'package:web5/src/crypto/encryption/ed25519.dart';
+import 'package:web5/src/crypto/encryption/secp256k1.dart';
 
 class Crypto {
   static Future<Jwk> generatePrivateKey(AlgorithmId algId) {

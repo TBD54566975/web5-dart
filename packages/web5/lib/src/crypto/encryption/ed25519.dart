@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart' as crypto;
 
-import 'package:web5/src/encoders/base64url.dart';
-import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/common/encoders/base64url.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
 
 final ed25519 = crypto.Ed25519();
 

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:web5/src/extensions.dart';
+import 'package:web5/src/common.dart';
 
 /// Represents the header portion of a JWS.
 class JwsHeader {
