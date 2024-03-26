@@ -18,6 +18,8 @@ class DidDht {
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
   static Future<BearerDid> create({
+    required AlgorithmId algorithm,
+    required KeyManager keyManager,
     List<String>? alsoKnownAs,
     List<String>? controllers,
     String? gatewayUri,
@@ -27,8 +29,8 @@ class DidDht {
     List<DidCreateVerificationMethod>? verificationMethods,
   }) async {
     // Generate random key material for the Identity Key.
-    final Jwk identityKeyUri = await Ed25519.generatePrivateKey();
-    final Jwk identityKey = await Ed25519.computePublicKey(identityKeyUri);
+    final Jwk identityKeyUri = await Crypto.generatePrivateKey(algorithm);
+    final Jwk identityKey = await Crypto.computePublicKey(identityKeyUri);
 
     final String didUri = identityKeyToIdentifier(identityKey: identityKey);
     final DidDocument doc = DidDocument(
@@ -72,10 +74,10 @@ class DidDht {
       if (vm.id?.split('#').last == '0') {
         keyUri = identityKeyUri;
       } else {
-        keyUri = await Ed25519.generatePrivateKey();
+        keyUri = await Crypto.generatePrivateKey(algorithm);
       }
 
-      final Jwk publicKey = await Ed25519.computePublicKey(keyUri);
+      final Jwk publicKey = await Crypto.computePublicKey(keyUri);
 
       // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
       String methodId = vm.id ?? publicKey.kid ?? publicKey.computeThumbprint();
@@ -101,7 +103,7 @@ class DidDht {
 
     final BearerDid did = BearerDid(
       uri: didUri,
-      keyManager: IosKeyManager(),
+      keyManager: keyManager,
       document: doc,
       metadata: DidDocumentMetadata(
         types: types,
@@ -119,9 +121,7 @@ class DidDht {
     required Jwk identityKey,
   }) {
     // Convert the key from JWK format to a byte array.
-    final Uint8List publicKeyBytes = Ed25519.publicKeyToBytes(
-      publicKey: identityKey,
-    );
+    final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
 
     final String identifier = ZBase32.encode(publicKeyBytes);
     return 'did:${DidDht.methodName}:$identifier';
@@ -131,6 +131,7 @@ class DidDht {
     required BearerDid did,
     String? gatewayUri,
   }) async {
+    // TODO: Finish publish method
     // final DnsPacket dnsPacket = DnsPacket.fromDid(did);
   }
 
