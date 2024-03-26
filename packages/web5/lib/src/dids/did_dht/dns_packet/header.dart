@@ -35,7 +35,7 @@ class DnsHeader {
   bool? cd;
 
   /// Response code
-  DnsRCode rcode;
+  DnsRCode? rcode;
 
   /// Number of entries in the question section.
   int qdcount;
@@ -65,9 +65,9 @@ class DnsHeader {
     required this.rd,
     this.ra,
     this.z = false,
-    required this.ad,
-    required this.cd,
-    required this.rcode,
+    this.ad,
+    this.cd,
+    this.rcode,
     required this.qdcount,
     required this.ancount,
     required this.nscount,

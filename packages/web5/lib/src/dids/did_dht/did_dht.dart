@@ -7,38 +7,12 @@ import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
+import 'package:web5/src/dids/did_dht/registered_did_type.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
 import 'package:web5/src/encoders.dart';
 import 'package:web5/src/encoders/zbase.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
-
-enum DidDhtRegisteredDidType {
-  /// Type 0 is reserved for DIDs that do not wish to associate themselves
-  /// with a specific type but wish to make themselves discoverable.
-  discoverable,
-
-  /// Organization: https://schema.org/Organization
-  organization,
-
-  /// Government Organization: https://schema.org/GovernmentOrganization
-  government,
-
-  /// Corporation: https://schema.org/Corporation
-  corporation,
-
-  /// Local Business: https://schema.org/LocalBusiness
-  localBusiness,
-
-  /// Software Package: https://schema.org/SoftwareSourceCode
-  softwarePackage,
-
-  /// Web App: https://schema.org/WebApplication
-  webApp,
-
-  /// Financial Institution: https://schema.org/FinancialService
-  financialInstitution,
-}
 
 class DidDht {
   static const String methodName = 'dht';
@@ -131,6 +105,9 @@ class DidDht {
       uri: didUri,
       keyManager: IosKeyManager(),
       document: doc,
+      metadata: DidDocumentMetadata(
+        types: types,
+      ),
     );
 
     if (publish ?? true) {
@@ -155,7 +132,9 @@ class DidDht {
   static Future<void> publish({
     required BearerDid did,
     String? gatewayUri,
-  }) async {}
+  }) async {
+    // final DnsPacket dnsPacket = DnsPacket.fromDid(did);
+  }
 
   static Future<DidResolutionResult> resolve(
     Did did, {
@@ -210,7 +189,7 @@ class DidDht {
     }
 
     if (rootRecord == null) {
-      // TODO: figure out more appopriate resolution error to use.
+      // TODO: figure out more appropriate resolution error to use.
       return DidResolutionResult.invalidDid();
     }
 
@@ -219,7 +198,7 @@ class DidDht {
       final splitEntry = entry.split('=');
 
       if (splitEntry.length != 2) {
-        // TODO: figure out more appopriate resolution error to use.
+        // TODO: figure out more appropriate resolution error to use.
         return DidResolutionResult.invalidDid();
       }
 
