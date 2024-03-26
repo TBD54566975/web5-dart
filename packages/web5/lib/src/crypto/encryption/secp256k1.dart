@@ -3,9 +3,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:web5/src/encoders/base64url.dart';
-import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/extensions.dart';
+
+import 'package:web5/src/common.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
 
 final _curveParams = ECCurve_secp256k1();
 final _keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());

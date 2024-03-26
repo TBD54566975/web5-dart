@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/crypto/secp256k1.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
+import 'package:web5/src/crypto/encryption/secp256k1.dart';
 
 class Ecdsa {
   static const kty = 'EC';

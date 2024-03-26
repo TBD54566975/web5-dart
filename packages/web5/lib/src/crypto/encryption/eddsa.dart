@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/ed25519.dart';
-import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/crypto/encryption/ed25519.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
 
 class Eddsa {
   static const kty = 'OKP';

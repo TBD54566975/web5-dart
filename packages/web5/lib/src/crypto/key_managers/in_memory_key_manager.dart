@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/algorithm_id.dart';
-import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/crypto/key_manager.dart';
+import 'package:web5/src/crypto/encryption/algorithm_id.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
+import 'package:web5/src/crypto/key_managers/key_manager.dart';
 import 'package:web5/src/crypto/crypto.dart';
 
 /// A class for managing cryptographic keys in-memory.

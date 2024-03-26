@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:cryptography/dart.dart';
-import 'package:web5/src/encoders/base64url.dart';
+
+import 'package:web5/src/common/encoders/base64url.dart';
 
 const _dartSha256 = DartSha256();
 
