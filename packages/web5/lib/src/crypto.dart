@@ -8,4 +8,3 @@ export 'crypto/jwk/jwk.dart';
 
 export 'crypto/key_managers/key_manager.dart';
 export 'crypto/key_managers/in_memory_key_manager.dart';
-export 'crypto/key_managers/ios_key_manager.dart';
