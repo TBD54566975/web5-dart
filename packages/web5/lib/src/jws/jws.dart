@@ -8,7 +8,14 @@ import 'package:web5/src/jws/decoded_jws.dart';
 import 'package:web5/src/jws/jws_header.dart';
 
 class Jws {
-  static DecodedJws decode(String jws) {
+  /// Decodes a compact JWS per [RFC 7515](https://tools.ietf.org/html/rfc7515)
+  /// and returns a [DecodedJws] object.
+  ///
+  /// ### Note
+  /// `detachedPayload` is optional and should be provided if the payload
+  /// is detached. More information on detached payloads can be found
+  /// [here](https://tools.ietf.org/html/rfc7515#section-7.2).
+  static DecodedJws decode(String jws, {Uint8List? detachedPayload}) {
     final parts = jws.split('.');
 
     if (parts.length != 3) {
@@ -27,12 +34,17 @@ class Jws {
     }
 
     final Uint8List payload;
-    try {
-      payload = Base64Url.decode(parts[1]);
-    } on Exception {
-      throw Exception(
-        'Malformed JWT. failed to decode claims',
-      );
+    if (detachedPayload == null) {
+      try {
+        payload = Base64Url.decode(parts[1]);
+      } on Exception {
+        throw Exception(
+          'Malformed JWT. failed to decode claims',
+        );
+      }
+    } else {
+      payload = detachedPayload;
+      parts[1] = Base64Url.encode(detachedPayload);
     }
 
     final Uint8List signature;
@@ -92,9 +104,19 @@ class Jws {
     }
   }
 
-  static Future<DecodedJws> verify(String jws) async {
+  /// Verifies a compact JWS per [RFC 7515](https://tools.ietf.org/html/rfc7515)
+  /// and returns a [DecodedJws] object. Throws [Exception] if verification fails.
+  ///
+  /// ### Note
+  /// `detachedPayload` is optional and should be provided if the payload
+  /// is detached. More information on detached payloads can be found
+  /// [here](https://tools.ietf.org/html/rfc7515#section-7.2).
+  static Future<DecodedJws> verify(
+    String jws, {
+    Uint8List? detachedPayload,
+  }) async {
     try {
-      final decodedJws = decode(jws);
+      final decodedJws = decode(jws, detachedPayload: detachedPayload);
       await decodedJws.verify();
       return decodedJws;
     } on Exception catch (e) {
