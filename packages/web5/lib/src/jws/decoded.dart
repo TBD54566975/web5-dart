@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:web5/src/crypto.dart';
-import 'package:web5/src/jws/jws_header.dart';
-
+import 'package:web5/src/jws/header.dart';
 import 'package:web5/src/dids.dart';
 
 class DecodedJws {

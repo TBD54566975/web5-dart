@@ -1,3 +1,5 @@
+import 'package:web5/src/jwt/claims.dart';
+import 'package:web5/src/jwt/jwt.dart';
 import 'package:web5/web5.dart';
 import 'package:test/test.dart';
 

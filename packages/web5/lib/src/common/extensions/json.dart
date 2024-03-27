@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:web5/src/encoders.dart';
+import 'package:web5/src/common/encoders/base64url.dart';
 
 /// Extension on [JsonCodec] to provide additional encoding functionalities.
 ///

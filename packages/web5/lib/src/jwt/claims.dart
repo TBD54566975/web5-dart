@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:web5/src/extensions.dart';
+
+import 'package:web5/src/common.dart';
 
 final Set<String> reservedClaims = {
   'iss',

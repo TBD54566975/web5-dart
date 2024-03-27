@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:web5/src/common.dart';
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
-import 'package:web5/src/extensions.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';

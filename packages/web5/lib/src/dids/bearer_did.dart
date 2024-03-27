@@ -20,11 +20,13 @@ class BearerDid {
   String uri;
   KeyManager keyManager;
   DidDocument document;
+  DidDocumentMetadata metadata;
 
   BearerDid({
     required this.uri,
     required this.keyManager,
     required this.document,
+    this.metadata = const DidDocumentMetadata(),
   });
 
   Future<PortableDid> export() async {

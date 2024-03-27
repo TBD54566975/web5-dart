@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto/algorithm_id.dart';
-import 'package:web5/src/crypto/ecdsa.dart';
-import 'package:web5/src/crypto/eddsa.dart';
-import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/crypto/ed25519.dart';
-import 'package:web5/src/crypto/secp256k1.dart';
+import 'package:web5/src/crypto/encryption/algorithm_id.dart';
+import 'package:web5/src/crypto/encryption/ecdsa.dart';
+import 'package:web5/src/crypto/encryption/eddsa.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
+import 'package:web5/src/crypto/encryption/ed25519.dart';
+import 'package:web5/src/crypto/encryption/secp256k1.dart';
 
 class Crypto {
   static Future<Jwk> generatePrivateKey(AlgorithmId algId) {
@@ -34,6 +34,17 @@ class Crypto {
         return Ed25519.bytesToPublicKey(bytes);
       case AlgorithmId.secp256k1:
         return Secp256k1.bytesToPublicKey(bytes);
+    }
+  }
+
+  static Uint8List publicKeyToBytes(Jwk publicKey) {
+    switch (publicKey.kty) {
+      case Ed25519.kty:
+        return Ed25519.publicKeyToBytes(publicKey: publicKey);
+      case Secp256k1.kty:
+        return Secp256k1.publicKeyToBytes(publicKey: publicKey);
+      default:
+        throw Exception('unsupported kty: ${publicKey.kty}');
     }
   }
 

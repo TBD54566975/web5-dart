@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:web5/src/encoders/base64url.dart';
-import 'package:web5/src/crypto/jwk.dart';
-import 'package:web5/src/extensions.dart';
+
+import 'package:web5/src/common.dart';
+import 'package:web5/src/crypto/jwk/jwk.dart';
 
 final _curveParams = ECCurve_secp256k1();
 final _keyGenParams = ECKeyGeneratorParameters(ECCurve_secp256k1());
@@ -162,5 +163,16 @@ class Secp256k1 {
   static Jwk bytesToPublicKey(Uint8List input) {
     // TODO: implement bytesToPublicKey
     throw UnimplementedError();
+  }
+
+  static Uint8List publicKeyToBytes({required Jwk publicKey}) {
+    if (publicKey.x == null) {
+      throw Error();
+    }
+
+    final Uint8List encodedKey = utf8.encode(publicKey.x!);
+    final String base64Url = base64UrlEncode(encodedKey);
+
+    return utf8.encode(base64Url);
   }
 }
