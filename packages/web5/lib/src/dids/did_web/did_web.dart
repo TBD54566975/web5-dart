@@ -1,49 +1,117 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:web5/src/crypto.dart';
+import 'package:web5/src/dids/bearer_did.dart';
+import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/dids/did.dart';
 
 class DidWeb {
   static const String methodName = 'web';
-  static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
+
+  static final DidMethodResolver resolver = DidMethodResolver(
+    name: methodName,
+    resolve: resolve,
+  );
+
+  static Future<BearerDid> create({
+    required AlgorithmId algorithm,
+    required KeyManager keyManager,
+    required String url,
+    List<String>? alsoKnownAs,
+    List<String>? controllers,
+    List<DidService>? services,
+    List<DidCreateVerificationMethod>? verificationMethods,
+    DidDocumentMetadata? metadata,
+  }) async {
+    final parsed = Uri.tryParse(url);
+    if (parsed == null) throw 'Unable to parse url $url';
+    final String didId =
+        'did:web:${parsed.host}${parsed.pathSegments.join(':')}';
+
+    final DidDocument doc = DidDocument(
+      id: didId,
+      alsoKnownAs: alsoKnownAs,
+      controller: controllers ?? didId,
+    );
+
+    final List<DidCreateVerificationMethod> defaultMethods = [
+      DidCreateVerificationMethod(
+        id: '0',
+        type: 'JsonWebKey',
+        controller: didId,
+        purposes: [
+          VerificationPurpose.authentication,
+          VerificationPurpose.assertionMethod,
+          VerificationPurpose.capabilityDelegation,
+          VerificationPurpose.capabilityInvocation,
+        ],
+      ),
+    ];
+
+    final List<DidCreateVerificationMethod> methodsToAdd =
+        verificationMethods ?? defaultMethods;
+
+    for (final DidCreateVerificationMethod vm in methodsToAdd) {
+      final Jwk privateKey = await Crypto.generatePrivateKey(algorithm);
+      final Jwk publicKey = await Crypto.computePublicKey(privateKey);
+
+      keyManager.import(privateKey);
+
+      final String methodId = '$didId#${vm.id}';
+      doc.addVerificationMethod(
+        DidVerificationMethod(
+          id: methodId,
+          type: vm.type,
+          controller: vm.controller,
+          publicKeyJwk: publicKey,
+        ),
+      );
+
+      for (final VerificationPurpose purpose in vm.purposes) {
+        doc.addVerificationPurpose(purpose, methodId);
+      }
+    }
+
+    for (final DidService service in (services ?? [])) {
+      doc.addService(service);
+    }
+
+    return BearerDid(
+      uri: didId,
+      keyManager: keyManager,
+      document: doc,
+      metadata: metadata ?? DidDocumentMetadata(),
+    );
+  }
 
   static Future<DidResolutionResult> resolve(
     Did did, {
     HttpClient? client,
   }) async {
-    if (did.method != methodName) {
-      return DidResolutionResult.invalidDid();
-    }
+    if (did.method != methodName) return DidResolutionResult.invalidDid();
 
-    // TODO: http technically not supported. remove after temp use
-    var resolutionUrl = did.id.replaceAll(':', '/');
-    if (resolutionUrl.contains('localhost')) {
-      resolutionUrl = 'http://$resolutionUrl';
-    } else {
-      resolutionUrl = 'https://$resolutionUrl';
-    }
+    final String documentUrl = Uri.decodeFull(did.id.replaceAll(':', '/'));
+    Uri? didUri = Uri.tryParse('https://$documentUrl');
 
-    if (Uri.parse(resolutionUrl).path.isEmpty) {
-      resolutionUrl = '$resolutionUrl/.well-known';
-    }
+    if (didUri == null) throw 'Unable to parse DID document Url $documentUrl';
 
-    resolutionUrl = Uri.decodeFull('$resolutionUrl/did.json');
-    final parsedUrl = Uri.parse(resolutionUrl);
+    // If none was specified, use the default path.
+    if (didUri.path.isEmpty) didUri = didUri.replace(path: '/.well-known');
+    didUri = didUri.replace(pathSegments: [...didUri.pathSegments, 'did.json']);
 
-    final httpClient = client ??= HttpClient();
-    final request = await httpClient.getUrl(parsedUrl);
-    final response = await request.close();
+    final HttpClient httpClient = client ??= HttpClient();
+    final HttpClientRequest request = await httpClient.getUrl(didUri);
+    final HttpClientResponse response = await request.close();
 
     if (response.statusCode != 200) {
-      // TODO: change this to something more appropriate
-      return DidResolutionResult.invalidDid();
+      return DidResolutionResult.notFound();
     }
 
-    final str = await response.transform(utf8.decoder).join();
-    final jsonParsed = json.decode(str);
-    final doc = DidDocument.fromJson(jsonParsed);
+    final String str = await response.transform(utf8.decoder).join();
+    final dynamic jsonParsed = json.decode(str);
+    final DidDocument doc = DidDocument.fromJson(jsonParsed);
 
     return DidResolutionResult(didDocument: doc);
   }

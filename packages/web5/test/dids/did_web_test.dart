@@ -3,9 +3,7 @@ import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
-import 'package:web5/src/dids/did.dart';
-import 'package:web5/src/dids/did_core/did_resolution_result.dart';
-import 'package:web5/src/dids/did_web/did_web.dart';
+import 'package:web5/web5.dart';
 
 class MockHttpClient extends Mock implements HttpClient {}
 
@@ -78,20 +76,31 @@ void main() {
   });
 
   group('DidWeb', () {
+    test('should be created successfully', () async {
+      final BearerDid did = await DidWeb.create(
+        algorithm: AlgorithmId.ed25519,
+        keyManager: InMemoryKeyManager(),
+        url: 'www.linkedin.com/user123',
+      );
+
+      expect('did:web:www.linkedin.com:user123', did.document.id);
+    });
+
     test('should return invalid did with wrong method', () async {
       final did = Did.parse('did:bad:www.linkedin.com');
       final result = await DidWeb.resolve(did);
       expect(result, DidResolutionResult.invalidDid());
     });
 
-    test('should return invalid did with failed http request', () async {
+    test('should return did with failed http request', () async {
       when(() => response.statusCode).thenReturn(400);
       when(() => request.close()).thenAnswer((_) async => response);
       when(() => mockClient.getUrl(any())).thenAnswer((_) async => request);
 
       final did = Did.parse('did:web:www.linkedin.com');
       final result = await DidWeb.resolve(did, client: mockClient);
-      expect(result, DidResolutionResult.invalidDid());
+
+      expect(result, DidResolutionResult.notFound());
     });
 
     test('should resolve successfully', () async {
@@ -124,11 +133,11 @@ void main() {
       when(() => request.close()).thenAnswer((_) async => response);
       when(
         () => mockClient.getUrl(
-          Uri.parse('http://localhost:8892/ingress/did.json'),
+          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
         ),
       ).thenAnswer((_) async => request);
 
-      final did = Did.parse('did:web:localhost%3A8892:ingress');
+      final did = Did.parse('did:web:www.remotehost.com%3A8892:ingress');
       final result = await DidWeb.resolve(
         did,
         client: mockClient,
@@ -136,8 +145,9 @@ void main() {
       expect(result.didDocument, isNotNull);
 
       verify(
-        () => mockClient
-            .getUrl(Uri.parse('http://localhost:8892/ingress/did.json')),
+        () => mockClient.getUrl(
+          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
+        ),
       );
     });
   });
