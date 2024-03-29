@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -77,6 +78,17 @@ class Secp256k1 {
     );
 
     return Future.value(privateKeyJwk);
+  }
+
+  static Uint8List publicKeyToBytes({required Jwk publicKey}) {
+    if (publicKey.x == null) {
+      throw Error();
+    }
+
+    final Uint8List encodedKey = utf8.encode(publicKey.x!);
+    final String base64Url = base64UrlEncode(encodedKey);
+
+    return utf8.encode(base64Url);
   }
 
   static Future<Uint8List> sign(Jwk privateKeyJwk, Uint8List payload) {

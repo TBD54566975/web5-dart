@@ -1,11 +1,15 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:web5/src/crypto.dart';
+import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
+import 'package:web5/src/dids/did_dht/registered_did_type.dart';
 import 'package:web5/src/dids/did_method_resolver.dart';
 import 'package:web5/src/encoders.dart';
+import 'package:web5/src/encoders/zbase.dart';
 
 final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
 
@@ -13,6 +17,124 @@ class DidDht {
   static const String methodName = 'dht';
 
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
+
+  static Future<BearerDid> create({
+    required AlgorithmId algorithm,
+    required KeyManager keyManager,
+    List<String>? alsoKnownAs,
+    List<String>? controllers,
+    String? gatewayUri,
+    bool? publish,
+    List<DidService>? services,
+    List<DidDhtRegisteredDidType>? types,
+    List<DidCreateVerificationMethod>? verificationMethods,
+  }) async {
+    // Generate random key material for the Identity Key.
+    final Jwk identityKeyUri = await Crypto.generatePrivateKey(algorithm);
+    final Jwk identityKey = await Crypto.computePublicKey(identityKeyUri);
+
+    final String didUri = identityKeyToIdentifier(identityKey: identityKey);
+    final DidDocument doc = DidDocument(
+      id: didUri,
+      alsoKnownAs: alsoKnownAs,
+      controller: controllers ?? didUri,
+    );
+
+    // If the given verification methods do not contain an Identity Key, add one.
+    final List<DidCreateVerificationMethod> methodsToAdd =
+        verificationMethods ?? [];
+
+    final Iterable<DidCreateVerificationMethod> identityMethods =
+        methodsToAdd.where(
+      (vm) => vm.id?.split('#').last == '0',
+    );
+
+    if (identityMethods.isEmpty) {
+      methodsToAdd.add(
+        DidCreateVerificationMethod(
+          id: '0',
+          type: 'JsonWebKey',
+          controller: didUri,
+          purposes: [
+            VerificationPurpose.authentication,
+            VerificationPurpose.assertionMethod,
+            VerificationPurpose.capabilityDelegation,
+            VerificationPurpose.capabilityInvocation,
+          ],
+        ),
+      );
+    }
+
+    // Generate random key material for the Identity Key and any additional verification methods.
+    // Add verification methods to the DID document.
+    for (final DidCreateVerificationMethod vm in methodsToAdd) {
+      // Generate a random key for the verification method, or if its the Identity Key's
+      // verification method (`id` is 0) use the key previously generated.
+      late Jwk keyUri;
+
+      if (vm.id?.split('#').last == '0') {
+        keyUri = identityKeyUri;
+      } else {
+        keyUri = await Crypto.generatePrivateKey(algorithm);
+      }
+
+      final Jwk publicKey = await Crypto.computePublicKey(keyUri);
+
+      // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
+      String methodId = vm.id ?? publicKey.kid ?? publicKey.computeThumbprint();
+      methodId = '$didUri#${methodId.split('#').last}';
+
+      doc.addVerificationMethod(
+        DidVerificationMethod(
+          id: methodId,
+          type: vm.type,
+          controller: vm.controller,
+          publicKeyJwk: publicKey,
+        ),
+      );
+
+      for (final VerificationPurpose purpose in vm.purposes) {
+        doc.addVerificationPurpose(purpose, methodId);
+      }
+    }
+
+    for (final DidService service in (services ?? [])) {
+      doc.addService(service);
+    }
+
+    final BearerDid did = BearerDid(
+      uri: didUri,
+      keyManager: keyManager,
+      document: doc,
+      metadata: DidDocumentMetadata(
+        types: types,
+      ),
+    );
+
+    if (publish ?? true) {
+      DidDht.publish(did: did);
+    }
+
+    return did;
+  }
+
+  static String identityKeyToIdentifier({
+    required Jwk identityKey,
+  }) {
+    // Convert the key from JWK format to a byte array.
+    final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
+
+    final String identifier = ZBase32.encode(publicKeyBytes);
+    return 'did:${DidDht.methodName}:$identifier';
+  }
+
+  static Future<void> publish({
+    required BearerDid did,
+    String? gatewayUri,
+  }) async {
+    // TODO: Finish publish method
+    // final DnsPacket dnsPacket = DnsPacket.fromDid(did);
+  }
 
   static Future<DidResolutionResult> resolve(
     Did did, {

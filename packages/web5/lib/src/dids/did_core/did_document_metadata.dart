@@ -1,3 +1,5 @@
+import 'package:web5/src/dids/did_dht/registered_did_type.dart';
+
 /// contains metadata about the DID document contained in the didDocument
 /// property. This metadata typically does not change between invocations of
 /// the resolve and resolveRepresentation functions unless the DID document
@@ -51,7 +53,9 @@ class DidDocumentMetadata {
   ///     the scope of the containing DID document.
   final String? canonicalId;
 
-  DidDocumentMetadata({
+  final List<DidDhtRegisteredDidType>? types;
+
+  const DidDocumentMetadata({
     this.created,
     this.updated,
     this.deactivated,
@@ -60,6 +64,7 @@ class DidDocumentMetadata {
     this.nextVersionId,
     this.equivalentId,
     this.canonicalId,
+    this.types,
   });
 
   Map<String, dynamic> toJson() {

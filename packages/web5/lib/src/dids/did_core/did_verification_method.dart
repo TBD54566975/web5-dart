@@ -1,5 +1,6 @@
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did_core/did_resource.dart';
+import 'package:web5/src/dids/did_core/did_verification_relationship.dart';
 
 /// A DID document can express verification methods, such as cryptographic
 /// public keys, which can be used to authenticate or authorize interactions
@@ -51,4 +52,18 @@ class DidVerificationMethod implements DidResource {
       publicKeyMultibase: json['publicKeyMultibase'],
     );
   }
+}
+
+class DidCreateVerificationMethod {
+  DidCreateVerificationMethod({
+    required this.controller,
+    this.id,
+    required this.purposes,
+    required this.type,
+  });
+
+  final String controller;
+  final String? id;
+  final List<VerificationPurpose> purposes;
+  final String type;
 }
