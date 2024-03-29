@@ -61,13 +61,36 @@ class DidResolutionResult {
             didResolutionMetadata ?? DidResolutionMetadata(),
         didDocumentMetadata = didDocumentMetadata ?? DidDocumentMetadata();
 
-  /// A convenience constructor for creating a [DidResolutionResult] representing
+  /// A factory constructor for creating a [DidResolutionResult] representing
   /// an invalid DID scenario. This sets the resolution metadata error to 'invalidDid'
   /// and leaves the DID document as `null`.
-  DidResolutionResult.invalidDid()
-      : didResolutionMetadata = DidResolutionMetadata(error: 'invalidDid'),
-        didDocument = null,
-        didDocumentMetadata = DidDocumentMetadata();
+  factory DidResolutionResult.invalidDid() {
+    return DidResolutionResult(
+      didResolutionMetadata: DidResolutionMetadata(error: 'invalidDid'),
+      didDocument: null,
+      didDocumentMetadata: DidDocumentMetadata(),
+    );
+  }
+
+  factory DidResolutionResult.notFound() {
+    return DidResolutionResult(
+      didResolutionMetadata: DidResolutionMetadata(
+        error: 'notFound',
+      ),
+      didDocument: null,
+      didDocumentMetadata: DidDocumentMetadata(),
+    );
+  }
+
+  factory DidResolutionResult.representationNotSupported() {
+    return DidResolutionResult(
+      didResolutionMetadata: DidResolutionMetadata(
+        error: 'representationNotSupported',
+      ),
+      didDocument: null,
+      didDocumentMetadata: DidDocumentMetadata(),
+    );
+  }
 
   /// Converts this [DidResolutionResult] instance to a JSON map.
   ///
