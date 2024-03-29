@@ -20,7 +20,7 @@ import 'package:web5/src/crypto/crypto.dart';
 /// final signatureBytes = await keyManager.sign(keyAlias, Uint8List.fromList([20, 32]));
 /// ```
 ///
-class InMemoryKeyManager implements KeyManager, KeyImporter, KeyExporter {
+class InMemoryKeyManager implements KeyManager {
   final Map<String, Jwk> _keyStore = {};
 
   @override
