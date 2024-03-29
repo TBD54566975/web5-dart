@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('Jws', () {
-    test('should successfuly sign & verify detached compact jws', () async {
+    test('should successfully sign & verify detached compact jws', () async {
       final did = await DidJwk.create();
       final payload = Uint8List.fromList('hello'.codeUnits);
       final compactJws =
