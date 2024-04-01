@@ -19,8 +19,7 @@ class DidDht {
   static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
   static Future<BearerDid> create({
-    required AlgorithmId algorithm,
-    required KeyManager keyManager,
+    KeyManager? keyManager,
     List<String>? alsoKnownAs,
     List<String>? controllers,
     String? gatewayUri,
@@ -29,9 +28,12 @@ class DidDht {
     List<DidDhtRegisteredDidType>? types,
     List<DidCreateVerificationMethod>? verificationMethods,
   }) async {
+    final AlgorithmId idAlgorithm = AlgorithmId.ed25519;
+    keyManager ??= InMemoryKeyManager();
+
     // Generate random key material for the Identity Key.
-    final Jwk identityKeyUri = await Crypto.generatePrivateKey(algorithm);
-    final Jwk identityKey = await Crypto.computePublicKey(identityKeyUri);
+    final Jwk idKeyUri = await keyManager.generatePrivateKey(idAlgorithm);
+    final Jwk identityKey = await Crypto.computePublicKey(idKeyUri);
 
     final String didUri = identityKeyToIdentifier(identityKey: identityKey);
     final DidDocument doc = DidDocument(
@@ -52,6 +54,7 @@ class DidDht {
     if (identityMethods.isEmpty) {
       methodsToAdd.add(
         DidCreateVerificationMethod(
+          algorithm: AlgorithmId.ed25519,
           id: '0',
           type: 'JsonWebKey',
           controller: didUri,
@@ -73,9 +76,9 @@ class DidDht {
       late Jwk keyUri;
 
       if (vm.id?.split('#').last == '0') {
-        keyUri = identityKeyUri;
+        keyUri = idKeyUri;
       } else {
-        keyUri = await Crypto.generatePrivateKey(algorithm);
+        keyUri = await keyManager.generatePrivateKey(vm.algorithm);
       }
 
       final Jwk publicKey = await Crypto.computePublicKey(keyUri);

@@ -24,13 +24,13 @@ class InMemoryKeyManager implements KeyManager, KeyImporter, KeyExporter {
   final Map<String, Jwk> _keyStore = {};
 
   @override
-  Future<String> generatePrivateKey(AlgorithmId algId) async {
+  Future<Jwk> generatePrivateKey(AlgorithmId algId) async {
     final privateKeyJwk = await Crypto.generatePrivateKey(algId);
     final alias = privateKeyJwk.computeThumbprint();
 
     _keyStore[alias] = privateKeyJwk;
 
-    return alias;
+    return privateKeyJwk;
   }
 
   @override

@@ -56,12 +56,14 @@ class DidVerificationMethod implements DidResource {
 
 class DidCreateVerificationMethod {
   DidCreateVerificationMethod({
+    required this.algorithm,
     required this.controller,
     this.id,
     required this.purposes,
     required this.type,
   });
 
+  final AlgorithmId algorithm;
   final String controller;
   final String? id;
   final List<VerificationPurpose> purposes;

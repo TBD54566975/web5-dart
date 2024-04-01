@@ -24,7 +24,7 @@ abstract interface class KeyManager {
   /// Generates and securely stores a private key based on the provided
   /// algorithm. Returns a unique alias that can be utilized to reference the
   /// generated key for future operations.
-  Future<String> generatePrivateKey(AlgorithmId algId);
+  Future<Jwk> generatePrivateKey(AlgorithmId algId);
 
   /// Retrieves the public key associated with a previously stored private key,
   /// identified by the provided alias.
