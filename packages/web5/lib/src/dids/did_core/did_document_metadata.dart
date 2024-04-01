@@ -51,7 +51,7 @@ class DidDocumentMetadata {
   ///     the scope of the containing DID document.
   final String? canonicalId;
 
-  DidDocumentMetadata({
+  const DidDocumentMetadata({
     this.created,
     this.updated,
     this.deactivated,
