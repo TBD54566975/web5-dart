@@ -16,15 +16,18 @@ class DidWeb {
   );
 
   static Future<BearerDid> create({
-    required AlgorithmId algorithm,
-    required KeyManager keyManager,
     required String url,
+    AlgorithmId? algorithm,
+    KeyManager? keyManager,
     List<String>? alsoKnownAs,
     List<String>? controllers,
     List<DidService>? services,
     List<DidCreateVerificationMethod>? verificationMethods,
     DidDocumentMetadata? metadata,
   }) async {
+    algorithm ??= AlgorithmId.ed25519;
+    keyManager ??= InMemoryKeyManager();
+
     final parsed = Uri.tryParse(url);
     if (parsed == null) throw 'Unable to parse url $url';
     final String didId =
@@ -38,6 +41,7 @@ class DidWeb {
 
     final List<DidCreateVerificationMethod> defaultMethods = [
       DidCreateVerificationMethod(
+        algorithm: algorithm,
         id: '0',
         type: 'JsonWebKey',
         controller: didId,
@@ -54,7 +58,7 @@ class DidWeb {
         verificationMethods ?? defaultMethods;
 
     for (final DidCreateVerificationMethod vm in methodsToAdd) {
-      final Jwk privateKey = await Crypto.generatePrivateKey(algorithm);
+      final Jwk privateKey = await Crypto.generatePrivateKey(vm.algorithm);
       final Jwk publicKey = await Crypto.computePublicKey(privateKey);
 
       keyManager.import(privateKey);
