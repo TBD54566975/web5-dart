@@ -89,7 +89,10 @@ void main() {
     test('should return invalid did with wrong method', () async {
       final did = Did.parse('did:bad:www.linkedin.com');
       final result = await DidWeb.resolve(did);
-      expect(result, DidResolutionResult.invalidDid());
+      expect(
+        result,
+        DidResolutionResult.withError(DidResolutionError.invalidDid),
+      );
     });
 
     test('should return did with failed http request', () async {
@@ -100,7 +103,10 @@ void main() {
       final did = Did.parse('did:web:www.linkedin.com');
       final result = await DidWeb.resolve(did, client: mockClient);
 
-      expect(result, DidResolutionResult.notFound());
+      expect(
+        result,
+        DidResolutionResult.withError(DidResolutionError.notFound),
+      );
     });
 
     test('should resolve successfully', () async {

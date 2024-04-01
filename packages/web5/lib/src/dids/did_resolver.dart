@@ -52,7 +52,9 @@ class DidResolver {
     try {
       did = Did.parse(uri);
     } catch (e) {
-      return Future.value(DidResolutionResult.invalidDid());
+      return Future.value(
+        DidResolutionResult.withError(DidResolutionError.invalidDid),
+      );
     }
 
     final resolver = methodResolvers[did.method];

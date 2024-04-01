@@ -94,7 +94,9 @@ class DidWeb {
     Did did, {
     HttpClient? client,
   }) async {
-    if (did.method != methodName) return DidResolutionResult.invalidDid();
+    if (did.method != methodName) {
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
+    }
 
     final String documentUrl = Uri.decodeFull(did.id.replaceAll(':', '/'));
     Uri? didUri = Uri.tryParse('https://$documentUrl');
@@ -110,7 +112,7 @@ class DidWeb {
     final HttpClientResponse response = await request.close();
 
     if (response.statusCode != 200) {
-      return DidResolutionResult.notFound();
+      return DidResolutionResult.withError(DidResolutionError.notFound);
     }
 
     final String str = await response.transform(utf8.decoder).join();
