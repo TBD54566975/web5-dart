@@ -32,8 +32,10 @@ class DidDht {
     keyManager ??= InMemoryKeyManager();
 
     // Generate random key material for the Identity Key.
-    final Jwk idKeyUri = await keyManager.generatePrivateKey(idAlgorithm);
+    final Jwk idKeyUri = await Crypto.generatePrivateKey(idAlgorithm);
     final Jwk identityKey = await Crypto.computePublicKey(idKeyUri);
+
+    await keyManager.import(idKeyUri);
 
     final String didUri = identityKeyToIdentifier(identityKey: identityKey);
     final DidDocument doc = DidDocument(
@@ -78,7 +80,8 @@ class DidDht {
       if (vm.id?.split('#').last == '0') {
         keyUri = idKeyUri;
       } else {
-        keyUri = await keyManager.generatePrivateKey(vm.algorithm);
+        keyUri = await Crypto.generatePrivateKey(vm.algorithm);
+        keyManager.import(keyUri);
       }
 
       final Jwk publicKey = await Crypto.computePublicKey(keyUri);
