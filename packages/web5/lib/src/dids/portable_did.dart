@@ -12,16 +12,16 @@ class PortableDid {
     List<Jwk>? privateKeys,
   }) : privateKeys = privateKeys ?? [];
 
-  factory PortableDid.fromJson(Map<String, dynamic> json) {
+  factory PortableDid.fromMap(Map<String, dynamic> map) {
     return PortableDid(
-      uri: json['uri'],
-      document: DidDocument.fromJson(json['document']),
+      uri: map['uri'],
+      document: DidDocument.fromJson(map['document']),
       privateKeys:
-          (json['privateKeys'] as List).map((e) => Jwk.fromJson(e)).toList(),
+          (map['privateKeys'] as List).map((e) => Jwk.fromJson(e)).toList(),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> get map {
     return {
       'uri': uri,
       'document': document.toJson(),

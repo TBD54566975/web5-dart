@@ -19,7 +19,7 @@ class DidDht {
     String relayUrl = 'https://diddht.tbddev.org',
   }) async {
     if (did.method != methodName) {
-      return DidResolutionResult.invalidDid();
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
     final parsedRelayUrl = Uri.parse(relayUrl);
@@ -42,7 +42,7 @@ class DidDht {
     // final seq = bytes.sublist(64, 72);
 
     if (bytes.length < 72) {
-      return DidResolutionResult.invalidDid();
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
     final v = bytes.sublist(72);
@@ -68,7 +68,7 @@ class DidDht {
 
     if (rootRecord == null) {
       // TODO: figure out more appopriate resolution error to use.
-      return DidResolutionResult.invalidDid();
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
     final Map<String, List<String>> relationshipsMap = {};
@@ -77,7 +77,7 @@ class DidDht {
 
       if (splitEntry.length != 2) {
         // TODO: figure out more appopriate resolution error to use.
-        return DidResolutionResult.invalidDid();
+        return DidResolutionResult.withError(DidResolutionError.invalidDid);
       }
 
       final [property, values] = splitEntry;
