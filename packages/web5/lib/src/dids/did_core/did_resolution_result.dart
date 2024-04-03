@@ -2,6 +2,27 @@ import 'package:web5/src/dids/did_core/did_document.dart';
 import 'package:web5/src/dids/did_core/did_document_metadata.dart';
 import 'package:web5/src/dids/did_core/did_resolution_metadata.dart';
 
+enum DidResolutionError {
+  invalidDid,
+  notFound,
+  representationNotSupported,
+}
+
+extension ResolutionErrorValue on DidResolutionError {
+  String get value {
+    switch (this) {
+      case DidResolutionError.invalidDid:
+        return 'invalidDid';
+      case DidResolutionError.notFound:
+        return 'notFound';
+      case DidResolutionError.representationNotSupported:
+        return 'representationNotSupported';
+      default:
+        return 'unknown';
+    }
+  }
+}
+
 /// A class representing the result of a DID (Decentralized Identifier)
 /// resolution.
 ///
@@ -61,13 +82,16 @@ class DidResolutionResult {
             didResolutionMetadata ?? DidResolutionMetadata(),
         didDocumentMetadata = didDocumentMetadata ?? DidDocumentMetadata();
 
-  /// A convenience constructor for creating a [DidResolutionResult] representing
+  /// A factory constructor for creating a [DidResolutionResult] representing
   /// an invalid DID scenario. This sets the resolution metadata error to 'invalidDid'
   /// and leaves the DID document as `null`.
-  DidResolutionResult.invalidDid()
-      : didResolutionMetadata = DidResolutionMetadata(error: 'invalidDid'),
-        didDocument = null,
-        didDocumentMetadata = DidDocumentMetadata();
+  factory DidResolutionResult.withError(DidResolutionError err) {
+    return DidResolutionResult(
+      didResolutionMetadata: DidResolutionMetadata(error: err.value),
+      didDocument: null,
+      didDocumentMetadata: DidDocumentMetadata(),
+    );
+  }
 
   /// Converts this [DidResolutionResult] instance to a JSON map.
   ///

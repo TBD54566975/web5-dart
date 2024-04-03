@@ -77,6 +77,7 @@ class DidDocumentMetadata {
       'nextVersionId': nextVersionId,
       'equivalentId': equivalentId,
       'canonicalId': canonicalId,
+      'types': types?.map((e) => e.value) ?? [],
     };
 
     json.removeWhere((key, value) => value == null);
@@ -110,6 +111,7 @@ class DidDocumentMetadata {
       nextVersionId,
       equivalentId,
       canonicalId,
+      types,
     );
   }
 }

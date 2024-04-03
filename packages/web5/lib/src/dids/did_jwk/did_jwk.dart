@@ -60,9 +60,9 @@ class DidJwk {
   /// an invalid [DidResolutionResult].
   ///
   /// Throws [FormatException] if the JWK parsing fails.
-  static Future<DidResolutionResult> resolve(Did did) {
+  static Future<DidResolutionResult> resolve(Did did) async {
     if (did.method != methodName) {
-      return Future.value(DidResolutionResult.invalidDid());
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
     final dynamic jwk;
@@ -70,7 +70,7 @@ class DidJwk {
     try {
       jwk = json.fromBase64Url(did.id);
     } on FormatException {
-      return Future.value(DidResolutionResult.invalidDid());
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
     final Jwk parsedJwk;
@@ -78,13 +78,13 @@ class DidJwk {
     try {
       parsedJwk = Jwk.fromJson(jwk);
     } on Exception {
-      return Future.value(DidResolutionResult.invalidDid());
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
     final didDocument = _createDidDocument(did, parsedJwk);
     final didResolutionResult = DidResolutionResult(didDocument: didDocument);
 
-    return Future.value(didResolutionResult);
+    return didResolutionResult;
   }
 
   static DidDocument _createDidDocument(Did did, Jwk jwk) {
