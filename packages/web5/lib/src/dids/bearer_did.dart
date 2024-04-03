@@ -20,13 +20,11 @@ class BearerDid {
   String uri;
   KeyManager keyManager;
   DidDocument document;
-  DidDocumentMetadata metadata;
 
   BearerDid({
     required this.uri,
     required this.keyManager,
     required this.document,
-    this.metadata = const DidDocumentMetadata(),
   });
 
   Future<PortableDid> export() async {
@@ -35,10 +33,15 @@ class BearerDid {
       document: document,
     );
 
+    if (keyManager is! KeyExporter) {
+      return Future.value(portableDid);
+    }
+
+    final keyExporter = keyManager as KeyExporter;
     for (final vm in document.verificationMethod!) {
       final publicKeyJwk = vm.publicKeyJwk!;
       final keyId = publicKeyJwk.computeThumbprint();
-      final jwk = await keyManager.export(keyId);
+      final jwk = await keyExporter.export(keyId);
 
       portableDid.privateKeys.add(jwk);
     }
