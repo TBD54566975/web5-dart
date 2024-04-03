@@ -35,10 +35,15 @@ class BearerDid {
       document: document,
     );
 
+    if (keyManager is! KeyExporter) {
+      return Future.value(portableDid);
+    }
+
+    final keyExporter = keyManager as KeyExporter;
     for (final vm in document.verificationMethod!) {
       final publicKeyJwk = vm.publicKeyJwk!;
       final keyId = publicKeyJwk.computeThumbprint();
-      final jwk = await keyManager.export(keyId);
+      final jwk = await keyExporter.export(keyId);
 
       portableDid.privateKeys.add(jwk);
     }

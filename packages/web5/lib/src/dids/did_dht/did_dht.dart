@@ -32,10 +32,8 @@ class DidDht {
     keyManager ??= InMemoryKeyManager();
 
     // Generate random key material for the Identity Key.
-    final Jwk idKeyUri = await Crypto.generatePrivateKey(idAlgorithm);
-    final Jwk identityKey = await Crypto.computePublicKey(idKeyUri);
-
-    await keyManager.import(idKeyUri);
+    final String keyAlias = await keyManager.generatePrivateKey(idAlgorithm);
+    final Jwk identityKey = await keyManager.getPublicKey(keyAlias);
 
     final String didUri = identityKeyToIdentifier(identityKey: identityKey);
     final DidDocument doc = DidDocument(
@@ -75,16 +73,14 @@ class DidDht {
     for (final DidCreateVerificationMethod vm in methodsToAdd) {
       // Generate a random key for the verification method, or if its the Identity Key's
       // verification method (`id` is 0) use the key previously generated.
-      late Jwk keyUri;
+      late Jwk publicKey;
 
       if (vm.id?.split('#').last == '0') {
-        keyUri = idKeyUri;
+        publicKey = identityKey;
       } else {
-        keyUri = await Crypto.generatePrivateKey(vm.algorithm);
-        keyManager.import(keyUri);
+        String alias = await keyManager.generatePrivateKey(vm.algorithm);
+        publicKey = await keyManager.getPublicKey(alias);
       }
-
-      final Jwk publicKey = await Crypto.computePublicKey(keyUri);
 
       // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
       String methodId = vm.id ?? publicKey.kid ?? publicKey.computeThumbprint();
