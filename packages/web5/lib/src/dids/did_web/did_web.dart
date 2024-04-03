@@ -58,10 +58,8 @@ class DidWeb {
         verificationMethods ?? defaultMethods;
 
     for (final DidCreateVerificationMethod vm in methodsToAdd) {
-      final Jwk privateKey = await Crypto.generatePrivateKey(vm.algorithm);
-      final Jwk publicKey = await Crypto.computePublicKey(privateKey);
-
-      keyManager.import(privateKey);
+      final String alias = await keyManager.generatePrivateKey(vm.algorithm);
+      final Jwk publicKey = await keyManager.getPublicKey(alias);
 
       final String methodId = '$didId#${vm.id}';
       doc.addVerificationMethod(
