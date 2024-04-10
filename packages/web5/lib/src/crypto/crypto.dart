@@ -37,6 +37,17 @@ class Crypto {
     }
   }
 
+  static Uint8List publicKeyToBytes(Jwk publicKey) {
+    switch (publicKey.kty) {
+      case Ed25519.kty:
+        return Ed25519.publicKeyToBytes(publicKey: publicKey);
+      case Secp256k1.kty:
+        return Secp256k1.publicKeyToBytes(publicKey: publicKey);
+      default:
+        throw Exception('unsupported kty: ${publicKey.kty}');
+    }
+  }
+
   static Future<Uint8List> sign(Jwk privateKeyJwk, Uint8List payload) {
     switch (privateKeyJwk.kty) {
       case Ecdsa.kty:
