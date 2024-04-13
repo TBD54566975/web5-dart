@@ -46,25 +46,40 @@ class DnsAnswer {
   late bool flush;
 
   /// For OPT records, this field specifies the maximum UDP payload size.
-  late int udpPayloadSize;
+  late int? udpPayloadSize;
 
   /// For OPT records, this field specifies the extended RCODE.
-  late int extendedRcode;
+  late int? extendedRcode;
 
   /// For OPT records, this field specifies the EDNS version.
-  late int ednsVersion;
+  late int? ednsVersion;
 
   /// For OPT records, this field specifies the EDNS flags.
-  late int flags;
+  late int? flags;
 
   /// For OPT records, this field indicates whether the DNSSEC OK bit is set.
-  late bool flagDo;
+  late bool? flagDo;
 
   /// Options for OPT records, dynamically determined based on the specific type of option.
   late dynamic options;
 
   /// The total number of bytes consumed in decoding this DNS answer.
   int numBytes = 0;
+
+  DnsAnswer({
+    required this.name,
+    required this.type,
+    required this.klass,
+    required this.data,
+    required this.ttl,
+    this.flush = false,
+    this.udpPayloadSize,
+    this.extendedRcode,
+    this.ednsVersion,
+    this.flags,
+    this.flagDo,
+    this.options,
+  });
 
   /// Decodes a [DnsAnswer] from a byte buffer [buf] starting at the given [offset].
   ///
@@ -87,7 +102,7 @@ class DnsAnswer {
       ednsVersion = byteData.getUint8(offset + 5);
 
       flags = byteData.getUint16(offset + 6, Endian.big);
-      flagDo = (flags >> 15) & 0x1 == 1;
+      flagDo = (flags! >> 15) & 0x1 == 1;
 
       options = DnsOptData.decode(buf, offset + 8);
 
@@ -113,5 +128,45 @@ class DnsAnswer {
     }
 
     numBytes = offset - originalOffset;
+  }
+
+  Uint8List encode({Uint8List? buf, int offset = 0}) {
+    buf ??= Uint8List(encodingLength());
+    final oldOffset = offset;
+
+    final n = name.encode(buf: buf, offset: offset);
+    offset += n.elementSizeInBytes;
+
+    ByteData.view(buf.buffer).setUint16(offset, type.value, Endian.big);
+    offset += 2;
+
+    if (type == DnsType.OPT) {
+      if (name.value != '.') {
+        throw Exception('OPT name must be root.');
+      }
+      ByteData.view(buf.buffer).setUint16(offset, udpPayloadSize!, Endian.big);
+      buf[offset + 4] = extendedRcode!;
+      buf[offset + 5] = ednsVersion!;
+      ByteData.view(buf.buffer).setUint16(offset + 6, flags ?? 0, Endian.big);
+
+      offset += 8;
+      offset += options.encode(buf, offset) as int;
+    } else {
+      final klassValue = flush ? FLUSH_MASK : klass.value;
+      ByteData.view(buf.buffer).setUint16(offset, klassValue, Endian.big);
+      offset += 2;
+      ByteData.view(buf.buffer).setUint32(offset, ttl, Endian.big);
+      offset += 4;
+
+      // assume that this is a DnsTxtData?
+      offset += (data as DnsTxtData).encodingLength();
+    }
+
+    numBytes = offset - oldOffset;
+    return buf;
+  }
+
+  int encodingLength() {
+    return name.encodingLength() + 8 + type.numBytes;
   }
 }
