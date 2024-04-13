@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
-import 'package:web5/src/dids/did_dht/dns_packet.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/record.dart';
 import 'package:web5/web5.dart';
 
 class MockHttpClient extends Mock implements HttpClient {}
@@ -93,10 +91,12 @@ void main() {
           cancelOnError: any(named: 'cancelOnError'),
         ),
       ).thenAnswer((invocation) {
-        return mockStream.listen(invocation.positionalArguments[0],
-            onError: invocation.namedArguments[#onError],
-            onDone: invocation.namedArguments[#onDone],
-            cancelOnError: invocation.namedArguments[#cancelOnError]);
+        return mockStream.listen(
+          invocation.positionalArguments[0],
+          onError: invocation.namedArguments[#onError],
+          onDone: invocation.namedArguments[#onDone],
+          cancelOnError: invocation.namedArguments[#cancelOnError],
+        );
       });
 
       // this is where the test starts
@@ -107,15 +107,6 @@ void main() {
 
       expect(resolutionResult.didResolutionMetadata.isEmpty(), isTrue);
       expect(resolutionResult.didDocument, isNotNull);
-    });
-
-    test('whatever', () {
-      final name = DnsName(value: 'hello.a.com');
-      final buf = name.encode();
-
-      final decodedName = DnsName.decode(buf, 0);
-      print('${name.value} == ${decodedName.value}');
-      expect(name.value, decodedName.value);
     });
   });
 }
