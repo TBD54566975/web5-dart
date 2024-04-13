@@ -80,6 +80,9 @@ class DnsHeader {
     final byteData = ByteData.sublistView(buf);
     final flags = byteData.getUint16(offset + 2, Endian.big);
 
+    final readId = byteData.getUint16(offset, Endian.big);
+    print('Decoded ID: $readId at offset $offset');
+
     return DnsHeader(
       id: byteData.getUint16(offset, Endian.big),
       qr: (flags >> 15) & 0x1 == 1,
@@ -98,4 +101,44 @@ class DnsHeader {
       arcount: byteData.getUint16(offset + 10, Endian.big),
     );
   }
+
+  Uint8List encode({Uint8List? buf, int offset = 0}) {
+    buf ??= Uint8List(numBytes);
+    final byteData = ByteData.sublistView(buf);
+
+    // Writing the header id
+    print('Encoding ID: $id at offset $offset');
+
+    byteData.setUint16(offset, id, Endian.big);
+    offset += 2;
+
+    // Calculating flags
+    final flags = (qr ? 1 : 0) << 15 |
+        (opcode.value & 0xF) << 11 |
+        (aa ?? false ? 1 : 0) << 10 |
+        (tc ? 1 : 0) << 9 |
+        (rd ? 1 : 0) << 8 |
+        (ra ?? false ? 1 : 0) << 7 |
+        (z ? 1 : 0) << 6 |
+        (ad ?? false ? 1 : 0) << 5 |
+        (cd ?? false ? 1 : 0) << 4 |
+        (rcode?.value ?? 0) & 0xF;
+
+    // Writing flags
+    byteData.setUint16(offset, flags, Endian.big);
+    offset += 2;
+
+    // Writing counts
+    byteData.setUint16(offset, qdcount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, ancount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, nscount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, arcount, Endian.big);
+
+    return buf;
+  }
+
+  int encodingLength() => numBytes;
 }
