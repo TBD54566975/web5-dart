@@ -171,6 +171,7 @@ class AnswerCodec {
           .setUint16(offset + 6, answer.flags ?? 0, Endian.big);
 
       offset += 8;
+      // TODO: need OptDataCodec here
       offset += answer.options.encode(buf, offset) as int;
     } else {
       final klassValue = answer.flush ? FLUSH_MASK : answer.klass.value;
