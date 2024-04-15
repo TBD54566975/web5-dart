@@ -1,0 +1,17 @@
+import 'dart:typed_data';
+
+import 'package:convert/convert.dart';
+import 'package:test/test.dart';
+import 'package:web5/src/dids/did_dht/dns/header.dart';
+
+void main() {
+  group('DNS Header', () {
+    test('should encode/decode dns header', () {
+      final vector = hex.decode('000084000000000500000000');
+      final result = HeaderCodec.decode(Uint8List.fromList(vector));
+
+      expect(result.value.numQuestions, 0);
+      expect(result.value.numAnswers, 5);
+    });
+  });
+}
