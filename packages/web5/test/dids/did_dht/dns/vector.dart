@@ -1,6 +1,6 @@
 class Vector<T> {
-  final T unmarshaled;
-  final List<int> marshaled;
+  final T decoded;
+  final List<int> encoded;
 
-  Vector({required this.unmarshaled, required this.marshaled});
+  Vector({required this.decoded, required this.encoded});
 }
