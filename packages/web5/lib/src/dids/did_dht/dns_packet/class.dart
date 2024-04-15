@@ -15,15 +15,16 @@ enum DnsClass {
   const DnsClass(this.value, this.name);
 
   static DnsClass fromValue(int value) {
-    return DnsClass.values.firstWhere((kls) => kls.value == value,
-        orElse: () => DnsClass.UNKNOWN, // Default or a suitable fallback
-        );
+    return DnsClass.values.firstWhere(
+      (kls) => kls.value == value,
+      orElse: () => DnsClass.UNKNOWN, // Default or a suitable fallback
+    );
   }
 
   static DnsClass fromName(String name) {
     return DnsClass.values.firstWhere(
-        (kls) => kls.name.toUpperCase() == name.toUpperCase(),
-        orElse: () => DnsClass.UNKNOWN, // Default or a suitable fallback
-        );
+      (kls) => kls.name.toUpperCase() == name.toUpperCase(),
+      orElse: () => DnsClass.UNKNOWN, // Default or a suitable fallback
+    );
   }
 }
