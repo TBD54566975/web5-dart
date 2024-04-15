@@ -8,10 +8,10 @@ void main() {
   group('DNS Header', () {
     test('should encode/decode dns header', () {
       final vector = hex.decode('000084000000000500000000');
-      final result = HeaderCodec.decode(Uint8List.fromList(vector));
+      final header = Header.decode(Uint8List.fromList(vector));
 
-      expect(result.value.numQuestions, 0);
-      expect(result.value.numAnswers, 5);
+      expect(header.numQuestions, 0);
+      expect(header.numAnswers, 5);
     });
   });
 }
