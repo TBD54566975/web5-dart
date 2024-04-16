@@ -1,15 +1,17 @@
 import 'dart:typed_data';
 
 import 'package:web5/src/dids/did_dht/dns/codec.dart';
+import 'package:web5/src/dids/did_dht/dns/codecs.dart';
 import 'package:web5/src/dids/did_dht/dns/consts.dart';
 import 'package:web5/src/dids/did_dht/dns/name.dart';
 import 'package:web5/src/dids/did_dht/dns/opt_data.dart';
+import 'package:web5/src/dids/did_dht/dns/rdata.dart';
 import 'package:web5/src/dids/did_dht/dns/record_class.dart';
 import 'package:web5/src/dids/did_dht/dns/record_type.dart';
 import 'package:web5/src/dids/did_dht/dns/txt_data.dart';
 
 /// Represents an answer section in a DNS packet.
-class Answer {
+class Answer<T extends RData> {
   /// The domain name to which this resource record pertains.
   late RecordName name;
 
@@ -20,7 +22,7 @@ class Answer {
   late RecordClass klass;
 
   /// The specific data for this resource record, according to its type.
-  late dynamic data;
+  late T data;
 
   /// The Time-To-Live of the resource record. This value is the number of seconds
   /// that the resource record may be cached before it should be discarded.
@@ -67,7 +69,7 @@ class Answer {
   /// Decodes a [Answer] from a byte buffer [buf] starting at the given [offset].
   ///
   /// Throws [FormatException] if the buffer data cannot be decoded into a valid DNS answer.
-  factory Answer.decode(Uint8List buf, int offset) {
+  static Answer decode(Uint8List buf, int offset) {
     final result = AnswerCodec.decode(buf, offset: offset);
     return result.value;
   }
@@ -78,17 +80,7 @@ class Answer {
   }
 
   int encodingLength() {
-    int len = name.encodingLength() + 8;
-
-    switch (type) {
-      case RecordType.TXT:
-        len += (data as TxtData).encodingLength();
-        break;
-      default:
-        break;
-    }
-
-    return len;
+    return name.encodingLength() + 8 + data.encodingLength();
   }
 }
 
@@ -96,7 +88,7 @@ class AnswerCodec {
   static DecodeResult<Answer> decode(Uint8List buf, {int offset = 0}) {
     final originalOffset = offset;
 
-    final nameResult = RecordNameCodec.decode(buf, offset: offset);
+    final nameResult = RecordName.codec.decode(buf, offset: offset);
     offset += nameResult.offset;
 
     final byteData = ByteData.sublistView(buf);
@@ -130,15 +122,9 @@ class AnswerCodec {
       answer.ttl = byteData.getUint32(offset, Endian.big);
       offset += 4;
 
-      switch (type) {
-        case RecordType.TXT:
-          final result = TxtDataCodec.decode(buf, offset: offset);
-          answer.data = result.value;
-          offset += result.offset;
-          break;
-        default:
-          break;
-      }
+      final result = Codecs.decode(type, buf);
+      answer.data = result.value;
+      offset += result.offset;
     }
 
     return DecodeResult(answer, offset - originalOffset);
@@ -152,7 +138,7 @@ class AnswerCodec {
     final buf = input ?? Uint8List(answer.encodingLength());
     final oldOffset = offset;
 
-    final n = RecordNameCodec.encode(answer.name, input: buf, offset: offset);
+    final n = RecordName.codec.encode(answer.name, input: buf, offset: offset);
     offset += n.offset;
 
     ByteData.view(buf.buffer).setUint16(offset, answer.type.value, Endian.big);
@@ -181,15 +167,8 @@ class AnswerCodec {
 
       offset += 8;
 
-      switch (answer.type) {
-        case RecordType.TXT:
-          final result =
-              TxtDataCodec.encode(answer.data, input: buf, offset: offset);
-          offset += result.offset;
-          break;
-        default:
-          break;
-      }
+      final result = Codecs.encode(answer.type, buf, offset: offset);
+      offset += result.offset;
     }
 
     return EncodeResult(buf, offset - oldOffset);

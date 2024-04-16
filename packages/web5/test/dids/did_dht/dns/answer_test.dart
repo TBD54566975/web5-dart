@@ -12,7 +12,7 @@ import 'package:web5/src/dids/did_dht/dns/txt_data.dart';
 void main() {
   group('DNS Answer', () {
     test('encoding / decoding should work', () {
-      final answer = Answer(
+      final answer = Answer<TxtData>(
         name: RecordName(
           '_k1._did.hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
         ),

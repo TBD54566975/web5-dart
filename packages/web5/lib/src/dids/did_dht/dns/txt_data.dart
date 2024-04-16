@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:web5/src/dids/did_dht/dns/codec.dart';
+import 'package:web5/src/dids/did_dht/dns/rdata.dart';
 
-class TxtData {
+class TxtData implements RData {
   final List<String> value;
 
   TxtData(this.value);
@@ -13,11 +14,11 @@ class TxtData {
     return result.value;
   }
 
-  @override
   Uint8List encode() {
     return TxtDataCodec.encode(this).value;
   }
 
+  @override
   int encodingLength() {
     int length = 2;
     for (var buf in value) {
