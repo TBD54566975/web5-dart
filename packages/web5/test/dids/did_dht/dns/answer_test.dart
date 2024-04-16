@@ -24,14 +24,14 @@ void main() {
         ttl: 7200,
       );
 
-      final result = AnswerCodec.encode(answer);
+      final result = Answer.codec.encode(answer);
       final vector = hex.decode(
         '035f6b31045f6469643468706d70397575723536356e6b696d7077647a6f6d376568627561626e736261363538787777796e796b37617763643135626b6f000010000100001c2000393869643d7369673b743d303b6b3d49783972543434514b6e496a4e654235312d4f526c776f43624c4b722d68734f59676c34674e39547a4955',
       );
 
       expect(result.value, vector);
 
-      final decoded = AnswerCodec.decode(Uint8List.fromList(vector));
+      final decoded = Answer.codec.decode(Uint8List.fromList(vector));
       expect(decoded.value.data is TxtData, isTrue);
       expect(
         const ListEquality().equals(
