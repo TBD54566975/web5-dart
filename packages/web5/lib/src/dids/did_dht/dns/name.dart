@@ -2,24 +2,18 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:web5/src/dids/did_dht/dns/codec.dart';
-import 'package:web5/src/dids/did_dht/dns/record_type.dart';
 
 class RecordName {
   final String value;
 
   RecordName(this.value);
 
-  Uint8List encode() {
-    return codec.encode(this).value;
-  }
+  static Codec<RecordName> codec = Codec<RecordName>(_encode, _decode);
 
-  factory RecordName.decode(Uint8List buf, {int offset = 0}) {
-    final result = codec.decode(buf);
-    return result.value;
-  }
+  factory RecordName.decode(Uint8List buf, {int offset = 0}) =>
+      codec.decode(buf).value;
 
-  static Codec<RecordName> codec =
-      Codec<RecordName>(RecordType.TXT, _encode, _decode);
+  Uint8List encode() => codec.encode(this).value;
 
   int encodingLength() {
     if (value == '.' || value == '..') return 1;

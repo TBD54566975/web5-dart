@@ -3,20 +3,20 @@ import 'dart:typed_data';
 
 import 'package:web5/src/dids/did_dht/dns/codec.dart';
 import 'package:web5/src/dids/did_dht/dns/rdata.dart';
+import 'package:web5/src/dids/did_dht/dns/record_type.dart';
 
 class TxtData implements RData {
   final List<String> value;
 
   TxtData(this.value);
 
-  factory TxtData.decode(Uint8List buf, {int offset = 0}) {
-    final result = TxtDataCodec.decode(buf, offset: offset);
-    return result.value;
-  }
+  static Codec<TxtData> codec =
+      Codec<TxtData>(_encode, _decode, type: RecordType.TXT);
 
-  Uint8List encode() {
-    return TxtDataCodec.encode(this).value;
-  }
+  factory TxtData.decode(Uint8List buf, {int offset = 0}) =>
+      TxtData.codec.decode(buf, offset: offset).value;
+
+  Uint8List encode() => TxtData.codec.encode(this).value;
 
   @override
   int encodingLength() {
@@ -29,52 +29,50 @@ class TxtData implements RData {
   }
 }
 
-class TxtDataCodec {
-  static EncodeResult encode(
-    TxtData data, {
-    Uint8List? input,
-    int offset = 0,
-  }) {
-    final buf = input ?? Uint8List(data.encodingLength());
-    final byteData = ByteData.sublistView(buf);
+Encode<TxtData> _encode = (
+  TxtData data, {
+  Uint8List? input,
+  int offset = 0,
+}) {
+  final buf = input ?? Uint8List(data.encodingLength());
+  final byteData = ByteData.sublistView(buf);
 
-    final originalOffset = offset;
-    offset += 2; // Reserve space for the total length
+  final originalOffset = offset;
+  offset += 2; // Reserve space for the total length
 
-    for (String str in data.value) {
-      final encodedStr = utf8.encode(str);
-      if (encodedStr.length > 255) {
-        throw FormatException('Individual TXT record exceeds 255 bytes');
-      }
-      buf[offset++] = encodedStr.length; // Write the length of the string
-      buf.setRange(offset, offset + encodedStr.length, encodedStr);
-      offset += encodedStr.length;
+  for (String str in data.value) {
+    final encodedStr = utf8.encode(str);
+    if (encodedStr.length > 255) {
+      throw FormatException('Individual TXT record exceeds 255 bytes');
     }
-
-    byteData.setUint16(originalOffset, offset - originalOffset - 2, Endian.big);
-
-    return EncodeResult(buf, offset - originalOffset);
+    buf[offset++] = encodedStr.length; // Write the length of the string
+    buf.setRange(offset, offset + encodedStr.length, encodedStr);
+    offset += encodedStr.length;
   }
 
-  static DecodeResult<TxtData> decode(Uint8List buf, {int offset = 0}) {
-    final originalOffset = offset;
-    int remaining = ByteData.sublistView(buf).getUint16(offset, Endian.big);
-    offset += 2;
+  byteData.setUint16(originalOffset, offset - originalOffset - 2, Endian.big);
 
-    final List<String> data = [];
-    while (remaining > 0) {
-      final len = buf[offset++];
-      remaining--;
-      if (remaining < len) {
-        throw Exception('Buffer overflow');
-      }
+  return EncodeResult(buf, offset - originalOffset);
+};
 
-      final text = String.fromCharCodes(buf.sublist(offset, offset + len));
-      data.add(text);
-      offset += len;
-      remaining -= len;
+Decode _decode = (Uint8List buf, {int offset = 0}) {
+  final originalOffset = offset;
+  int remaining = ByteData.sublistView(buf).getUint16(offset, Endian.big);
+  offset += 2;
+
+  final List<String> data = [];
+  while (remaining > 0) {
+    final len = buf[offset++];
+    remaining--;
+    if (remaining < len) {
+      throw Exception('Buffer overflow');
     }
 
-    return DecodeResult(TxtData(data), offset - originalOffset);
+    final text = String.fromCharCodes(buf.sublist(offset, offset + len));
+    data.add(text);
+    offset += len;
+    remaining -= len;
   }
-}
+
+  return DecodeResult(TxtData(data), offset - originalOffset);
+};

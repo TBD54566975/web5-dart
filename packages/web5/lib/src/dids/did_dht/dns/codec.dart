@@ -24,9 +24,9 @@ typedef Encode<T> = EncodeResult Function(
 });
 
 class Codec<T> {
-  RecordType type;
   Encode<T> encode;
   Decode decode;
+  RecordType? type;
 
-  Codec(this.type, this.encode, this.decode);
+  Codec(this.encode, this.decode, {this.type});
 }
