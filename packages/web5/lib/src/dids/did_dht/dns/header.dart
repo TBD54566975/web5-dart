@@ -75,7 +75,7 @@ class Header {
     required this.arcount,
   });
 
-  static Codec<Header> codec = Codec<Header>(_encode, _decode);
+  static final codec = _HeaderCodec();
 
   factory Header.decode(Uint8List buf, {int offset = 0}) =>
       codec.decode(buf, offset: offset).value;
@@ -86,65 +86,65 @@ class Header {
   int encodingLength() => numBytes;
 }
 
-Encode<Header> _encode = (
-  Header header, {
-  Uint8List? input,
-  int offset = 0,
-}) {
-  final buf = input ?? Uint8List(12);
-  final byteData = ByteData.sublistView(buf);
+class _HeaderCodec implements Codec<Header> {
+  @override
+  EncodeResult encode(Header header, {Uint8List? input, int offset = 0}) {
+    final buf = input ?? Uint8List(12);
+    final byteData = ByteData.sublistView(buf);
 
-  byteData.setUint16(offset, header.id, Endian.big);
-  offset += 2;
+    byteData.setUint16(offset, header.id, Endian.big);
+    offset += 2;
 
-  final flags = (header.qr ? 1 : 0) << 15 |
-      (header.opcode.value & 0xF) << 11 |
-      (header.aa ?? false ? 1 : 0) << 10 |
-      (header.tc ? 1 : 0) << 9 |
-      (header.rd ? 1 : 0) << 8 |
-      (header.ra ?? false ? 1 : 0) << 7 |
-      (header.z ? 1 : 0) << 6 |
-      (header.ad ?? false ? 1 : 0) << 5 |
-      (header.cd ?? false ? 1 : 0) << 4 |
-      (header.rcode?.value ?? 0) & 0xF;
+    final flags = (header.qr ? 1 : 0) << 15 |
+        (header.opcode.value & 0xF) << 11 |
+        (header.aa ?? false ? 1 : 0) << 10 |
+        (header.tc ? 1 : 0) << 9 |
+        (header.rd ? 1 : 0) << 8 |
+        (header.ra ?? false ? 1 : 0) << 7 |
+        (header.z ? 1 : 0) << 6 |
+        (header.ad ?? false ? 1 : 0) << 5 |
+        (header.cd ?? false ? 1 : 0) << 4 |
+        (header.rcode?.value ?? 0) & 0xF;
 
-  byteData.setUint16(offset, flags, Endian.big);
-  offset += 2;
+    byteData.setUint16(offset, flags, Endian.big);
+    offset += 2;
 
-  byteData.setUint16(offset, header.qdcount, Endian.big);
-  offset += 2;
-  byteData.setUint16(offset, header.ancount, Endian.big);
-  offset += 2;
-  byteData.setUint16(offset, header.nscount, Endian.big);
-  offset += 2;
-  byteData.setUint16(offset, header.arcount, Endian.big);
+    byteData.setUint16(offset, header.qdcount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, header.ancount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, header.nscount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, header.arcount, Endian.big);
 
-  return EncodeResult(buf, 12);
-};
+    return EncodeResult(buf, 12);
+  }
 
-Decode _decode = (Uint8List buf, {int offset = 0}) {
-  if (buf.length < 12) throw Exception('Header must be 12 bytes');
+  @override
+  DecodeResult<Header> decode(Uint8List buf, {int offset = 0}) {
+    if (buf.length < 12) throw Exception('Header must be 12 bytes');
 
-  final byteData = ByteData.sublistView(buf);
-  final flags = byteData.getUint16(offset + 2, Endian.big);
+    final byteData = ByteData.sublistView(buf);
+    final flags = byteData.getUint16(offset + 2, Endian.big);
 
-  final header = Header(
-    id: byteData.getUint16(offset, Endian.big),
-    qr: (flags >> 15) & 0x1 == 1,
-    opcode: OpCode.fromValue((flags >> 11) & 0xf),
-    aa: (flags >> 10) & 0x1 == 1,
-    tc: (flags >> 9) & 0x1 == 1,
-    rd: (flags >> 8) & 0x1 == 1,
-    ra: (flags >> 7) & 0x1 == 1,
-    z: (flags >> 6) & 0x1 == 1,
-    ad: (flags >> 5) & 0x1 == 1,
-    cd: (flags >> 4) & 0x1 == 1,
-    rcode: RCode.fromValue(flags & 0xf),
-    qdcount: byteData.getUint16(offset + 4, Endian.big),
-    ancount: byteData.getUint16(offset + 6, Endian.big),
-    nscount: byteData.getUint16(offset + 8, Endian.big),
-    arcount: byteData.getUint16(offset + 10, Endian.big),
-  );
+    final header = Header(
+      id: byteData.getUint16(offset, Endian.big),
+      qr: (flags >> 15) & 0x1 == 1,
+      opcode: OpCode.fromValue((flags >> 11) & 0xf),
+      aa: (flags >> 10) & 0x1 == 1,
+      tc: (flags >> 9) & 0x1 == 1,
+      rd: (flags >> 8) & 0x1 == 1,
+      ra: (flags >> 7) & 0x1 == 1,
+      z: (flags >> 6) & 0x1 == 1,
+      ad: (flags >> 5) & 0x1 == 1,
+      cd: (flags >> 4) & 0x1 == 1,
+      rcode: RCode.fromValue(flags & 0xf),
+      qdcount: byteData.getUint16(offset + 4, Endian.big),
+      ancount: byteData.getUint16(offset + 6, Endian.big),
+      nscount: byteData.getUint16(offset + 8, Endian.big),
+      arcount: byteData.getUint16(offset + 10, Endian.big),
+    );
 
-  return DecodeResult(header, 12);
-};
+    return DecodeResult(header, 12);
+  }
+}

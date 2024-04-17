@@ -25,13 +25,13 @@ class Packet {
     required this.additionals,
   });
 
-  static Codec<Packet> codec = Codec<Packet>(_encode, _decode);
+  static final codec = _PacketCodec();
 
   factory Packet.decode(Uint8List buf, int offset) =>
-      Packet.codec.decode(buf, offset: offset).value;
+      codec.decode(buf, offset: offset).value;
 
   Uint8List encode({Uint8List? buf, int offset = 0}) =>
-      Packet.codec.encode(this, input: buf, offset: offset).value;
+      codec.encode(this, input: buf, offset: offset).value;
 
   int encodingLength() {
     int length = header.encodingLength();
@@ -45,85 +45,89 @@ class Packet {
   }
 }
 
-Encode<Packet> _encode = (
-  Packet packet, {
-  Uint8List? input,
-  int offset = 0,
-}) {
-  final buf = input ?? Uint8List(packet.encodingLength());
-  final oldOffset = offset;
+class _PacketCodec implements Codec<Packet> {
+  @override
+  EncodeResult encode(
+    Packet packet, {
+    Uint8List? input,
+    int offset = 0,
+  }) {
+    final buf = input ?? Uint8List(packet.encodingLength());
+    final oldOffset = offset;
 
-  final headerResult = Header.codec.encode(
-    packet.header,
-    input: buf,
-    offset: offset,
-  );
-  offset += headerResult.offset;
-
-  for (final question in packet.questions) {
-    final questionResult = Question.codec.encode(
-      question,
+    final headerResult = Header.codec.encode(
+      packet.header,
       input: buf,
       offset: offset,
     );
-    offset = questionResult.offset;
+    offset += headerResult.offset;
+
+    for (final question in packet.questions) {
+      final questionResult = Question.codec.encode(
+        question,
+        input: buf,
+        offset: offset,
+      );
+      offset = questionResult.offset;
+    }
+
+    for (var answer in packet.answers) {
+      final answerResult = Answer.codec.encode(
+        answer,
+        input: buf,
+        offset: offset,
+      );
+      offset = answerResult.offset;
+    }
+
+    return EncodeResult(buf, offset - oldOffset);
   }
 
-  for (var answer in packet.answers) {
-    final answerResult = Answer.codec.encode(
-      answer,
-      input: buf,
-      offset: offset,
+  @override
+  DecodeResult<Packet> decode(Uint8List buf, {int offset = 0}) {
+    final originalOffset = offset;
+
+    final headerResult = Header.codec.decode(buf, offset: offset);
+    offset += headerResult.offset;
+
+    final List<Question> questions = [];
+    for (var i = 0; i < headerResult.value.numQuestions; i += 1) {
+      final questionResult = Question.codec.decode(buf, offset: offset);
+      questions.add(questionResult.value);
+
+      offset += questionResult.offset;
+    }
+
+    final List<Answer> answers = [];
+    for (var i = 0; i < headerResult.value.numAnswers; i += 1) {
+      final answerResult = Answer.codec.decode(buf, offset: offset);
+      answers.add(answerResult.value);
+      offset += answerResult.offset;
+    }
+
+    final List<Answer> authorities = [];
+    for (var i = 0; i < headerResult.value.numAuthorities; i += 1) {
+      final answerResult = Answer.codec.decode(buf, offset: offset);
+      authorities.add(answerResult.value);
+      offset += answerResult.offset;
+    }
+
+    final List<Answer> additionals = [];
+    for (var i = 0; i < headerResult.value.numAdditionals; i += 1) {
+      final answerResult = Answer.codec.decode(buf, offset: offset);
+      additionals.add(answerResult.value);
+      offset += answerResult.offset;
+    }
+
+    return DecodeResult(
+      Packet(
+        header: headerResult.value,
+        questions: questions,
+        answers: answers,
+        authorities: authorities,
+        additionals: additionals,
+      ),
+      offset - originalOffset,
     );
-    offset = answerResult.offset;
   }
-
-  return EncodeResult(buf, offset - oldOffset);
-};
-
-Decode _decode = (Uint8List buf, {int offset = 0}) {
-  final originalOffset = offset;
-
-  final headerResult = Header.codec.decode(buf, offset: offset);
-  offset += headerResult.offset;
-
-  final List<Question> questions = [];
-  for (var i = 0; i < headerResult.value.numQuestions; i += 1) {
-    final questionResult = Question.codec.decode(buf, offset: offset);
-    questions.add(questionResult.value);
-
-    offset += questionResult.offset;
-  }
-
-  final List<Answer> answers = [];
-  for (var i = 0; i < headerResult.value.numAnswers; i += 1) {
-    final answerResult = Answer.codec.decode(buf, offset: offset);
-    answers.add(answerResult.value);
-    offset += answerResult.offset;
-  }
-
-  final List<Answer> authorities = [];
-  for (var i = 0; i < headerResult.value.numAuthorities; i += 1) {
-    final answerResult = Answer.codec.decode(buf, offset: offset);
-    authorities.add(answerResult.value);
-    offset += answerResult.offset;
-  }
-
-  final List<Answer> additionals = [];
-  for (var i = 0; i < headerResult.value.numAdditionals; i += 1) {
-    final answerResult = Answer.codec.decode(buf, offset: offset);
-    additionals.add(answerResult.value);
-    offset += answerResult.offset;
-  }
-
-  return DecodeResult(
-    Packet(
-      header: headerResult.value,
-      questions: questions,
-      answers: answers,
-      authorities: authorities,
-      additionals: additionals,
-    ),
-    offset - originalOffset,
-  );
-};
+}

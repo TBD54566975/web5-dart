@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dids/did_dht/dns/record_type.dart';
+abstract interface class Codec<T> {
+  EncodeResult encode(T value, {Uint8List? input, int offset});
+  DecodeResult<T> decode(Uint8List buf, {int offset});
+}
 
 class EncodeResult {
   final Uint8List value;
@@ -14,19 +17,4 @@ class DecodeResult<T> {
   final int offset;
 
   DecodeResult(this.value, this.offset);
-}
-
-typedef Decode = DecodeResult<dynamic> Function(Uint8List buf, {int offset});
-typedef Encode<T> = EncodeResult Function(
-  T value, {
-  Uint8List? input,
-  int offset,
-});
-
-class Codec<T> {
-  Encode<T> encode;
-  Decode decode;
-  RecordType? type;
-
-  Codec(this.encode, this.decode, {this.type});
 }

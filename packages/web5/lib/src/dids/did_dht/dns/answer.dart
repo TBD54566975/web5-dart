@@ -65,13 +65,13 @@ class Answer<T extends RData> {
 
   Answer._();
 
-  static Codec<Answer> codec = Codec<Answer>(_encode, _decode);
+  static final codec = _AnswerCodec();
 
   /// Decodes a [Answer] from a byte buffer [buf] starting at the given [offset].
   ///
   /// Throws [FormatException] if the buffer data cannot be decoded into a valid DNS answer.
   factory Answer.decode(Uint8List buf, int offset) =>
-      codec.decode(buf, offset: offset).value;
+      codec.decode(buf, offset: offset).value as Answer<T>;
 
   Uint8List encode({Uint8List? buf, int offset = 0}) =>
       codec.encode(this, input: buf, offset: offset).value;
@@ -81,96 +81,100 @@ class Answer<T extends RData> {
   }
 }
 
-Encode<Answer> _encode = (
-  Answer answer, {
-  Uint8List? input,
-  int offset = 0,
-}) {
-  final buf = input ?? Uint8List(answer.encodingLength());
-  final oldOffset = offset;
+class _AnswerCodec implements Codec<Answer> {
+  @override
+  EncodeResult encode(
+    Answer answer, {
+    Uint8List? input,
+    int offset = 0,
+  }) {
+    final buf = input ?? Uint8List(answer.encodingLength());
+    final oldOffset = offset;
 
-  final n = RecordName.codec.encode(answer.name, input: buf, offset: offset);
-  offset += n.offset;
+    final n = RecordName.codec.encode(answer.name, input: buf, offset: offset);
+    offset += n.offset;
 
-  ByteData.view(buf.buffer).setUint16(offset, answer.type.value, Endian.big);
+    ByteData.view(buf.buffer).setUint16(offset, answer.type.value, Endian.big);
 
-  if (answer.type == RecordType.OPT) {
-    if (answer.name.value != '.') {
-      throw Exception('OPT name must be root.');
+    if (answer.type == RecordType.OPT) {
+      if (answer.name.value != '.') {
+        throw Exception('OPT name must be root.');
+      }
+      ByteData.view(buf.buffer)
+          .setUint16(offset, answer.udpPayloadSize!, Endian.big);
+
+      buf[offset + 4] = answer.extendedRcode!;
+      buf[offset + 5] = answer.ednsVersion!;
+
+      ByteData.view(buf.buffer)
+          .setUint16(offset + 6, answer.flags ?? 0, Endian.big);
+
+      offset += 8;
+      // TODO: need OptDataCodec here
+      offset += answer.options.encode(buf, offset) as int;
+    } else {
+      final klassValue = answer.flush ? FLUSH_MASK : answer.klass.value;
+      ByteData.view(buf.buffer).setUint16(offset + 2, klassValue, Endian.big);
+
+      ByteData.view(buf.buffer).setUint32(offset + 4, answer.ttl, Endian.big);
+
+      offset += 8;
+
+      final result = RDataCodecs.encode(
+        answer.type,
+        answer.data,
+        input: buf,
+        offset: offset,
+      );
+      offset += result.offset;
     }
-    ByteData.view(buf.buffer)
-        .setUint16(offset, answer.udpPayloadSize!, Endian.big);
 
-    buf[offset + 4] = answer.extendedRcode!;
-    buf[offset + 5] = answer.ednsVersion!;
-
-    ByteData.view(buf.buffer)
-        .setUint16(offset + 6, answer.flags ?? 0, Endian.big);
-
-    offset += 8;
-    // TODO: need OptDataCodec here
-    offset += answer.options.encode(buf, offset) as int;
-  } else {
-    final klassValue = answer.flush ? FLUSH_MASK : answer.klass.value;
-    ByteData.view(buf.buffer).setUint16(offset + 2, klassValue, Endian.big);
-
-    ByteData.view(buf.buffer).setUint32(offset + 4, answer.ttl, Endian.big);
-
-    offset += 8;
-
-    final result = RdataCodecs.encode(
-      answer.type,
-      answer.data,
-      input: buf,
-      offset: offset,
-    );
-    offset += result.offset;
+    return EncodeResult(buf, offset - oldOffset);
   }
 
-  return EncodeResult(buf, offset - oldOffset);
-};
+  @override
+  DecodeResult<Answer> decode(Uint8List buf, {int offset = 0}) {
+    final originalOffset = offset;
 
-Decode _decode = (Uint8List buf, {int offset = 0}) {
-  final originalOffset = offset;
+    final nameResult = RecordName.codec.decode(buf, offset: offset);
+    offset += nameResult.offset;
 
-  final nameResult = RecordName.codec.decode(buf, offset: offset);
-  offset += nameResult.offset;
+    final byteData = ByteData.sublistView(buf);
 
-  final byteData = ByteData.sublistView(buf);
-
-  final rawType = byteData.getUint16(offset, Endian.big);
-  final type = RecordType.fromValue(rawType);
-  offset += 2;
-
-  final answer = Answer._();
-  answer.name = nameResult.value;
-  answer.type = type;
-
-  if (type == RecordType.OPT) {
-    answer.udpPayloadSize = byteData.getUint16(offset + 2, Endian.big);
-    answer.extendedRcode = byteData.getUint8(offset + 4);
-    answer.ednsVersion = byteData.getUint8(offset + 5);
-
-    answer.flags = byteData.getUint16(offset + 6, Endian.big);
-    answer.flagDo = (answer.flags! >> 15) & 0x1 == 1;
-
-    answer.options = OptionData.decode(buf, offset + 8);
-
-    offset += (8 + answer.options.numBytes).toInt();
-  } else {
-    final rawDnsClass = byteData.getUint16(offset, Endian.big);
-    answer.klass = RecordClass.fromValue(rawDnsClass & NOT_FLUSH_MASK);
-
-    answer.flush = (rawDnsClass & FLUSH_MASK) != 0;
+    final rawType = byteData.getUint16(offset, Endian.big);
+    final type = RecordType.fromValue(rawType);
     offset += 2;
 
-    answer.ttl = byteData.getUint32(offset, Endian.big);
-    offset += 4;
+    final answer = Answer._();
+    answer.name = nameResult.value;
+    answer.type = type;
 
-    final result = RdataCodecs.decode(type, buf);
-    answer.data = result.value;
-    offset += result.offset;
+    if (type == RecordType.OPT) {
+      answer.udpPayloadSize = byteData.getUint16(offset + 2, Endian.big);
+      answer.extendedRcode = byteData.getUint8(offset + 4);
+      answer.ednsVersion = byteData.getUint8(offset + 5);
+
+      answer.flags = byteData.getUint16(offset + 6, Endian.big);
+      answer.flagDo = (answer.flags! >> 15) & 0x1 == 1;
+
+      answer.options = OptionData.decode(buf, offset + 8);
+
+      offset += (8 + answer.options.numBytes).toInt();
+    } else {
+      final rawDnsClass = byteData.getUint16(offset, Endian.big);
+      answer.klass = RecordClass.fromValue(rawDnsClass & NOT_FLUSH_MASK);
+
+      answer.flush = (rawDnsClass & FLUSH_MASK) != 0;
+      offset += 2;
+
+      answer.ttl = byteData.getUint32(offset, Endian.big);
+      offset += 4;
+
+      final result = RDataCodecs.decode(type, buf, offset: offset);
+      answer.data = result.value;
+      offset += result.offset;
+    }
+
+    return DecodeResult(answer, offset - originalOffset);
   }
-
-  return DecodeResult(answer, offset - originalOffset);
-};
+}
