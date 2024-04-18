@@ -1,5 +1,7 @@
+import 'dart:typed_data';
+
 abstract interface class RData {
   int get numBytes;
 
-  RData encode();
+  Uint8List encode();
 }

@@ -141,6 +141,7 @@ class DidDht {
   static Future<DidResolutionResult> resolve(
     Did did, {
     String relayUrl = 'https://diddht.tbddev.org',
+    HttpClient? client,
   }) async {
     if (did.method != methodName) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
@@ -149,7 +150,7 @@ class DidDht {
     final parsedRelayUrl = Uri.parse(relayUrl);
     final resolutionUrl = parsedRelayUrl.replace(path: did.id);
 
-    final httpClient = HttpClient();
+    final httpClient = client ??= HttpClient();
     final request = await httpClient.getUrl(resolutionUrl);
     final response = await request.close();
 

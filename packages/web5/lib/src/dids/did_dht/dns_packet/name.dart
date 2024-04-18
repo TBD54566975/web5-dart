@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 class DnsName {
   final String value;
-  final int numBytes;
+  int get numBytes => utf8.encode(value).length + 2;
 
-  DnsName._(this.value, this.numBytes);
+  DnsName({required this.value});
 
   factory DnsName.decode(Uint8List buf, int offset, {bool mail = false}) {
     int oldOffset = offset;
@@ -64,7 +64,29 @@ class DnsName {
 
     final decodedName = list.isEmpty ? '.' : list.join('.');
 
-    return DnsName._(decodedName, consumedBytes);
+    return DnsName(value: decodedName);
+    // return DnsName(decodedName, consumedBytes);
+  }
+
+  Uint8List encode({Uint8List? buf, int offset = 0}) {
+    buf ??= Uint8List(encodingLength());
+
+    // Strip leading and trailing dots
+    final n = value.replaceAll(RegExp(r'^\.|\.$'), '');
+    if (n.isNotEmpty) {
+      final list = n.split('.');
+      for (var label in list) {
+        final encodedLabel = utf8.encode(label);
+        buf[offset] = encodedLabel.length; // Length byte
+        offset++;
+        buf.setRange(offset, offset + encodedLabel.length, encodedLabel);
+        offset += encodedLabel.length;
+      }
+    }
+
+    buf[offset++] = 0;
+
+    return buf;
   }
 
   int encodingLength() {

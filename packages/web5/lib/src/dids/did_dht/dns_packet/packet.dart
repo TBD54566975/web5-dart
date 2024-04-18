@@ -69,6 +69,49 @@ class DnsPacket {
     return DnsPacket(header: header, questions: questions, answers: answers);
   }
 
+  Uint8List encode({Uint8List? buf, int offset = 0}) {
+    buf ??= Uint8List(encodingLength());
+    final oldOffset = offset;
+
+    // Encode the header
+    final h = header.encode(
+      buf: buf,
+      offset: offset,
+    );
+    offset += h
+        .elementSizeInBytes; // Assuming this method exists and is implemented correctly
+
+    // Directly encode each question
+    for (var question in questions) {
+      final q = question.encode(
+        buf: buf,
+        offset: offset,
+      );
+      offset = q
+          .elementSizeInBytes; // Assuming this method exists and is implemented correctly
+    }
+
+    // Directly encode each answer
+    for (var answer in answers) {
+      final a = answer.encode(
+        buf: buf,
+        offset: offset,
+      );
+      offset = a
+          .elementSizeInBytes; // Assuming this method exists and is implemented correctly
+    }
+
+    // Store the number of bytes encoded
+    final numBytes = offset - oldOffset;
+
+    // Just a quick sanity check
+    if (numBytes != buf.length) {
+      return Uint8List.sublistView(buf, 0, numBytes);
+    }
+
+    return buf;
+  }
+
   factory DnsPacket.fromDid(BearerDid did) {
     final List<BaseAnswer<String>> dnsAnswerRecords = [];
     final Map<String, String> idLookup = {};
@@ -275,5 +318,16 @@ class DnsPacket {
       questions: [],
       answers: [],
     );
+  }
+
+  int encodingLength() {
+    int length = header.encodingLength();
+    for (var question in questions) {
+      length += question.encodingLength();
+    }
+    for (var answer in answers) {
+      length += answer.encodingLength();
+    }
+    return length;
   }
 }
