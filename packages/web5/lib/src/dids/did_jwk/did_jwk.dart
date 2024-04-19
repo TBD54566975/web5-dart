@@ -99,6 +99,7 @@ class DidJwk {
 
     return DidDocument(
       id: did.id,
+      controller: [did.uri],
       verificationMethod: [verificationMethod],
       assertionMethod: [verificationMethod.id],
       authentication: [verificationMethod.id],

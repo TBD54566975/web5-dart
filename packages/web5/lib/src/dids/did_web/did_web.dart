@@ -36,7 +36,7 @@ class DidWeb {
     final DidDocument doc = DidDocument(
       id: didId,
       alsoKnownAs: alsoKnownAs,
-      controller: controllers ?? didId,
+      controller: controllers ?? [didId],
     );
 
     final List<DidCreateVerificationMethod> defaultMethods = [

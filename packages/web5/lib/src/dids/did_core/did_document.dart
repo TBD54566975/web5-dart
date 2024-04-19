@@ -30,7 +30,7 @@ class DidDocument implements DidResource {
   /// A DID controller is an entity that is authorized to make changes to a
   /// DID document. The process of authorizing a DID controller is defined
   /// by the DID method.
-  final dynamic controller; // String or List<String>
+  final List<String> controller;
 
   /// cryptographic public keys, which can be used to authenticate or authorize
   /// interactions with the DID subject or associated parties.
@@ -86,7 +86,7 @@ class DidDocument implements DidResource {
     this.context,
     required this.id,
     this.alsoKnownAs,
-    this.controller,
+    required this.controller,
     this.verificationMethod,
     this.service,
     this.assertionMethod,
