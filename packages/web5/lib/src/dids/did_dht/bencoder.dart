@@ -13,6 +13,8 @@ enum Token {
   const Token(this.value, this.byte);
 }
 
+/// More information about Bencode can be found
+/// [here](https://wiki.theory.org/BitTorrentSpecification#Bencoding)
 class Bencoder {
   // Encodes various Dart types into Bencoded format
   static String bencode(dynamic input) {
