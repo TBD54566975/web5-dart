@@ -41,6 +41,12 @@ class Bep44Message {
     required this.v,
   });
 
+  // verify method decodes, verifies sig, and returns decoded bep44 message
+
+  // decode returns a decoded bep44 message
+
+  // follow similar pattern to jwt.dart
+
   static Future<Bep44Message> create(
     Packet packet,
     int seq,
