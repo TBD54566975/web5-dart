@@ -29,4 +29,15 @@ class Bencoder {
       throw FormatException('Unsupported type: ${input.runtimeType}');
     }
   }
+
+  static Uint8List encode(dynamic input) {
+    if (input is String || input is int) {
+      return utf8.encode(bencode(input));
+    } else if (input is Uint8List) {
+      final prefix = utf8.encode('${input.length}:');
+      return Uint8List.fromList([...prefix, ...input]);
+    } else {
+      throw FormatException('Unsupported type: ${input.runtimeType}');
+    }
+  }
 }

@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:web5/src/dids/did_dht/bep44.dart';
 import 'package:web5/src/dids/did_dht/deed_dht_type.dart';
 import 'package:web5/src/dids/did_dht/dns/packet.dart';
 import 'package:web5/src/dids/did_dht/document_packet.dart';
@@ -15,6 +16,7 @@ class DeedDht {
 
   // static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
+  // TODO: allow for custom http client
   static Future<BearerDid> create({
     KeyManager? keyManager,
     bool publish = false,
@@ -85,7 +87,15 @@ class DeedDht {
 
     if (publish == true) {
       final dnsPacket = DocumentPacket.toPacket(didDoc);
-      // TODO: finish this
+
+      sign(Uint8List data) async {
+        return await keyManager!.sign(keyAlias, data);
+      }
+
+      // TODO: figure out proper seq number
+      final message = Bep44Message.create(dnsPacket, 0, identityKey, sign);
+
+      // TODO: publish message to DHT
     }
 
     return BearerDid(
