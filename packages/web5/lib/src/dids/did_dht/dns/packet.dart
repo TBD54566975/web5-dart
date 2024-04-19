@@ -18,7 +18,7 @@ class Packet {
   List<Answer> authorities;
   List<Answer> additionals;
 
-  Packet._({
+  Packet({
     required this.header,
     required this.questions,
     required this.answers,
@@ -28,7 +28,7 @@ class Packet {
 
   // TODO: fix this create method
   static Packet create(List<Answer> answers) {
-    return Packet._(
+    return Packet(
       header: Header(
         id: 0,
         qr: false,

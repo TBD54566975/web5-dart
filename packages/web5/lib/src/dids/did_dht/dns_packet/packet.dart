@@ -131,25 +131,19 @@ class DnsPacket {
     }
 
     // Add DNS TXT records if the DID document contains a `controller` property.
-    if (did.document.controller != null) {
-      String controller;
+    String controller;
 
-      if (did.document.controller is List<String>) {
-        controller = (did.document.controller as List<String>).join(',');
-      } else {
-        controller = did.document.controller as String;
-      }
-
-      dnsAnswerRecords.add(
-        BaseAnswer<String>(
-          type: DnsType.TXT,
-          name: '_cnt.did.',
-          ttl: DNS_RECORD_TTL,
-          data: controller,
-        ),
-      );
-    }
-
+    controller = (did.document.controller).join(',');
+  
+    dnsAnswerRecords.add(
+      BaseAnswer<String>(
+        type: DnsType.TXT,
+        name: '_cnt.did.',
+        ttl: DNS_RECORD_TTL,
+        data: controller,
+      ),
+    );
+  
     // Add DNS TXT records for each verification method.
     if (did.document.verificationMethod != null) {
       for (var i = 0; i < did.document.verificationMethod!.length; i++) {

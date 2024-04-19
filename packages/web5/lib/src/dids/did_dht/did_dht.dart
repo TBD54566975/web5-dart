@@ -39,7 +39,7 @@ class DidDht {
     final DidDocument doc = DidDocument(
       id: didUri,
       alsoKnownAs: alsoKnownAs,
-      controller: controllers ?? didUri,
+      controller: controllers ?? [didUri],
     );
 
     // If the given verification methods do not contain an Identity Key, add one.
@@ -78,7 +78,7 @@ class DidDht {
       if (vm.id?.split('#').last == '0') {
         publicKey = identityKey;
       } else {
-        String alias = await keyManager.generatePrivateKey(vm.algorithm);
+        final String alias = await keyManager.generatePrivateKey(vm.algorithm);
         publicKey = await keyManager.getPublicKey(alias);
       }
 
@@ -218,7 +218,7 @@ class DidDht {
       }
     }
 
-    final didDocument = DidDocument(id: did.uri);
+    final didDocument = DidDocument(id: did.uri, controller: [did.uri]);
     for (final property in txtMap.entries) {
       final values = property.value[0].split(',');
       final valueMap = {};
