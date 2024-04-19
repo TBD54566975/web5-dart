@@ -55,11 +55,11 @@ class DeedDht {
       VerificationPurpose.capabilityInvocation,
     ];
 
-    for (final purp in identityVmPurposes) {
-      didDoc.addVerificationPurpose(purp, identityVm.id);
+    for (final purpose in identityVmPurposes) {
+      didDoc.addVerificationPurpose(purpose, identityVm.id);
     }
 
-    for (final DidCreateVerificationMethod vm in verificationMethods) {
+    for (final vm in verificationMethods) {
       final alias = await keyManager.generatePrivateKey(vm.algorithm);
       final publicKey = await keyManager.getPublicKey(alias);
 
@@ -129,10 +129,96 @@ class DeedDht {
 
     httpClient.close(force: false);
 
-    final dnsPacket = Packet.codec.decode(Uint8List.fromList(bytes));
-    final didDocument = DocumentPacket.toDidDocument(dnsPacket.value);
+    // TODO: pass in bytes to bep44 verify to get decoded bep44 message
 
-    // TODO: add verification methods and purposes to did doc
+    // 72 is the minimal bytes length of a BEP44 message. this should be handled in bep44 decode
+    if (bytes.length < 72) {
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
+    }
+    final v = bytes.sublist(72);
+
+    // assume that bep44 decode will return a dns packet
+    final dnsPacket = Packet.codec.decode(Uint8List.fromList(v)).value;
+    final didDocument = DocumentPacket.toDidDocument(dnsPacket);
+
+    // TODO: is this how we want to use document packet?
+    final docPack = DocumentPacket();
+    docPack.populateTxtMap(dnsPacket.answers);
+
+    if (docPack.rootRecord == null) {
+      // TODO: figure out more appopriate resolution error to use.
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
+    }
+
+    docPack.populateRelationshipsMap(docPack.rootRecord!);
+
+    for (final property in docPack.txtMap.entries) {
+      final values = property.value[0].split(',');
+      final valueMap = {};
+
+      for (var value in values) {
+        final [k, v] = value.split('=');
+        valueMap[k] = v;
+      }
+
+      if (property.key.startsWith('_k')) {
+        AlgorithmId algId;
+        switch (valueMap['t']) {
+          case '0':
+            algId = AlgorithmId.ed25519;
+            break;
+          case '1':
+            algId = AlgorithmId.secp256k1;
+            break;
+          default:
+            throw Exception('unsupported algorithm type: ${valueMap['t']}');
+        }
+
+        final publicKeyBytes = Base64Url.decode(valueMap['k']);
+        final publicKeyJwk = Crypto.bytesToPublicKey(algId, publicKeyBytes);
+        final verificationMethod = DidVerificationMethod(
+          controller: did.uri,
+          id: valueMap['id'],
+          type: 'JsonWebKey2020',
+          publicKeyJwk: publicKeyJwk,
+        );
+
+        didDocument.addVerificationMethod(verificationMethod);
+        final entryId = property.key.substring(1).split('.')[0];
+        final relationships = docPack.relationshipsMap[entryId];
+
+        if (relationships == null) {
+          continue;
+        }
+
+        for (final relationship in relationships) {
+          VerificationPurpose? vr;
+          if (relationship == 'auth') {
+            vr = VerificationPurpose.authentication;
+          } else if (relationship == 'asm') {
+            vr = VerificationPurpose.assertionMethod;
+          } else if (relationship == 'agm') {
+            vr = VerificationPurpose.keyAgreement;
+          } else if (relationship == 'inv') {
+            vr = VerificationPurpose.capabilityInvocation;
+          } else if (relationship == 'del') {
+            vr = VerificationPurpose.capabilityDelegation;
+          }
+
+          if (vr != null) {
+            didDocument.addVerificationPurpose(vr, verificationMethod.id);
+          }
+        }
+      } else if (property.key.startsWith('_s')) {
+        final service = DidService(
+          id: valueMap['id'],
+          type: valueMap['t'],
+          serviceEndpoint: valueMap['uri'],
+        );
+
+        didDocument.addService(service);
+      }
+    }
 
     return DidResolutionResult(didDocument: didDocument);
   }
