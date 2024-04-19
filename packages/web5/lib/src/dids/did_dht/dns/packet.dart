@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:web5/src/dids/did_dht/dns/answer.dart';
 import 'package:web5/src/dids/did_dht/dns/codec.dart';
 import 'package:web5/src/dids/did_dht/dns/header.dart';
+import 'package:web5/src/dids/did_dht/dns/opcode.dart';
 import 'package:web5/src/dids/did_dht/dns/question.dart';
 
 const int DNS_RECORD_TTL = 7200;
@@ -17,13 +18,34 @@ class Packet {
   List<Answer> authorities;
   List<Answer> additionals;
 
-  Packet({
+  Packet._({
     required this.header,
     required this.questions,
     required this.answers,
     required this.authorities,
     required this.additionals,
   });
+
+  // TODO: fix this create method
+  static Packet create(List<Answer> answers) {
+    return Packet._(
+      header: Header(
+        id: 0,
+        qr: false,
+        opcode: OpCode.NOTIFY,
+        tc: false,
+        rd: false,
+        qdcount: 0,
+        ancount: answers.length,
+        nscount: 0,
+        arcount: 0,
+      ),
+      questions: [],
+      answers: answers,
+      authorities: [],
+      additionals: [],
+    );
+  }
 
   static final codec = _PacketCodec();
 
