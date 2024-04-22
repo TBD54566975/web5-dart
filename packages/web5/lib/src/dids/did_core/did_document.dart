@@ -98,13 +98,13 @@ class DidDocument implements DidResource {
 
   void addVerificationMethod(
     DidVerificationMethod vm, {
-    VerificationPurpose? purpose,
+    List<VerificationPurpose> purpose = const [],
   }) {
     verificationMethod ??= [];
     verificationMethod!.add(vm);
 
-    if (purpose != null) {
-      addVerificationPurpose(purpose, vm.id);
+    for (final p in purpose) {
+      addVerificationPurpose(p, vm.id);
     }
   }
 

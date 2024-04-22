@@ -45,40 +45,34 @@ class DeedDht {
       id: didUri,
       alsoKnownAs: alsoKnownAs,
       controller: controllers.isEmpty ? [didUri] : controllers,
-      verificationMethod: [identityVm],
     );
 
-    final identityVmPurposes = [
-      VerificationPurpose.authentication,
-      VerificationPurpose.assertionMethod,
-      VerificationPurpose.capabilityDelegation,
-      VerificationPurpose.capabilityInvocation,
-    ];
+    didDoc.addVerificationMethod(
+      identityVm,
+      purpose: [
+        VerificationPurpose.authentication,
+        VerificationPurpose.assertionMethod,
+        VerificationPurpose.capabilityDelegation,
+        VerificationPurpose.capabilityInvocation,
+      ],
+    );
 
-    for (final purpose in identityVmPurposes) {
-      didDoc.addVerificationPurpose(purpose, identityVm.id);
-    }
-
-    for (final vm in verificationMethods) {
-      final alias = await keyManager.generatePrivateKey(vm.algorithm);
+    for (final vmOpts in verificationMethods) {
+      final alias = await keyManager.generatePrivateKey(vmOpts.algorithm);
       final publicKey = await keyManager.getPublicKey(alias);
 
       // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
-      String methodId = vm.id ?? publicKey.kid ?? publicKey.computeThumbprint();
+      String methodId =
+          vmOpts.id ?? publicKey.kid ?? publicKey.computeThumbprint();
       methodId = '$didUri#${methodId.split('#').last}';
 
-      didDoc.addVerificationMethod(
-        DidVerificationMethod(
-          id: methodId,
-          type: vm.type,
-          controller: vm.controller,
-          publicKeyJwk: publicKey,
-        ),
+      final vm = DidVerificationMethod(
+        id: methodId,
+        type: vmOpts.type,
+        controller: vmOpts.controller,
+        publicKeyJwk: publicKey,
       );
-
-      for (final purpose in vm.purposes) {
-        didDoc.addVerificationPurpose(purpose, methodId);
-      }
+      didDoc.addVerificationMethod(vm, purpose: vmOpts.purposes);
     }
 
     for (final service in services) {
