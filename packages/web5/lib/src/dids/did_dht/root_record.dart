@@ -2,61 +2,61 @@ import 'package:web5/src/dids/did_dht/dns_packet.dart';
 
 /// [Relevant Spec Text](https://did-dht.com/#root-record)
 class RootRecord {
-  List<String> vmRecordNames;
-  List<String> srvRecordNames;
-  List<String> invRecordNames;
-  List<String> delRecordNames;
-  List<String> authRecordNames;
-  List<String> agmRecordNames;
-  List<String> asmRecordNames;
+  List<String> vm;
+  List<String> srv;
+  List<String> inv;
+  List<String> del;
+  List<String> auth;
+  List<String> agm;
+  List<String> asm;
 
   RootRecord({
-    this.vmRecordNames = const [],
-    this.asmRecordNames = const [],
-    this.srvRecordNames = const [],
-    this.invRecordNames = const [],
-    this.delRecordNames = const [],
-    this.authRecordNames = const [],
-    this.agmRecordNames = const [],
+    this.vm = const [],
+    this.asm = const [],
+    this.srv = const [],
+    this.inv = const [],
+    this.del = const [],
+    this.auth = const [],
+    this.agm = const [],
   });
 
   addVmRecordName(String vmRecordName) {
-    vmRecordNames.add(vmRecordName);
+    vm.add(vmRecordName);
   }
 
   addAsmRecordName(String asmRecordName) {
-    asmRecordNames.add(asmRecordName);
+    asm.add(asmRecordName);
   }
 
   addInvRecordName(String invRecordName) {
-    invRecordNames.add(invRecordName);
+    inv.add(invRecordName);
   }
 
   addDelRecordName(String delRecordName) {
-    delRecordNames.add(delRecordName);
+    del.add(delRecordName);
   }
 
   addAuthRecordName(String authRecordName) {
-    authRecordNames.add(authRecordName);
+    auth.add(authRecordName);
   }
 
   addAgmRecordName(String agmRecordName) {
-    agmRecordNames.add(agmRecordName);
+    agm.add(agmRecordName);
   }
 
   addSrvRecordName(String srvRecordName) {
-    srvRecordNames.add(srvRecordName);
+    srv.add(srvRecordName);
   }
 
-  Answer<TxtData> toTxtRecord() {
+  Answer<TxtData> toTxtRecord(String didId) {
     final parts = [
-      if (vmRecordNames.isNotEmpty) 'vm=${vmRecordNames.join(',')}',
-      if (asmRecordNames.isNotEmpty) 'asm=${asmRecordNames.join(',')}',
-      if (invRecordNames.isNotEmpty) 'inv=${invRecordNames.join(',')}',
-      if (delRecordNames.isNotEmpty) 'del=${delRecordNames.join(',')}',
-      if (authRecordNames.isNotEmpty) 'auth=${authRecordNames.join(',')}',
-      if (agmRecordNames.isNotEmpty) 'agm=${agmRecordNames.join(',')}',
-      if (srvRecordNames.isNotEmpty) 'srv=${srvRecordNames.join(',')}',
+      if (vm.isNotEmpty) 'vm=${vm.join(',')}',
+      if (asm.isNotEmpty) 'asm=${asm.join(',')}',
+      if (inv.isNotEmpty) 'inv=${inv.join(',')}',
+      if (del.isNotEmpty) 'del=${del.join(',')}',
+      if (auth.isNotEmpty) 'auth=${auth.join(',')}',
+      if (agm.isNotEmpty) 'agm=${agm.join(',')}',
+      if (srv.isNotEmpty) 'srv=${srv.join(',')}',
     ].join(';');
 
     final txtData = TxtData([parts]);
@@ -64,7 +64,7 @@ class RootRecord {
     return Answer<TxtData>(
       type: RecordType.TXT,
       klass: RecordClass.IN,
-      name: RecordName('TODO_FILL_OUT'),
+      name: RecordName('_did.$didId'),
       data: txtData,
       ttl: 7200,
     );
@@ -91,22 +91,22 @@ class RootRecord {
 
       switch (key) {
         case 'vm':
-          rootRecord.vmRecordNames = value.split(',');
+          rootRecord.vm = value.split(',');
           break;
         case 'srv':
-          rootRecord.srvRecordNames = value.split(',');
+          rootRecord.srv = value.split(',');
           break;
         case 'inv':
-          rootRecord.invRecordNames = value.split(',');
+          rootRecord.inv = value.split(',');
           break;
         case 'del':
-          rootRecord.delRecordNames = value.split(',');
+          rootRecord.del = value.split(',');
           break;
         case 'auth':
-          rootRecord.authRecordNames = value.split(',');
+          rootRecord.auth = value.split(',');
           break;
         case 'agm':
-          rootRecord.agmRecordNames = value.split(',');
+          rootRecord.agm = value.split(',');
           break;
         default:
           throw Exception('Invalid root record key');
