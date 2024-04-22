@@ -48,17 +48,17 @@ class RootRecord {
   }
 
   Answer<TxtData> toTxtRecord() {
-    final rData = [
-      'vm=${vmRecordNames.join(',')}',
-      'asm=${asmRecordNames.join(',')}',
-      'inv=${invRecordNames.join(',')}',
-      'del=${delRecordNames.join(',')}',
-      'auth=${authRecordNames.join(',')}',
-      'agm=${agmRecordNames.join(',')}',
-      'srv=${srvRecordNames.join(',')}',
+    final parts = [
+      if (vmRecordNames.isNotEmpty) 'vm=${vmRecordNames.join(',')}',
+      if (asmRecordNames.isNotEmpty) 'asm=${asmRecordNames.join(',')}',
+      if (invRecordNames.isNotEmpty) 'inv=${invRecordNames.join(',')}',
+      if (delRecordNames.isNotEmpty) 'del=${delRecordNames.join(',')}',
+      if (authRecordNames.isNotEmpty) 'auth=${authRecordNames.join(',')}',
+      if (agmRecordNames.isNotEmpty) 'agm=${agmRecordNames.join(',')}',
+      if (srvRecordNames.isNotEmpty) 'srv=${srvRecordNames.join(',')}',
     ].join(';');
 
-    final txtData = TxtData([rData]);
+    final txtData = TxtData([parts]);
     // TODO: make convenience TxtRecord class
     return Answer<TxtData>(
       type: RecordType.TXT,
