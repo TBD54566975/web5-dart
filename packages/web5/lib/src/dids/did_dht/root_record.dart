@@ -1,5 +1,6 @@
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 
+/// [Relevant Spec Text](https://did-dht.com/#root-record)
 class RootRecord {
   List<String> vmRecordNames;
   List<String> srvRecordNames;
