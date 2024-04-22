@@ -1,6 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
-enum DnsRCode {
+enum RCode {
   NOERROR(0, 'NOERROR'),
   FORMERR(1, 'FORMERR'),
   SERVFAIL(2, 'SERVFAIL'),
@@ -21,19 +21,19 @@ enum DnsRCode {
   final int value;
   final String name;
 
-  const DnsRCode(this.value, this.name);
+  const RCode(this.value, this.name);
 
-  static DnsRCode fromValue(int value) {
-    return DnsRCode.values.firstWhere(
+  static RCode fromValue(int value) {
+    return RCode.values.firstWhere(
       (rc) => rc.value == value,
-      orElse: () => DnsRCode.NOERROR, // Default or a suitable fallback
+      orElse: () => RCode.NOERROR, // Default or a suitable fallback
     );
   }
 
-  static DnsRCode fromName(String name) {
-    return DnsRCode.values.firstWhere(
+  static RCode fromName(String name) {
+    return RCode.values.firstWhere(
       (rc) => rc.name.toUpperCase() == name.toUpperCase(),
-      orElse: () => DnsRCode.NOERROR, // Default or a suitable fallback
+      orElse: () => RCode.NOERROR, // Default or a suitable fallback
     );
   }
 }

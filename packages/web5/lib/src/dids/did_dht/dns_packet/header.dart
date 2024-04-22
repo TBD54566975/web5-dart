@@ -1,9 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:web5/src/dids/did_dht/dns_packet/codec.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/opcode.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/rcode.dart';
 
-class DnsHeader {
+class Header {
   /// Identifier assigned by the program that generates the query.
   int id;
 
@@ -11,7 +12,7 @@ class DnsHeader {
   bool qr;
 
   /// Specifies kind of query in this message.
-  DnsOpCode opcode;
+  OpCode opcode;
 
   /// Specifies that the responding name server is an authority for the domain name in question section.
   bool? aa;
@@ -35,7 +36,7 @@ class DnsHeader {
   bool? cd;
 
   /// Response code
-  DnsRCode? rcode;
+  RCode? rcode;
 
   /// Number of entries in the question section.
   int qdcount;
@@ -56,7 +57,7 @@ class DnsHeader {
 
   final numBytes = 12;
 
-  DnsHeader({
+  Header({
     required this.id,
     required this.qr,
     required this.opcode,
@@ -74,19 +75,62 @@ class DnsHeader {
     required this.arcount,
   });
 
-  factory DnsHeader.decode(Uint8List buf, [int offset = 0]) {
+  static final codec = _HeaderCodec();
+
+  factory Header.decode(Uint8List buf, {int offset = 0}) =>
+      codec.decode(buf, offset: offset).value;
+
+  Uint8List encode({Uint8List? buf, int offset = 0}) =>
+      codec.encode(this).value;
+
+  int encodingLength() => numBytes;
+}
+
+class _HeaderCodec implements Codec<Header> {
+  @override
+  EncodeResult encode(Header header, {Uint8List? input, int offset = 0}) {
+    final buf = input ?? Uint8List(12);
+    final byteData = ByteData.sublistView(buf);
+
+    byteData.setUint16(offset, header.id, Endian.big);
+    offset += 2;
+
+    final flags = (header.qr ? 1 : 0) << 15 |
+        (header.opcode.value & 0xF) << 11 |
+        (header.aa ?? false ? 1 : 0) << 10 |
+        (header.tc ? 1 : 0) << 9 |
+        (header.rd ? 1 : 0) << 8 |
+        (header.ra ?? false ? 1 : 0) << 7 |
+        (header.z ? 1 : 0) << 6 |
+        (header.ad ?? false ? 1 : 0) << 5 |
+        (header.cd ?? false ? 1 : 0) << 4 |
+        (header.rcode?.value ?? 0) & 0xF;
+
+    byteData.setUint16(offset, flags, Endian.big);
+    offset += 2;
+
+    byteData.setUint16(offset, header.qdcount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, header.ancount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, header.nscount, Endian.big);
+    offset += 2;
+    byteData.setUint16(offset, header.arcount, Endian.big);
+
+    return EncodeResult(buf, 12);
+  }
+
+  @override
+  DecodeResult<Header> decode(Uint8List buf, {int offset = 0}) {
     if (buf.length < 12) throw Exception('Header must be 12 bytes');
 
     final byteData = ByteData.sublistView(buf);
     final flags = byteData.getUint16(offset + 2, Endian.big);
 
-    final readId = byteData.getUint16(offset, Endian.big);
-    print('Decoded ID: $readId at offset $offset');
-
-    return DnsHeader(
+    final header = Header(
       id: byteData.getUint16(offset, Endian.big),
       qr: (flags >> 15) & 0x1 == 1,
-      opcode: DnsOpCode.fromValue((flags >> 11) & 0xf),
+      opcode: OpCode.fromValue((flags >> 11) & 0xf),
       aa: (flags >> 10) & 0x1 == 1,
       tc: (flags >> 9) & 0x1 == 1,
       rd: (flags >> 8) & 0x1 == 1,
@@ -94,51 +138,13 @@ class DnsHeader {
       z: (flags >> 6) & 0x1 == 1,
       ad: (flags >> 5) & 0x1 == 1,
       cd: (flags >> 4) & 0x1 == 1,
-      rcode: DnsRCode.fromValue(flags & 0xf),
+      rcode: RCode.fromValue(flags & 0xf),
       qdcount: byteData.getUint16(offset + 4, Endian.big),
       ancount: byteData.getUint16(offset + 6, Endian.big),
       nscount: byteData.getUint16(offset + 8, Endian.big),
       arcount: byteData.getUint16(offset + 10, Endian.big),
     );
+
+    return DecodeResult(header, 12);
   }
-
-  Uint8List encode({Uint8List? buf, int offset = 0}) {
-    buf ??= Uint8List(numBytes);
-    final byteData = ByteData.sublistView(buf);
-
-    // Writing the header id
-    print('Encoding ID: $id at offset $offset');
-
-    byteData.setUint16(offset, id, Endian.big);
-    offset += 2;
-
-    // Calculating flags
-    final flags = (qr ? 1 : 0) << 15 |
-        (opcode.value & 0xF) << 11 |
-        (aa ?? false ? 1 : 0) << 10 |
-        (tc ? 1 : 0) << 9 |
-        (rd ? 1 : 0) << 8 |
-        (ra ?? false ? 1 : 0) << 7 |
-        (z ? 1 : 0) << 6 |
-        (ad ?? false ? 1 : 0) << 5 |
-        (cd ?? false ? 1 : 0) << 4 |
-        (rcode?.value ?? 0) & 0xF;
-
-    // Writing flags
-    byteData.setUint16(offset, flags, Endian.big);
-    offset += 2;
-
-    // Writing counts
-    byteData.setUint16(offset, qdcount, Endian.big);
-    offset += 2;
-    byteData.setUint16(offset, ancount, Endian.big);
-    offset += 2;
-    byteData.setUint16(offset, nscount, Endian.big);
-    offset += 2;
-    byteData.setUint16(offset, arcount, Endian.big);
-
-    return buf;
-  }
-
-  int encodingLength() => numBytes;
 }

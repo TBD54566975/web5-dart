@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dids/did_dht/dns/codec.dart';
-import 'package:web5/src/dids/did_dht/dns/rdata.dart';
-import 'package:web5/src/dids/did_dht/dns/record_type.dart';
-import 'package:web5/src/dids/did_dht/dns/txt_data.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/codec.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/rdata.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 
 class RDataCodecs {
   static final Map<RecordType, Codec> _codecs = {

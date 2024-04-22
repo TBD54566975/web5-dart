@@ -3,11 +3,11 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:test/test.dart';
-import 'package:web5/src/dids/did_dht/dns/answer.dart';
-import 'package:web5/src/dids/did_dht/dns/name.dart';
-import 'package:web5/src/dids/did_dht/dns/record_class.dart';
-import 'package:web5/src/dids/did_dht/dns/record_type.dart';
-import 'package:web5/src/dids/did_dht/dns/txt_data.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/answer.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_class.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 
 void main() {
   group('DNS Answer', () {

@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:test/test.dart';
-import 'package:web5/src/dids/did_dht/dns/packet.dart';
-import 'package:web5/src/dids/did_dht/dns/txt_data.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/packet.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 
 void main() {
   group('DNS Packet', () {

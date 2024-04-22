@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:web5/src/crypto/crypto.dart';
 import 'package:web5/src/crypto/jwk.dart';
 import 'package:web5/src/dids/did_dht/bencoder.dart';
-import 'package:web5/src/dids/did_dht/dns/packet.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/packet.dart';
 
 typedef Signer = Future<Uint8List> Function(Uint8List payload);
 

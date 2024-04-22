@@ -1,74 +1,95 @@
 import 'dart:typed_data';
 
-import 'package:web5/src/dids/did_dht/dns_packet/class.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/consts.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/codec.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_class.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/consts.dart';
 
-class DnsQuestion {
-  late DnsName name;
-  late DnsType type;
-  late DnsClass klass;
-  late bool qu; // QU bit flag
+class Question {
+  late RecordName name;
+  late RecordType type;
+  late RecordClass klass;
+  late bool qu;
   int numBytes = 0;
 
-  DnsQuestion({
+  Question({
     required this.name,
     required this.type,
     required this.klass,
     this.qu = false,
   });
 
-  DnsQuestion.decode(Uint8List buf, int offset) {
+  Question._();
+
+  static final codec = _QuestionCodec();
+
+  factory Question.decode(Uint8List buf, int offset) =>
+      codec.decode(buf, offset: offset).value;
+
+  Uint8List encode({Uint8List? buf, int offset = 0}) =>
+      codec.encode(this, input: buf, offset: offset).value;
+
+  int encodingLength() {
+    return name.encodingLength() + 4;
+  }
+}
+
+class _QuestionCodec implements Codec<Question> {
+  @override
+  EncodeResult encode(Question question, {Uint8List? input, int offset = 0}) {
+    final buf = input ??= Uint8List(question.encodingLength());
     final originalOffset = offset;
 
-    name = DnsName.decode(buf, offset);
-    offset += name.numBytes;
+    final n =
+        RecordName.codec.encode(question.name, input: buf, offset: offset);
+    offset += n.offset;
+
+    ByteData.view(buf.buffer)
+        .setUint16(offset, question.type.value, Endian.big);
+
+    offset += 2;
+
+    final klassValue =
+        question.qu ? (question.klass.value | QU_MASK) : question.klass.value;
+    ByteData.view(buf.buffer).setUint16(offset, klassValue, Endian.big);
+
+    offset += 2;
+
+    return EncodeResult(input, offset - originalOffset);
+  }
+
+  @override
+  DecodeResult<Question> decode(Uint8List buf, {int offset = 0}) {
+    final originalOffset = offset;
+
+    final nameResult = RecordName.codec.decode(buf, offset: offset);
+    offset += nameResult.offset;
 
     final byteData = ByteData.sublistView(buf);
 
     final rawType = byteData.getUint16(offset, Endian.big);
-    final type = DnsType.fromValue(rawType);
+    final type = RecordType.fromValue(rawType);
     offset += type.numBytes;
 
     int rawKlass = byteData.getUint16(offset, Endian.big);
-    klass = DnsClass.fromValue(rawKlass);
+    var klass = RecordClass.fromValue(rawKlass);
     offset += klass.numBytes;
 
-    qu = (rawKlass & QU_MASK) != 0;
+    final question = Question._();
+    question.name = nameResult.value;
+    question.type = type;
+
+    final qu = (rawKlass & QU_MASK) != 0;
+
     if (qu) {
       rawKlass &= NOT_QU_MASK;
-      klass = DnsClass.fromValue(rawKlass);
+      klass = RecordClass.fromValue(rawKlass);
     }
 
-    numBytes = offset - originalOffset;
-  }
+    question.klass = klass;
+    question.qu = qu;
 
-  Uint8List encode({Uint8List? buf, int offset = 0}) {
-    final originalOffset = offset;
-
-    buf ??= Uint8List(encodingLength());
-    final byteData = ByteData.sublistView(buf);
-
-    // Encode the name
-    final n = name.encode(buf: buf, offset: offset);
-    offset += n.elementSizeInBytes;
-
-    // Write the type
-    byteData.setUint16(offset, type.value, Endian.big);
-    offset += 2;
-
-    // Write the class, taking into account the QU bit
-    final klassValue = qu ? (klass.value | QU_MASK) : klass.value;
-    byteData.setUint16(offset, klassValue, Endian.big);
-    offset += 2;
-
-    numBytes = offset -
-        originalOffset; // Update numBytes to reflect actual length used
-    return buf;
-  }
-
-  int encodingLength() {
-    return name.encodingLength() + 4;
+    return DecodeResult(question, offset - originalOffset);
   }
 }

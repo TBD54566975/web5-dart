@@ -1,6 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
-enum DnsOpCode {
+enum OpCode {
   QUERY(0, 'QUERY'),
   IQUERY(1, 'IQUERY'),
   STATUS(2, 'STATUS'),
@@ -21,19 +21,19 @@ enum DnsOpCode {
   final int value;
   final String name;
 
-  const DnsOpCode(this.value, this.name);
+  const OpCode(this.value, this.name);
 
-  static DnsOpCode fromValue(int value) {
-    return DnsOpCode.values.firstWhere(
+  static OpCode fromValue(int value) {
+    return OpCode.values.firstWhere(
       (op) => op.value == value,
-      orElse: () => DnsOpCode.QUERY, // Default or a suitable fallback
+      orElse: () => OpCode.QUERY, // Default or a suitable fallback
     );
   }
 
-  static DnsOpCode fromName(String name) {
-    return DnsOpCode.values.firstWhere(
+  static OpCode fromName(String name) {
+    return OpCode.values.firstWhere(
       (op) => op.name.toUpperCase() == name.toUpperCase(),
-      orElse: () => DnsOpCode.QUERY, // Default or a suitable fallback
+      orElse: () => OpCode.QUERY, // Default or a suitable fallback
     );
   }
 }

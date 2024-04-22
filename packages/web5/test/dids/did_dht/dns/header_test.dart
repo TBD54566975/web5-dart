@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:test/test.dart';
-import 'package:web5/src/dids/did_dht/dns/header.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/header.dart';
 
 void main() {
   group('DNS Header', () {

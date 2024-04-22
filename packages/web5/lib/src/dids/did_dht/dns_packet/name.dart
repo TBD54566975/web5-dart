@@ -1,18 +1,60 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-class DnsName {
+import 'package:web5/src/dids/did_dht/dns_packet/codec.dart';
+
+class RecordName {
   final String value;
-  int get numBytes => utf8.encode(value).length + 2;
 
-  DnsName({required this.value});
+  RecordName(this.value);
 
-  factory DnsName.decode(Uint8List buf, int offset, {bool mail = false}) {
+  static final codec = _NameCodec();
+
+  factory RecordName.decode(Uint8List buf, {int offset = 0}) =>
+      codec.decode(buf).value;
+
+  Uint8List encode() => codec.encode(this).value;
+
+  int encodingLength() {
+    if (value == '.' || value == '..') return 1;
+    return utf8.encode(value.replaceAll(RegExp(r'^\.|\.$'), '')).length + 2;
+  }
+}
+
+class _NameCodec implements Codec<RecordName> {
+  @override
+  EncodeResult encode(
+    RecordName data, {
+    Uint8List? input,
+    int offset = 0,
+  }) {
+    final buf = input ?? Uint8List(data.encodingLength());
+    final oldOffset = offset;
+    // Strip leading and trailing dots
+    final n = data.value.replaceAll(RegExp(r'^\.|\.$'), '');
+    if (n.isNotEmpty) {
+      final list = n.split('.');
+      for (var label in list) {
+        final encodedLabel = utf8.encode(label);
+        buf[offset] = encodedLabel.length; // Length byte
+        offset++;
+        buf.setRange(offset, offset + encodedLabel.length, encodedLabel);
+        offset += encodedLabel.length;
+      }
+    }
+
+    buf[offset++] = 0; // Null terminator for DNS record
+
+    return EncodeResult(buf, offset - oldOffset);
+  }
+
+  @override
+  DecodeResult<RecordName> decode(Uint8List buf, {int offset = 0}) {
     int oldOffset = offset;
     int totalLength = 0;
     int consumedBytes = 0;
-    final List<String> list = [];
     bool jumped = false;
+    final List<String> list = [];
 
     while (true) {
       if (offset >= buf.length) {
@@ -34,11 +76,7 @@ class DnsName {
           throw Exception('Cannot decode name (name too long)');
         }
 
-        String label = utf8.decode(buf.sublist(offset, offset + len));
-
-        if (mail) {
-          label = label.replaceAll('.', r'\.');
-        }
+        final label = utf8.decode(buf.sublist(offset, offset + len));
 
         list.add(label);
         offset += len;
@@ -64,33 +102,6 @@ class DnsName {
 
     final decodedName = list.isEmpty ? '.' : list.join('.');
 
-    return DnsName(value: decodedName);
-    // return DnsName(decodedName, consumedBytes);
-  }
-
-  Uint8List encode({Uint8List? buf, int offset = 0}) {
-    buf ??= Uint8List(encodingLength());
-
-    // Strip leading and trailing dots
-    final n = value.replaceAll(RegExp(r'^\.|\.$'), '');
-    if (n.isNotEmpty) {
-      final list = n.split('.');
-      for (var label in list) {
-        final encodedLabel = utf8.encode(label);
-        buf[offset] = encodedLabel.length; // Length byte
-        offset++;
-        buf.setRange(offset, offset + encodedLabel.length, encodedLabel);
-        offset += encodedLabel.length;
-      }
-    }
-
-    buf[offset++] = 0;
-
-    return buf;
-  }
-
-  int encodingLength() {
-    if (value == '.' || value == '..') return 1;
-    return utf8.encode(value.replaceAll(RegExp(r'^\.|\.$'), '')).length + 2;
+    return DecodeResult(RecordName(decodedName), consumedBytes);
   }
 }

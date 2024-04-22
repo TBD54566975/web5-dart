@@ -1,8 +1,8 @@
-import 'package:web5/src/dids/did_dht/dns/answer.dart';
-import 'package:web5/src/dids/did_dht/dns/name.dart';
-import 'package:web5/src/dids/did_dht/dns/record_class.dart';
-import 'package:web5/src/dids/did_dht/dns/record_type.dart';
-import 'package:web5/src/dids/did_dht/dns/txt_data.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/answer.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_class.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 import 'package:web5/web5.dart';
 
 class ServiceRecord {
