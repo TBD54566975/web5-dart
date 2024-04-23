@@ -96,10 +96,16 @@ class DidWeb {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
-    final String documentUrl = Uri.decodeFull(did.id.replaceAll(':', '/'));
-    Uri? didUri = Uri.tryParse('http://$documentUrl');
+    var resolutionUrl = Uri.decodeFull(did.id.replaceAll(':', '/'));
+    if (resolutionUrl.contains('localhost')) {
+      resolutionUrl = 'http://$resolutionUrl';
+    } else {
+      resolutionUrl = 'https://$resolutionUrl';
+    }
 
-    if (didUri == null) throw 'Unable to parse DID document Url $documentUrl';
+    var didUri = Uri.tryParse(resolutionUrl);
+
+    if (didUri == null) throw 'Unable to parse DID document Url $resolutionUrl';
 
     // If none was specified, use the default path.
     if (didUri.path.isEmpty) didUri = didUri.replace(path: '/.well-known');
