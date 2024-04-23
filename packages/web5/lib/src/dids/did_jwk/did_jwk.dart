@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
@@ -60,7 +61,8 @@ class DidJwk {
   /// an invalid [DidResolutionResult].
   ///
   /// Throws [FormatException] if the JWK parsing fails.
-  static Future<DidResolutionResult> resolve(Did did) async {
+  static Future<DidResolutionResult> resolve(Did did,
+      {HttpClient? client}) async {
     if (did.method != methodName) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
