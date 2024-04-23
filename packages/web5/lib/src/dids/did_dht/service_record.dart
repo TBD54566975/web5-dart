@@ -8,15 +8,15 @@ import 'package:web5/web5.dart';
 class ServiceRecord {
   static Set<String> txtEntryNames = {'id', 't', 'se'};
 
-  static Answer<TxtData> toTxtRecord(DidService service) {
+  static Answer<TxtData> toTxtRecord(int idx, DidService service) {
     return Answer<TxtData>(
-      name: RecordName('https://diddht.tbddev.org'),
+      name: RecordName('_s$idx._did'),
       type: RecordType.TXT,
       klass: RecordClass.IN,
       data: TxtData([
         'id=${service.id};t=${service.type};se=${service.serviceEndpoint}',
       ]),
-      ttl: 0,
+      ttl: 7200,
     );
   }
 

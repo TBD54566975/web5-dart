@@ -2,6 +2,7 @@
 
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/root_record.dart';
+import 'package:web5/src/dids/did_dht/service_record.dart';
 import 'package:web5/src/dids/did_dht/vm_record.dart';
 import 'package:web5/web5.dart';
 
@@ -16,6 +17,7 @@ class DocumentPacket {
     for (var i = 0; i < verificationMethods.length; i++) {
       final vm = verificationMethods[i];
       final txtRecord = VerificationMethodRecord.toTxtRecord(i, vm);
+
       answers.add(txtRecord);
       rootRecord.addVmRecordName(txtRecord.name.value);
 
@@ -62,11 +64,14 @@ class DocumentPacket {
       }
     }
 
-    // final List<Answer<TxtData>> answers = [];
-    // for (final service in document.service ?? []) {
-    //   final txtRecord = ServiceRecord.toTxtRecord(service);
-    //   answers.add(txtRecord);
-    // }
+    final serviceRecords = document.service ?? [];
+    for (var i = 0; i < serviceRecords.length; i++) {
+      final service = serviceRecords[i];
+      final txtRecord = ServiceRecord.toTxtRecord(i, service);
+
+      answers.add(txtRecord);
+      rootRecord.addSrvRecordName(txtRecord.name.value);
+    }
 
     return Packet.create(answers);
   }

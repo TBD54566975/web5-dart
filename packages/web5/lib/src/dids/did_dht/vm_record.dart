@@ -26,7 +26,7 @@ class VerificationMethodRecord {
     DidVerificationMethod method,
   ) {
     final pubKey = Crypto.publicKeyToBytes(method.publicKeyJwk!);
-    final keyTypeIndex = _indexToKeyType[method.publicKeyJwk!.crv!];
+    final keyTypeIndex = _keyTypeToIndex[method.publicKeyJwk!.crv!];
     final data = [
       'id=${method.id.split('#').last}',
       't=$keyTypeIndex',
