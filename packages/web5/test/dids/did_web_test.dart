@@ -108,7 +108,7 @@ void main() {
       when(() => request.close()).thenAnswer((_) async => response);
       when(
         () => mockClient.getUrl(
-          Uri.parse('http://www.linkedin.com/.well-known/did.json'),
+          Uri.parse('https://www.linkedin.com/.well-known/did.json'),
         ),
       ).thenAnswer((_) async => request);
 
@@ -120,7 +120,7 @@ void main() {
 
       verify(
         () => mockClient
-            .getUrl(Uri.parse('http://www.linkedin.com/.well-known/did.json')),
+            .getUrl(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
       );
     });
 
@@ -131,7 +131,7 @@ void main() {
       when(() => request.close()).thenAnswer((_) async => response);
       when(
         () => mockClient.getUrl(
-          Uri.parse('http://www.remotehost.com:8892/ingress/did.json'),
+          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
         ),
       ).thenAnswer((_) async => request);
 
@@ -144,7 +144,7 @@ void main() {
 
       verify(
         () => mockClient.getUrl(
-          Uri.parse('http://www.remotehost.com:8892/ingress/did.json'),
+          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
         ),
       );
     });
