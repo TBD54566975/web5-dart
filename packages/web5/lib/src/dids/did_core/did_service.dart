@@ -19,7 +19,7 @@ class DidService implements DidResource {
 
   /// A network address, such as an HTTP URL, at which services operate on behalf
   /// of a DID subject.
-  final String serviceEndpoint;
+  final List<String> serviceEndpoint;
 
   DidService({
     required this.id,
@@ -40,7 +40,8 @@ class DidService implements DidResource {
     return DidService(
       id: json['id'],
       type: json['type'],
-      serviceEndpoint: json['serviceEndpoint'].toString(),
+      serviceEndpoint:
+          (json['serviceEndpoint'] as List).map((e) => e as String).toList(),
     );
   }
 }
