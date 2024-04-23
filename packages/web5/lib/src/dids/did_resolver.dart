@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/did_dht.dart';
@@ -27,12 +29,15 @@ class DidResolver {
   // Static field to hold the instance
   static final DidResolver _instance = DidResolver._default();
 
-  static Future<DidResolutionResult> resolve(String uri) {
-    return _instance.resolveDid(uri);
+  static Future<DidResolutionResult> resolve(String uri, {HttpClient? client}) {
+    return _instance.resolveDid(uri, client: client);
   }
 
-  static Future<DidDereferenceResult> dereference(String url) {
-    return _instance.dereferenceDid(url);
+  static Future<DidDereferenceResult> dereference(
+    String url, {
+    HttpClient? client,
+  }) {
+    return _instance.dereferenceDid(url, client: client);
   }
 
   /// Constructs a [DidResolver] with a list of [DidMethodResolver]s.
@@ -47,7 +52,7 @@ class DidResolver {
   /// Resolves a DID URI into a [DidResolutionResult].
   ///
   /// Throws an [Exception] if no resolver is available for the given method.
-  Future<DidResolutionResult> resolveDid(String uri) {
+  Future<DidResolutionResult> resolveDid(String uri, {HttpClient? client}) {
     final Did did;
     try {
       did = Did.parse(uri);
@@ -63,13 +68,16 @@ class DidResolver {
       throw Exception('no resolver available for did:${did.method}');
     }
 
-    return resolver.resolve(did);
+    return resolver.resolve(did, client: client);
   }
 
   /// Resolves a DID URI into a [DidResolutionResult].
   ///
   /// Throws an [Exception] if no resolver is available for the given method.
-  Future<DidDereferenceResult> dereferenceDid(String url) {
+  Future<DidDereferenceResult> dereferenceDid(
+    String url, {
+    HttpClient? client,
+  }) {
     final did = Did.parse(url);
     final resolver = methodResolvers[did.method];
 
@@ -77,6 +85,6 @@ class DidResolver {
       throw Exception('no resolver available for did:${did.method}');
     }
 
-    return resolver.dereference(did);
+    return resolver.dereference(did, client: client);
   }
 }
