@@ -23,20 +23,12 @@ const validDidWebDocument = '''{
           {
             "id": "#linkeddomains",
             "type": "LinkedDomains",
-            "serviceEndpoint": {
-              "origins": [
-                "https://www.linkedin.com/"
-              ]
-            }
+            "serviceEndpoint": ["https://www.linkedin.com/"]
           },
           {
             "id": "#hub",
             "type": "IdentityHub",
-            "serviceEndpoint": {
-              "instances": [
-                "https://hub.did.msidentity.com/v1.0/658728e7-1632-412a-9815-fe53f53ec58b"
-              ]
-            }
+            "serviceEndpoint": ["https://hub.did.msidentity.com/v1.0/658728e7-1632-412a-9815-fe53f53ec58b"]
           }
         ],
         "verificationMethod": [
@@ -116,7 +108,7 @@ void main() {
       when(() => request.close()).thenAnswer((_) async => response);
       when(
         () => mockClient.getUrl(
-          Uri.parse('https://www.linkedin.com/.well-known/did.json'),
+          Uri.parse('http://www.linkedin.com/.well-known/did.json'),
         ),
       ).thenAnswer((_) async => request);
 
@@ -128,7 +120,7 @@ void main() {
 
       verify(
         () => mockClient
-            .getUrl(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
+            .getUrl(Uri.parse('http://www.linkedin.com/.well-known/did.json')),
       );
     });
 
@@ -139,7 +131,7 @@ void main() {
       when(() => request.close()).thenAnswer((_) async => response);
       when(
         () => mockClient.getUrl(
-          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
+          Uri.parse('http://www.remotehost.com:8892/ingress/did.json'),
         ),
       ).thenAnswer((_) async => request);
 
@@ -152,7 +144,7 @@ void main() {
 
       verify(
         () => mockClient.getUrl(
-          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
+          Uri.parse('http://www.remotehost.com:8892/ingress/did.json'),
         ),
       );
     });
