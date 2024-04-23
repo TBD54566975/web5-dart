@@ -97,7 +97,7 @@ class DidWeb {
     }
 
     final String documentUrl = Uri.decodeFull(did.id.replaceAll(':', '/'));
-    Uri? didUri = Uri.tryParse('https://$documentUrl');
+    Uri? didUri = Uri.tryParse('http://$documentUrl');
 
     if (didUri == null) throw 'Unable to parse DID document Url $documentUrl';
 
