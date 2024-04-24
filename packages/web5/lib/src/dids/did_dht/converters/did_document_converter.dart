@@ -90,6 +90,7 @@ class DidDocumentConverter {
     RootRecord? rootRecord;
 
     for (final answer in dnsPacket.answers) {
+      // TODO: type cast error: RData is not a subtype of TxtData
       final txtRecord = answer as Answer<TxtData>;
 
       if (txtRecord.name.value == '_did.${did.id}') {
