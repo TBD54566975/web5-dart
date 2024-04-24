@@ -82,8 +82,7 @@ class DidDocumentConverter {
     return DnsPacket.create(answers);
   }
 
-  static DidDocument convertDnsPacket(String did, Uint8List input) {
-    final dnsPacket = DnsPacket.decode(input);
+  static DidDocument convertDnsPacket(String did, DnsPacket dnsPacket) {
     final didDocument = DidDocument(id: did);
 
     final purposesMap = {};

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids.dart';
 import 'package:web5/src/dids/did_dht/bep44.dart';
+import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/registered_types.dart';
 import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
 import 'package:web5/src/encoders/zbase.dart';
@@ -144,8 +145,9 @@ class DidDht {
     );
 
     try {
+      final dnsPacket = DnsPacket.decode(bep44Message.v);
       final document =
-          DidDocumentConverter.convertDnsPacket(did.uri, bep44Message.v);
+          DidDocumentConverter.convertDnsPacket(did.uri, dnsPacket);
       return DidResolutionResult(didDocument: document);
     } catch (e) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);

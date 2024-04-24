@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
@@ -76,6 +78,73 @@ void main() {
           fail('Unexpected answer name: ${answer.name}');
         }
       }
+    });
+
+    test('convertDnsPacket', () {
+      final answers = [
+        Answer<TxtData>(
+          name: RecordName(
+            '_k0._did.hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
+          ),
+          type: RecordType.TXT,
+          klass: RecordClass.IN,
+          data: TxtData([
+            'id=0;t=0;k=41bfzmTftiVVbaDvBfUcDPARWDj2zvpQAgK7ijBy2FU',
+          ]),
+          ttl: 7200,
+        ),
+        Answer<TxtData>(
+          name: RecordName(
+            '_k1._did.hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
+          ),
+          type: RecordType.TXT,
+          klass: RecordClass.IN,
+          data: TxtData([
+            'id=sig;t=0;k=Ix9rT44QKnIjNeB51-ORlwoCbLKr-hsOYgl4gN9TzIU',
+          ]),
+          ttl: 7200,
+        ),
+        Answer<TxtData>(
+          name: RecordName(
+            '_k2._did.hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
+          ),
+          type: RecordType.TXT,
+          klass: RecordClass.IN,
+          data: TxtData([
+            'id=enc;t=1;k=BGAiiS0vNnoe9L9lcget6zalDDj8ZxBLwZVIa8HwzjupkA76lNJ4i190uJVelQjZ9txYbUU8pyk3axgHxyDRVH8',
+          ]),
+          ttl: 7200,
+        ),
+        Answer<TxtData>(
+          name: RecordName(
+            '_s0._did.hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
+          ),
+          type: RecordType.TXT,
+          klass: RecordClass.IN,
+          data: TxtData([
+            'id=dwn;t=DecentralizedWebNode;se=https://example.com/dwn2;enc=#enc;sig=#sig',
+          ]),
+          ttl: 7200,
+        ),
+        Answer<TxtData>(
+          name: RecordName(
+            '_did.hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
+          ),
+          type: RecordType.TXT,
+          klass: RecordClass.IN,
+          data: TxtData([
+            'v=0;vm=k0,k1,k2;auth=k0,k1;asm=k0,k1;agm=k2;del=k0;inv=k0;svc=s0',
+          ]),
+          ttl: 7200,
+        ),
+      ];
+
+      final dnsPacket = DnsPacket.create(answers);
+      final did =
+          'did:dht:hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko';
+      final didDocument = DidDocumentConverter.convertDnsPacket(did, dnsPacket);
+
+      print(didDocument.toJson());
     });
   });
 }
