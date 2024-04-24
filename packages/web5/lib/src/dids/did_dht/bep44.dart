@@ -1,9 +1,6 @@
 import 'dart:typed_data';
-
-import 'package:web5/src/crypto/crypto.dart';
-import 'package:web5/src/crypto/jwk.dart';
+import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did_dht/bencoder.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/packet.dart';
 
 typedef Signer = Future<Uint8List> Function(Uint8List payload);
 
@@ -17,10 +14,61 @@ typedef Signer = Future<Uint8List> Function(Uint8List payload);
 ///
 /// See [BEP44 Specification](https://www.bittorrent.org/beps/bep_0044.html)
 class Bep44Message {
-  /// The public key bytes of the Identity Key, which serves as the identifier
-  /// in the DHT network for the corresponding BEP44 message.
-  Uint8List k;
+  static Future<Uint8List> create(
+    Uint8List message,
+    int seq,
+    Signer sign,
+  ) async {
+    final toSign = BytesBuilder(copy: false);
+    toSign.add(Bencoder.encode('seq'));
+    toSign.add(Bencoder.encode(seq));
+    toSign.add(Bencoder.encode('v'));
+    toSign.add(Bencoder.encode(message));
 
+    final sig = await sign(toSign.toBytes());
+
+    // The sequence number needs to be converted to a big-endian byte array.
+    final seqBytes = ByteData(8)..setInt64(0, seq, Endian.big);
+    final encoded = BytesBuilder(copy: false);
+
+    encoded.add(sig);
+    encoded.add(seqBytes.buffer.asUint8List());
+    encoded.add(message);
+
+    return encoded.toBytes();
+  }
+
+  static DecodedBep44Message decode(Uint8List bytes) {
+    if (bytes.length < 72) {
+      throw FormatException(
+        'Response must be at least 72 bytes but got: ${bytes.length}',
+      );
+    }
+
+    if (bytes.length > 1072) {
+      throw FormatException(
+        'Response is larger than 1072 bytes, got: ${bytes.length}',
+      );
+    }
+
+    final sig = bytes.sublist(0, 64);
+    final seqBytes = ByteData.sublistView(bytes, 64, 72);
+    final int seq = seqBytes.getUint64(0, Endian.big);
+    final v = bytes.sublist(72);
+
+    // The public key 'k' is not provided in the data and needs to be handled accordingly.
+    return DecodedBep44Message(seq: seq, sig: sig, v: v);
+  }
+
+  static DecodedBep44Message verify(Uint8List input, Uint8List publicKey) {
+    final message = decode(input);
+    message.verify(publicKey);
+
+    return message;
+  }
+}
+
+class DecodedBep44Message {
   /// The sequence number of the message, used to ensure the latest version of
   /// the data is retrieved and updated. It's a monotonically increasing number.
   int seq;
@@ -33,48 +81,21 @@ class Bep44Message {
   /// encoded in a format suitable for DNS packet representation of a DID Document.
   Uint8List v;
 
-  Bep44Message({
-    required this.k,
+  DecodedBep44Message({
     required this.seq,
     required this.sig,
     required this.v,
   });
 
-  // verify method decodes, verifies sig, and returns decoded bep44 message
-
-  // decode returns a decoded bep44 message
-
-  // follow similar pattern to jwt.dart
-
-  static Future<Bep44Message> create(
-    DnsPacket packet,
-    int seq,
-    Jwk publicKey,
-    Signer sign,
-  ) async {
-    final v = packet.encode();
-    final k = Crypto.publicKeyToBytes(publicKey);
-
+  void verify(Uint8List publicKey) async {
     final toSign = BytesBuilder(copy: false);
     toSign.add(Bencoder.encode('seq'));
     toSign.add(Bencoder.encode(seq));
     toSign.add(Bencoder.encode('v'));
     toSign.add(Bencoder.encode(v));
 
-    final sig = await sign(toSign.toBytes());
+    final jwk = Crypto.bytesToPublicKey(AlgorithmId.ed25519, publicKey);
 
-    return Bep44Message(k: k, seq: seq, sig: sig, v: v);
-  }
-
-  Uint8List encode() {
-    // The sequence number needs to be converted to a big-endian byte array.
-    final seqBytes = ByteData(8)..setInt64(0, seq, Endian.big);
-    final encoded = BytesBuilder(copy: false);
-
-    encoded.add(sig);
-    encoded.add(seqBytes.buffer.asUint8List());
-    encoded.add(v);
-
-    return encoded.toBytes();
+    await Ed25519.verify(jwk, toSign.toBytes(), sig);
   }
 }

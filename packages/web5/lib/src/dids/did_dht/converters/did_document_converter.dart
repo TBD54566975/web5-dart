@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:web5/src/dids/did_core.dart';
 import 'package:web5/src/dids/did_dht/converters/service_converter.dart';
 import 'package:web5/src/dids/did_dht/converters/vm_converter.dart';
@@ -78,5 +80,13 @@ class DidDocumentConverter {
     answers.insert(0, rootRecord.toTxtRecord(document.id));
 
     return DnsPacket.create(answers);
+  }
+
+  static DidDocument convertDnsPacket(Uint8List input) {
+    final dnsPacket = DnsPacket.decode(input);
+
+    // TODO: finish
+
+    throw UnimplementedError();
   }
 }

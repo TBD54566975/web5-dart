@@ -49,7 +49,7 @@ class DnsPacket {
 
   static final codec = _PacketCodec();
 
-  factory DnsPacket.decode(Uint8List buf, int offset) =>
+  factory DnsPacket.decode(Uint8List buf, {int offset = 0}) =>
       codec.decode(buf, offset: offset).value;
 
   Uint8List encode({Uint8List? buf, int offset = 0}) =>

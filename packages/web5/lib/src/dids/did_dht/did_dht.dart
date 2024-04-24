@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -27,22 +28,22 @@ class DidDht {
   }) async {
     keyManager ??= InMemoryKeyManager();
 
-    final String keyAlias =
-        await keyManager.generatePrivateKey(AlgorithmId.ed25519);
+    final keyAlias = await keyManager.generatePrivateKey(AlgorithmId.ed25519);
+    final identityKey = await keyManager.getPublicKey(keyAlias);
 
-    final Jwk identityKey = await keyManager.getPublicKey(keyAlias);
-    final String didUri = _computeIdentifier(identityKey: identityKey);
+    final id = _computeIdentifier(identityKey: identityKey);
+    final did = 'did:$methodName:$id';
 
     final identityVm = DidVerificationMethod(
       id: '0',
       type: 'JsonWebKey',
-      controller: didUri,
+      controller: did,
     );
 
     final didDoc = DidDocument(
-      id: didUri,
+      id: did,
       alsoKnownAs: alsoKnownAs,
-      controller: controllers.isEmpty ? [didUri] : controllers,
+      controller: controllers.isEmpty ? [did] : controllers,
     );
 
     didDoc.addVerificationMethod(
@@ -62,7 +63,7 @@ class DidDht {
       // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
       String methodId =
           vmOpts.id ?? publicKey.kid ?? publicKey.computeThumbprint();
-      methodId = '$didUri#${methodId.split('#').last}';
+      methodId = '$did#${methodId.split('#').last}';
 
       final vm = DidVerificationMethod(
         id: methodId,
@@ -85,13 +86,25 @@ class DidDht {
       }
 
       final seq = DateTime.now().microsecondsSinceEpoch;
-      final message = Bep44Message.create(dnsPacket, seq, identityKey, sign);
+      final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
 
-      // TODO: publish message to DHT
+      final pkarrUrl = Uri.parse('$gatewayUri/$id');
+      final request = await HttpClient().putUrl(pkarrUrl);
+
+      request.headers.contentType = ContentType.binary;
+      request.add(message);
+
+      final response = await request.close();
+      if (response.statusCode != HttpStatus.ok) {
+        final body = await response.transform(utf8.decoder).join();
+        throw Exception(
+          'Failed to publish DID document. got: ${response.statusCode} $body',
+        );
+      }
     }
 
     return BearerDid(
-      uri: didUri,
+      uri: did,
       keyManager: keyManager,
       document: didDoc,
       // metadata: DidDocumentMetadata(types: types),
@@ -121,16 +134,18 @@ class DidDht {
 
     httpClient.close(force: false);
 
-    // 72 is the minimal bytes length of a BEP44 message. this should be handled in bep44 decode
-    // if (bytes.length < 72) {
-    //   return DidResolutionResult.withError(DidResolutionError.invalidDid);
-    // }
-    // final v = bytes.sublist(72);
+    final identityKey = ZBase32.decode(did.id);
+    final bep44Message = Bep44Message.verify(
+      Uint8List.fromList(bytes),
+      Uint8List.fromList(identityKey),
+    );
 
-    //! This is a placeholder
-    return DidResolutionResult.withError(DidResolutionError.invalidDid);
-
-    // return DidResolutionResult(didDocument: didDocument);
+    try {
+      final document = DidDocumentConverter.convertDnsPacket(bep44Message.v);
+      return DidResolutionResult(didDocument: document);
+    } catch (e) {
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
+    }
   }
 
   static String _computeIdentifier({
@@ -139,7 +154,6 @@ class DidDht {
     // Convert the key from JWK format to a byte array.
     final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
 
-    final String identifier = ZBase32.encode(publicKeyBytes);
-    return 'did:$methodName:$identifier';
+    return ZBase32.encode(publicKeyBytes);
   }
 }
