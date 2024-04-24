@@ -18,7 +18,8 @@ void main() {
 
         final did =
             'did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y';
-        final vm = VerificationMethodRecord.toVerificationMethod(did, vector);
+        final vm =
+            VerificationMethodRecord.createVerificationMethod(did, vector);
 
         expect(vm.controller, equals(did));
         expect(vm.id, contains('$did#'));

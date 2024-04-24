@@ -11,44 +11,50 @@ class RootRecord {
   List<String> asm;
 
   RootRecord({
-    this.vm = const [],
-    this.asm = const [],
-    this.srv = const [],
-    this.inv = const [],
-    this.del = const [],
-    this.auth = const [],
-    this.agm = const [],
-  });
+    List<String>? vm,
+    List<String>? srv,
+    List<String>? inv,
+    List<String>? del,
+    List<String>? auth,
+    List<String>? asm,
+    List<String>? agm,
+  })  : vm = vm ?? [],
+        srv = srv ?? [],
+        inv = inv ?? [],
+        del = del ?? [],
+        auth = auth ?? [],
+        asm = asm ?? [],
+        agm = agm ?? [];
 
-  addVmRecordName(String vmRecordName) {
-    vm.add(vmRecordName);
+  addVmRecordName(int idx) {
+    vm.add('k$idx');
   }
 
-  addAsmRecordName(String asmRecordName) {
-    asm.add(asmRecordName);
+  addAsmRecordName(int idx) {
+    asm.add('k$idx');
   }
 
-  addInvRecordName(String invRecordName) {
-    inv.add(invRecordName);
+  addInvRecordName(int idx) {
+    inv.add('k$idx');
   }
 
-  addDelRecordName(String delRecordName) {
-    del.add(delRecordName);
+  addDelRecordName(int idx) {
+    del.add('k$idx');
   }
 
-  addAuthRecordName(String authRecordName) {
-    auth.add(authRecordName);
+  addAuthRecordName(int idx) {
+    auth.add('k$idx');
   }
 
-  addAgmRecordName(String agmRecordName) {
-    agm.add(agmRecordName);
+  addAgmRecordName(int idx) {
+    agm.add('k$idx');
   }
 
-  addSrvRecordName(String srvRecordName) {
-    srv.add(srvRecordName);
+  addSrvRecordName(int idx) {
+    srv.add('s$idx');
   }
 
-  Answer<TxtData> toTxtRecord(String didId) {
+  Answer<TxtData> toTxtRecord(String did) {
     final parts = [
       if (vm.isNotEmpty) 'vm=${vm.join(',')}',
       if (asm.isNotEmpty) 'asm=${asm.join(',')}',
@@ -64,7 +70,7 @@ class RootRecord {
     return Answer<TxtData>(
       type: RecordType.TXT,
       klass: RecordClass.IN,
-      name: RecordName('_did.$didId'),
+      name: RecordName('_did.$did'),
       data: txtData,
       ttl: 7200,
     );

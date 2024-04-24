@@ -30,7 +30,7 @@ class DidDocument implements DidResource {
   /// A DID controller is an entity that is authorized to make changes to a
   /// DID document. The process of authorizing a DID controller is defined
   /// by the DID method.
-  final List<String> controller;
+  final List<String>? controller;
 
   /// cryptographic public keys, which can be used to authenticate or authorize
   /// interactions with the DID subject or associated parties.
@@ -234,7 +234,7 @@ class DidDocument implements DidResource {
       context: json['context'],
       id: json['id'],
       alsoKnownAs: json['alsoKnownAs']?.cast<String>(),
-      controller: json['controller'],
+      controller: json['controller']?.cast<List<String>>(),
       verificationMethod: (json['verificationMethod'] as List<dynamic>?)
           ?.map((item) => DidVerificationMethod.fromJson(item))
           .toList(),

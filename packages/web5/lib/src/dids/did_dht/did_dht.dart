@@ -80,7 +80,7 @@ class DidDht {
     }
 
     if (publish == true) {
-      final dnsPacket = DocumentPacket.toPacket(didDoc);
+      final dnsPacket = DocumentPacket.createDnsPacket(didDoc);
 
       sign(Uint8List data) async {
         return await keyManager!.sign(keyAlias, data);

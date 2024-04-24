@@ -21,7 +21,7 @@ class VerificationMethodRecord {
 
   static Set<String> txtEntryNames = {'id', 't', 'k', 'a', 'c'};
 
-  static Answer<TxtData> toTxtRecord(
+  static Answer<TxtData> createTxtRecord(
     int idx,
     DidVerificationMethod method,
   ) {
@@ -42,8 +42,8 @@ class VerificationMethodRecord {
     );
   }
 
-  static DidVerificationMethod toVerificationMethod(
-    String didId,
+  static DidVerificationMethod createVerificationMethod(
+    String did,
     Answer<TxtData> record,
   ) {
     final map = {};
@@ -67,9 +67,9 @@ class VerificationMethodRecord {
     final pubKey = Crypto.bytesToPublicKey(keyType, Base64Url.decode(map['k']));
     final vmIdFragment = map['id'] ?? pubKey.computeThumbprint();
     return DidVerificationMethod(
-      id: '$didId#$vmIdFragment',
+      id: '$did#$vmIdFragment',
       type: 'JsonWebKey',
-      controller: map['c'] ?? didId,
+      controller: map['c'] ?? did,
       publicKeyJwk: pubKey,
     );
   }
