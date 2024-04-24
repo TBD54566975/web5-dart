@@ -10,11 +10,6 @@ import 'package:web5/src/dids/did_method_resolver.dart';
 class DidWeb {
   static const String methodName = 'web';
 
-  static final DidMethodResolver resolver = DidMethodResolver(
-    name: methodName,
-    resolve: resolve,
-  );
-
   static Future<BearerDid> create({
     required String url,
     AlgorithmId? algorithm,
@@ -125,4 +120,13 @@ class DidWeb {
 
     return DidResolutionResult(didDocument: doc);
   }
+}
+
+class DidWebResolver extends DidMethodResolver {
+  @override
+  String get name => DidWeb.methodName;
+
+  @override
+  Future<DidResolutionResult> resolve(Did did, {HttpClient? options}) =>
+      DidWeb.resolve(did, client: options);
 }
