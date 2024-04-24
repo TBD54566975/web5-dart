@@ -1,10 +1,10 @@
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
-import 'package:web5/src/dids/did_dht/vm_record.dart';
+import 'package:web5/src/dids/did_dht/converters/vm_converter.dart';
 
 void main() {
-  group('VerificationMethodRecord', () {
-    group('toVerificationMethod', () {
+  group('VerificationMethodConverter', () {
+    group('convertTxtRecord', () {
       test('should return a DidVerificationMethod', () {
         final vector = Answer<TxtData>(
           name: RecordName('_k0._did'),
@@ -18,8 +18,7 @@ void main() {
 
         final did =
             'did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y';
-        final vm =
-            VerificationMethodRecord.createVerificationMethod(did, vector);
+        final vm = VerificationMethodConverter.convertTxtRecord(did, vector);
 
         expect(vm.controller, equals(did));
         expect(vm.id, contains('$did#'));

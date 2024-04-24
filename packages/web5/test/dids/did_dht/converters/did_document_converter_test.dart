@@ -1,13 +1,11 @@
-import 'dart:math';
-
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
-import 'package:web5/src/dids/did_dht/document_packet.dart';
+import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
 import 'package:web5/web5.dart';
 
 void main() {
-  group('DocumentPacket', () {
-    test('createDnsPacket', () {
+  group('DidDocumentConverter', () {
+    test('convertDidDocument', () {
       final didDocument = DidDocument.fromJson({
         'id': 'did:dht:5cahcfh3zh8bqd5cn3y6inoea1b3d6kh85rjksne9e5dcyrc1ery',
         'verificationMethod': [
@@ -48,7 +46,7 @@ void main() {
         ],
       });
 
-      final dnsPacket = DocumentPacket.createDnsPacket(didDocument);
+      final dnsPacket = DidDocumentConverter.convertDidDocument(didDocument);
       expect(dnsPacket.answers.length, 3);
 
       for (final answer in dnsPacket.answers) {

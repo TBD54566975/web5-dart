@@ -1,12 +1,10 @@
-import 'package:web5/src/dids/did_dht/dns_packet/answer.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/record_class.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
-import 'package:web5/web5.dart';
+import 'package:web5/src/crypto.dart';
+import 'package:web5/src/dids/did_core.dart';
+import 'package:web5/src/dids/did_dht/dns_packet.dart';
+import 'package:web5/src/encoders.dart';
 
 /// Relevant [spec text](https://did-dht.com/#verification-method-record)
-class VerificationMethodRecord {
+class VerificationMethodConverter {
   /// relevant [spec text](https://did-dht.com/registry/index.html#key-type-index)
   static final Map<String, String> _keyTypeToIndex = {
     Ed25519.crv: '0',
@@ -21,7 +19,7 @@ class VerificationMethodRecord {
 
   static Set<String> txtEntryNames = {'id', 't', 'k', 'a', 'c'};
 
-  static Answer<TxtData> createTxtRecord(
+  static Answer<TxtData> convertVerificationMethod(
     int idx,
     DidVerificationMethod method,
   ) {
@@ -42,7 +40,7 @@ class VerificationMethodRecord {
     );
   }
 
-  static DidVerificationMethod createVerificationMethod(
+  static DidVerificationMethod convertTxtRecord(
     String did,
     Answer<TxtData> record,
   ) {

@@ -1,11 +1,11 @@
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
-import 'package:web5/src/dids/did_dht/service_record.dart';
+import 'package:web5/src/dids/did_dht/converters/service_converter.dart';
 import 'package:web5/web5.dart';
 
 void main() {
-  group('ServiceRecord', () {
-    group('createService', () {
+  group('ServiceConverter', () {
+    group('convertTxtRecord', () {
       test('should return a DidService', () {
         final vector = Answer<TxtData>(
           name: RecordName('_s0._did'),
@@ -20,7 +20,7 @@ void main() {
         final did =
             'did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y';
 
-        final service = ServiceRecord.createService(did, vector);
+        final service = ServiceRecordConverter.convertTxtRecord(did, vector);
 
         expect(service.id, contains('$did#'));
         expect(service.type, equals('tbdex'));
@@ -42,14 +42,14 @@ void main() {
             'did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y';
 
         expect(
-          () => ServiceRecord.createService(did, vector),
+          () => ServiceRecordConverter.convertTxtRecord(did, vector),
           throwsException,
           reason: 'service record Missing entry: id',
         );
       });
     });
 
-    group('createTxtRecord', () {
+    group('convertService', () {
       test('should return a TXT Record', () {
         final service = DidService(
           id: '#tbdex',
@@ -57,7 +57,7 @@ void main() {
           serviceEndpoint: ['https://somepfi.com/tbdex'],
         );
 
-        final vector = ServiceRecord.createTxtRecord(0, service);
+        final vector = ServiceRecordConverter.convertService(0, service);
 
         expect(vector.name.value, equals('_s0._did'));
         expect(vector.type, equals(RecordType.TXT));

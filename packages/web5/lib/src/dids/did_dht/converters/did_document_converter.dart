@@ -1,13 +1,14 @@
-// bridge class that houses logic to go to / from did documents and dns packet
-
+import 'package:web5/src/dids/did_core.dart';
+import 'package:web5/src/dids/did_dht/converters/service_converter.dart';
+import 'package:web5/src/dids/did_dht/converters/vm_converter.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/root_record.dart';
-import 'package:web5/src/dids/did_dht/service_record.dart';
-import 'package:web5/src/dids/did_dht/vm_record.dart';
-import 'package:web5/web5.dart';
 
-class DocumentPacket {
-  static DnsPacket createDnsPacket(DidDocument document) {
+/// Class that houses methods to convert a [DidDocument] to a [DnsPacket]
+/// and vice versa.
+class DidDocumentConverter {
+  /// Converts a [DidDocument] to a [DnsPacket].
+  static DnsPacket convertDidDocument(DidDocument document) {
     final rootRecord = RootRecord();
     final List<Answer<TxtData>> answers = [];
 
@@ -16,7 +17,8 @@ class DocumentPacket {
     final verificationMethods = document.verificationMethod ?? [];
     for (var i = 0; i < verificationMethods.length; i++) {
       final vm = verificationMethods[i];
-      final txtRecord = VerificationMethodRecord.createTxtRecord(i, vm);
+      final txtRecord =
+          VerificationMethodConverter.convertVerificationMethod(i, vm);
 
       answers.add(txtRecord);
       rootRecord.addVmRecordName(i);
@@ -67,7 +69,7 @@ class DocumentPacket {
     final serviceRecords = document.service ?? [];
     for (var i = 0; i < serviceRecords.length; i++) {
       final service = serviceRecords[i];
-      final txtRecord = ServiceRecord.createTxtRecord(i, service);
+      final txtRecord = ServiceRecordConverter.convertService(i, service);
 
       answers.add(txtRecord);
       rootRecord.addSrvRecordName(i);

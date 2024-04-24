@@ -1,14 +1,13 @@
-import 'package:web5/src/dids/did_dht/dns_packet/answer.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/name.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/record_class.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
-import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
-import 'package:web5/web5.dart';
+import 'package:web5/src/dids/did_core.dart';
+import 'package:web5/src/dids/did_dht/dns_packet.dart';
 
-class ServiceRecord {
+/// Class that houses methods to convert a [DidService] to a [Answer<TxtData>]
+/// and vice versa.
+class ServiceRecordConverter {
   static Set<String> txtEntryNames = {'id', 't', 'se'};
 
-  static Answer<TxtData> createTxtRecord(int idx, DidService service) {
+  /// Converts a [DidService] to a [Answer<TxtData>].
+  static Answer<TxtData> convertService(int idx, DidService service) {
     final data = [
       'id=${service.id.split('#').last}',
       't=${service.type}',
@@ -24,7 +23,8 @@ class ServiceRecord {
     );
   }
 
-  static DidService createService(String did, Answer<TxtData> record) {
+  /// Converts a [Answer<TxtData>] to a [DidService].
+  static DidService convertTxtRecord(String did, Answer<TxtData> record) {
     final Map<String, String> map = {};
 
     final fields = record.data.value.first.split(';');

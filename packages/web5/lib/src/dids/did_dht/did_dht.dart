@@ -1,14 +1,12 @@
-// TODO make txtEntryNames a static value in each service class
-
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:web5/src/crypto.dart';
+import 'package:web5/src/dids.dart';
 import 'package:web5/src/dids/did_dht/bep44.dart';
 import 'package:web5/src/dids/did_dht/registered_types.dart';
-import 'package:web5/src/dids/did_dht/dns_packet.dart';
-import 'package:web5/src/dids/did_dht/document_packet.dart';
+import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
 import 'package:web5/src/encoders/zbase.dart';
-import 'package:web5/web5.dart';
 
 class DidDht {
   static const String methodName = 'dht';
@@ -80,14 +78,14 @@ class DidDht {
     }
 
     if (publish == true) {
-      final dnsPacket = DocumentPacket.createDnsPacket(didDoc);
+      final dnsPacket = DidDocumentConverter.convertDidDocument(didDoc);
 
       sign(Uint8List data) async {
         return await keyManager!.sign(keyAlias, data);
       }
 
-      // TODO: figure out proper seq number
-      final message = Bep44Message.create(dnsPacket, 0, identityKey, sign);
+      final seq = DateTime.now().microsecondsSinceEpoch;
+      final message = Bep44Message.create(dnsPacket, seq, identityKey, sign);
 
       // TODO: publish message to DHT
     }
