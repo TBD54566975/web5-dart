@@ -82,11 +82,71 @@ class DidDocumentConverter {
     return DnsPacket.create(answers);
   }
 
-  static DidDocument convertDnsPacket(Uint8List input) {
+  static DidDocument convertDnsPacket(String did, Uint8List input) {
     final dnsPacket = DnsPacket.decode(input);
+    final didDocument = DidDocument(id: did);
 
-    // TODO: finish
+    final purposesMap = {};
+    RootRecord? rootRecord;
 
-    throw UnimplementedError();
+    for (final answer in dnsPacket.answers) {
+      final txtRecord = answer as Answer<TxtData>;
+
+      if (txtRecord.name.value == '_did.$did') {
+        rootRecord = RootRecord.fromTxtRecord(txtRecord);
+      } else if (txtRecord.name.value.startsWith('_k')) {
+        final vm = VerificationMethodConverter.convertTxtRecord(did, txtRecord);
+        didDocument.addVerificationMethod(vm);
+
+        final delim = txtRecord.name.value.indexOf('.', 3);
+        final recordName = txtRecord.name.value.substring(0, delim);
+        purposesMap[vm.id] = recordName;
+      } else if (txtRecord.name.value.startsWith('_s')) {
+        final service = ServiceRecordConverter.convertTxtRecord(did, txtRecord);
+        didDocument.addService(service);
+      }
+    }
+
+    for (final recordName in rootRecord!.asm) {
+      final vmId = purposesMap[recordName];
+      didDocument.addVerificationPurpose(
+        VerificationPurpose.assertionMethod,
+        vmId,
+      );
+    }
+
+    for (final recordName in rootRecord.auth) {
+      final vmId = purposesMap[recordName];
+      didDocument.addVerificationPurpose(
+        VerificationPurpose.authentication,
+        vmId,
+      );
+    }
+
+    for (final recordName in rootRecord.del) {
+      final vmId = purposesMap[recordName];
+      didDocument.addVerificationPurpose(
+        VerificationPurpose.capabilityDelegation,
+        vmId,
+      );
+    }
+
+    for (final recordName in rootRecord.inv) {
+      final vmId = purposesMap[recordName];
+      didDocument.addVerificationPurpose(
+        VerificationPurpose.capabilityInvocation,
+        vmId,
+      );
+    }
+
+    for (final recordName in rootRecord.agm) {
+      final vmId = purposesMap[recordName];
+      didDocument.addVerificationPurpose(
+        VerificationPurpose.keyAgreement,
+        vmId,
+      );
+    }
+
+    return didDocument;
   }
 }
