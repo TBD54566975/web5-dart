@@ -7,7 +7,7 @@ import 'package:web5/src/dids/did_dht/vm_record.dart';
 import 'package:web5/web5.dart';
 
 class DocumentPacket {
-  static Packet toPacket(DidDocument document) {
+  static DnsPacket toPacket(DidDocument document) {
     final rootRecord = RootRecord();
     final List<Answer<TxtData>> answers = [];
 
@@ -67,12 +67,12 @@ class DocumentPacket {
     final serviceRecords = document.service ?? [];
     for (var i = 0; i < serviceRecords.length; i++) {
       final service = serviceRecords[i];
-      final txtRecord = ServiceRecord.toTxtRecord(i, service);
+      final txtRecord = ServiceRecord.createTxtRecord(i, service);
 
       answers.add(txtRecord);
       rootRecord.addSrvRecordName(txtRecord.name.value);
     }
 
-    return Packet.create(answers);
+    return DnsPacket.create(answers);
   }
 }

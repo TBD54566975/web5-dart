@@ -47,7 +47,7 @@ class Bep44Message {
   // follow similar pattern to jwt.dart
 
   static Future<Bep44Message> create(
-    Packet packet,
+    DnsPacket packet,
     int seq,
     Jwk publicKey,
     Signer sign,

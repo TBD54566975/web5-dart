@@ -11,14 +11,14 @@ import 'package:web5/src/dids/did_dht/dns_packet/question.dart';
 const int DNS_RECORD_TTL = 7200;
 const int DID_DHT_SPECIFICATION_VERSION = 0;
 
-class Packet {
+class DnsPacket {
   Header header;
   List<Question> questions;
   List<Answer> answers;
   List<Answer> authorities;
   List<Answer> additionals;
 
-  Packet({
+  DnsPacket({
     required this.header,
     required this.questions,
     required this.answers,
@@ -27,8 +27,8 @@ class Packet {
   });
 
   // TODO: fix this create method
-  static Packet create(List<Answer> answers) {
-    return Packet(
+  static DnsPacket create(List<Answer> answers) {
+    return DnsPacket(
       header: Header(
         id: 0,
         qr: false,
@@ -49,7 +49,7 @@ class Packet {
 
   static final codec = _PacketCodec();
 
-  factory Packet.decode(Uint8List buf, int offset) =>
+  factory DnsPacket.decode(Uint8List buf, int offset) =>
       codec.decode(buf, offset: offset).value;
 
   Uint8List encode({Uint8List? buf, int offset = 0}) =>
@@ -67,10 +67,10 @@ class Packet {
   }
 }
 
-class _PacketCodec implements Codec<Packet> {
+class _PacketCodec implements Codec<DnsPacket> {
   @override
   EncodeResult encode(
-    Packet packet, {
+    DnsPacket packet, {
     Uint8List? input,
     int offset = 0,
   }) {
@@ -106,7 +106,7 @@ class _PacketCodec implements Codec<Packet> {
   }
 
   @override
-  DecodeResult<Packet> decode(Uint8List buf, {int offset = 0}) {
+  DecodeResult<DnsPacket> decode(Uint8List buf, {int offset = 0}) {
     final originalOffset = offset;
 
     final headerResult = Header.codec.decode(buf, offset: offset);
@@ -142,7 +142,7 @@ class _PacketCodec implements Codec<Packet> {
     }
 
     return DecodeResult(
-      Packet(
+      DnsPacket(
         header: headerResult.value,
         questions: questions,
         answers: answers,

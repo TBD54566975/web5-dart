@@ -8,7 +8,7 @@ import 'package:web5/web5.dart';
 class ServiceRecord {
   static Set<String> txtEntryNames = {'id', 't', 'se'};
 
-  static Answer<TxtData> toTxtRecord(int idx, DidService service) {
+  static Answer<TxtData> createTxtRecord(int idx, DidService service) {
     return Answer<TxtData>(
       name: RecordName('_s$idx._did'),
       type: RecordType.TXT,
@@ -20,41 +20,30 @@ class ServiceRecord {
     );
   }
 
-  static DidService toDidService(Answer<TxtData> record) {
-    final txtData = record.data;
+  static DidService createService(String did, Answer<TxtData> record) {
+    final Map<String, String> map = {};
 
-    final Map<String, List<String>> relationshipsMap = {};
-
-    // TODO: is this the right way to index into txtData.value?
-    for (final entry in txtData.value[0].split(';')) {
-      final splitEntry = entry.split('=');
-
-      if (splitEntry.length != 2) {
-        // TODO: figure out more appopriate resolution error to use.
-        print('oops');
+    final fields = record.data.value.first.split(';');
+    for (final field in fields) {
+      final parts = field.split('=');
+      if (parts.length != 2) {
+        throw Exception('Invalid verification method format');
       }
 
-      final [property, values] = splitEntry;
-      final splitValues = values.split(',');
+      final [key, value] = parts;
+      map[key] = value;
+    }
 
-      if (!txtEntryNames.contains(property)) {
-        continue;
-      }
-
-      for (final value in splitValues) {
-        relationshipsMap[property] ??= [];
-        relationshipsMap[property]!.add(value);
+    for (final entry in txtEntryNames) {
+      if (!map.containsKey(entry)) {
+        throw Exception('service record Missing entry: $entry');
       }
     }
 
-    final id = relationshipsMap['id']?.first;
-    final type = relationshipsMap['t']?.first;
-    final serviceEndpoint = relationshipsMap['se']?.first;
-
     return DidService(
-      id: id ?? '',
-      type: type ?? '',
-      serviceEndpoint: serviceEndpoint ?? '',
+      id: '$did#${map['id']!}',
+      type: map['t']!,
+      serviceEndpoint: map['se']!.split(','),
     );
   }
 
