@@ -8,6 +8,7 @@ import 'package:web5/src/dids/did_dht/dns_packet/opt_data.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/rdata.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/record_class.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/record_type.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 
 /// Represents an answer section in a DNS packet.
 class Answer<T extends RData> {

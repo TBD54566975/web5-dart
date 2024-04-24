@@ -1,11 +1,9 @@
-import 'dart:typed_data';
-
+import 'package:web5/src/dids/did.dart';
 import 'package:web5/src/dids/did_core.dart';
-import 'package:web5/src/dids/did_dht/converters/service_converter.dart';
-import 'package:web5/src/dids/did_dht/converters/vm_converter.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/root_record.dart';
-import 'package:web5/web5.dart';
+import 'package:web5/src/dids/did_dht/converters/vm_converter.dart';
+import 'package:web5/src/dids/did_dht/converters/service_converter.dart';
 
 /// Class that houses methods to convert a [DidDocument] to a [DnsPacket]
 /// and vice versa.
@@ -75,7 +73,7 @@ class DidDocumentConverter {
       final txtRecord = ServiceRecordConverter.convertService(i, service);
 
       answers.add(txtRecord);
-      rootRecord.addSrvRecordName(i);
+      rootRecord.addSvcRecordName(i);
     }
 
     answers.insert(0, rootRecord.toTxtRecord(document.id));
@@ -90,16 +88,30 @@ class DidDocumentConverter {
     RootRecord? rootRecord;
 
     for (final answer in dnsPacket.answers) {
-      // TODO: type cast error: RData is not a subtype of TxtData
-      final txtRecord = answer as Answer<TxtData>;
+      if (answer.type != RecordType.TXT) {
+        continue;
+      }
 
-      if (txtRecord.name.value == '_did.${did.id}') {
+      // lame but necessary. can't use as Answer<TxtData> because in Dart,
+      // even though TxtData is a subtype of RData, Answer<TxtData>
+      // is not considered a subtype of Answer<RData> because generic types are
+      //invariant. This means that even if B is a subtype of A, Generic<B>
+      // is not considered a subtype of Generic<A>
+      final txtData = answer.data as TxtData;
+      final txtRecord = Answer<TxtData>(
+        name: answer.name,
+        type: answer.type,
+        klass: answer.klass,
+        ttl: answer.ttl,
+        data: txtData,
+      );
+
+      if (answer.name.value == '_did.${did.id}') {
         rootRecord = RootRecord.fromTxtRecord(txtRecord);
       } else if (txtRecord.name.value.startsWith('_k')) {
         final vm =
             VerificationMethodConverter.convertTxtRecord(did.uri, txtRecord);
         didDocument.addVerificationMethod(vm);
-        print(txtRecord.name.value);
 
         final delim = txtRecord.name.value.indexOf('.', 3);
         final recordName = txtRecord.name.value.substring(1, delim);

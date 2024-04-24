@@ -62,7 +62,7 @@ void main() {
         if (answer.name.value == '_did.${didDocument.id}') {
           expect(
             txtRecord.data.value.first,
-            'vm=k0;asm=k0;inv=k0;del=k0;auth=k0;srv=s0',
+            'vm=k0;asm=k0;inv=k0;del=k0;auth=k0;svc=s0',
           );
         } else if (answer.name.value.startsWith('_k0')) {
           expect(
@@ -133,7 +133,7 @@ void main() {
           type: RecordType.TXT,
           klass: RecordClass.IN,
           data: TxtData([
-            'v=0;vm=k0,k1,k2;auth=k0,k1;asm=k0,k1;agm=k2;del=k0;inv=k0;srv=s0',
+            'v=0;vm=k0,k1,k2;auth=k0,k1;asm=k0,k1;agm=k2;del=k0;inv=k0;svc=s0',
           ]),
           ttl: 7200,
         ),
@@ -143,8 +143,6 @@ void main() {
         'did:dht:hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
       );
       final didDocument = DidDocumentConverter.convertDnsPacket(did, dnsPacket);
-
-      print(didDocument.toJson());
     });
   });
 }

@@ -55,7 +55,7 @@ void main() {
 
     test('should resolve with didDocument if legit', () async {
       final did = Did.parse(
-        'did:dht:5nzzr8izm434fukrjiiq164jb9tdctyhdmt5pnf7zywbpw9itkzo',
+        'did:dht:3whftgpbdjihx9ze9tdn575zqzm4qwccetnf1ybiibuzad7rrmyy',
       );
       final resolutionResult = await DidDht.resolve(did);
 

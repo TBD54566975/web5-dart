@@ -4,7 +4,7 @@ import 'package:web5/src/dids/did_dht/dns_packet.dart';
 class RootRecord {
   String v;
   List<String> vm;
-  List<String> srv;
+  List<String> svc;
   List<String> inv;
   List<String> del;
   List<String> auth;
@@ -14,7 +14,7 @@ class RootRecord {
   RootRecord({
     String? v,
     List<String>? vm,
-    List<String>? srv,
+    List<String>? svc,
     List<String>? inv,
     List<String>? del,
     List<String>? auth,
@@ -22,7 +22,7 @@ class RootRecord {
     List<String>? agm,
   })  : v = v ?? '0',
         vm = vm ?? [],
-        srv = srv ?? [],
+        svc = svc ?? [],
         inv = inv ?? [],
         del = del ?? [],
         auth = auth ?? [],
@@ -53,8 +53,8 @@ class RootRecord {
     agm.add('k$idx');
   }
 
-  addSrvRecordName(int idx) {
-    srv.add('s$idx');
+  addSvcRecordName(int idx) {
+    svc.add('s$idx');
   }
 
   Answer<TxtData> toTxtRecord(String did) {
@@ -65,7 +65,7 @@ class RootRecord {
       if (del.isNotEmpty) 'del=${del.join(',')}',
       if (auth.isNotEmpty) 'auth=${auth.join(',')}',
       if (agm.isNotEmpty) 'agm=${agm.join(',')}',
-      if (srv.isNotEmpty) 'srv=${srv.join(',')}',
+      if (svc.isNotEmpty) 'svc=${svc.join(',')}',
     ].join(';');
 
     final txtData = TxtData([parts]);
@@ -105,8 +105,8 @@ class RootRecord {
         case 'vm':
           rootRecord.vm = value.split(',');
           break;
-        case 'srv':
-          rootRecord.srv = value.split(',');
+        case 'svc':
+          rootRecord.svc = value.split(',');
           break;
         case 'inv':
           rootRecord.inv = value.split(',');
