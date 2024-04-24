@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/service_record.dart';
+import 'package:web5/web5.dart';
 
 void main() {
   group('ServiceRecord', () {
@@ -45,6 +46,27 @@ void main() {
           throwsException,
           reason: 'service record Missing entry: id',
         );
+      });
+    });
+
+    group('createTxtRecord', () {
+      test('should return a TXT Record', () {
+        final service = DidService(
+          id: '#tbdex',
+          type: 'tbdex',
+          serviceEndpoint: ['https://somepfi.com/tbdex'],
+        );
+
+        final vector = ServiceRecord.createTxtRecord(0, service);
+
+        expect(vector.name.value, equals('_s0._did'));
+        expect(vector.type, equals(RecordType.TXT));
+        expect(vector.klass, equals(RecordClass.IN));
+        expect(
+          vector.data.value,
+          equals(['id=tbdex;t=tbdex;se=https://somepfi.com/tbdex']),
+        );
+        expect(vector.ttl, equals(7200));
       });
     });
   });

@@ -9,13 +9,17 @@ class ServiceRecord {
   static Set<String> txtEntryNames = {'id', 't', 'se'};
 
   static Answer<TxtData> createTxtRecord(int idx, DidService service) {
+    final data = [
+      'id=${service.id.split('#').last}',
+      't=${service.type}',
+      'se=${service.serviceEndpoint.join(',')}',
+    ].join(';');
+
     return Answer<TxtData>(
       name: RecordName('_s$idx._did'),
       type: RecordType.TXT,
       klass: RecordClass.IN,
-      data: TxtData([
-        'id=${service.id};t=${service.type};se=${service.serviceEndpoint}',
-      ]),
+      data: TxtData([data]),
       ttl: 7200,
     );
   }
