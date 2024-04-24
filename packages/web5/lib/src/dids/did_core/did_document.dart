@@ -83,10 +83,10 @@ class DidDocument implements DidResource {
   List<String>? capabilityInvocation;
 
   DidDocument({
-    this.context,
     required this.id,
+    this.context,
     this.alsoKnownAs,
-    required this.controller,
+    this.controller,
     this.verificationMethod,
     this.service,
     this.assertionMethod,

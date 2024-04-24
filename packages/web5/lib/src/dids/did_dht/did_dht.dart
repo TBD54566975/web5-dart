@@ -120,6 +120,13 @@ class DidDht {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
+    final List<int> identityKey;
+    try {
+      identityKey = ZBase32.decode(did.id);
+    } catch (e) {
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
+    }
+
     final parsedRelayUrl = Uri.parse(relayUrl);
     final resolutionUrl = parsedRelayUrl.replace(path: did.id);
 
@@ -134,7 +141,6 @@ class DidDht {
 
     httpClient.close(force: false);
 
-    final identityKey = ZBase32.decode(did.id);
     final bep44Message = Bep44Message.verify(
       Uint8List.fromList(bytes),
       Uint8List.fromList(identityKey),
