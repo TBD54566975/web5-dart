@@ -16,8 +16,6 @@ final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
 class DidDht {
   static const String methodName = 'dht';
 
-  static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
-
   static Future<BearerDid> create({
     KeyManager? keyManager,
     List<String>? alsoKnownAs,
@@ -289,4 +287,13 @@ class DidDht {
 
     return DidResolutionResult(didDocument: didDocument);
   }
+}
+
+class DidDhtResolver extends DidMethodResolver {
+  @override
+  String get name => DidDht.methodName;
+
+  @override
+  Future<DidResolutionResult> resolve(Did did, {HttpClient? options}) async =>
+      DidDht.resolve(did, client: options);
 }
