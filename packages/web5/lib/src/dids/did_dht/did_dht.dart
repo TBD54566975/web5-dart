@@ -146,8 +146,7 @@ class DidDht {
 
     try {
       final dnsPacket = DnsPacket.decode(bep44Message.v);
-      final document =
-          DidDocumentConverter.convertDnsPacket(did.uri, dnsPacket);
+      final document = DidDocumentConverter.convertDnsPacket(did, dnsPacket);
       return DidResolutionResult(didDocument: document);
     } catch (e) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
