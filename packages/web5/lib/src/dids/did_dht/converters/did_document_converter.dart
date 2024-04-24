@@ -5,6 +5,7 @@ import 'package:web5/src/dids/did_dht/converters/service_converter.dart';
 import 'package:web5/src/dids/did_dht/converters/vm_converter.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/root_record.dart';
+import 'package:web5/web5.dart';
 
 /// Class that houses methods to convert a [DidDocument] to a [DnsPacket]
 /// and vice versa.
@@ -82,8 +83,8 @@ class DidDocumentConverter {
     return DnsPacket.create(answers);
   }
 
-  static DidDocument convertDnsPacket(String did, DnsPacket dnsPacket) {
-    final didDocument = DidDocument(id: did);
+  static DidDocument convertDnsPacket(Did did, DnsPacket dnsPacket) {
+    final didDocument = DidDocument(id: did.uri);
 
     final purposesMap = {};
     RootRecord? rootRecord;
@@ -91,17 +92,20 @@ class DidDocumentConverter {
     for (final answer in dnsPacket.answers) {
       final txtRecord = answer as Answer<TxtData>;
 
-      if (txtRecord.name.value == '_did.$did') {
+      if (txtRecord.name.value == '_did.${did.id}') {
         rootRecord = RootRecord.fromTxtRecord(txtRecord);
       } else if (txtRecord.name.value.startsWith('_k')) {
-        final vm = VerificationMethodConverter.convertTxtRecord(did, txtRecord);
+        final vm =
+            VerificationMethodConverter.convertTxtRecord(did.uri, txtRecord);
         didDocument.addVerificationMethod(vm);
+        print(txtRecord.name.value);
 
         final delim = txtRecord.name.value.indexOf('.', 3);
-        final recordName = txtRecord.name.value.substring(0, delim);
-        purposesMap[vm.id] = recordName;
+        final recordName = txtRecord.name.value.substring(1, delim);
+        purposesMap[recordName] = vm.id;
       } else if (txtRecord.name.value.startsWith('_s')) {
-        final service = ServiceRecordConverter.convertTxtRecord(did, txtRecord);
+        final service =
+            ServiceRecordConverter.convertTxtRecord(did.uri, txtRecord);
         didDocument.addService(service);
       }
     }
