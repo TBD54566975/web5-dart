@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/did.dart';
@@ -17,8 +16,6 @@ import 'package:web5/src/dids/did_method_resolver.dart';
 /// [Specification](https://github.com/quartzjer/did-jwk/blob/main/spec.md)
 class DidJwk {
   static const String methodName = 'jwk';
-
-  static final resolver = DidMethodResolver(name: methodName, resolve: resolve);
 
   /// Creates a new `did:jwk`. Stores associated private key in provided
   /// key manager.
@@ -61,8 +58,7 @@ class DidJwk {
   /// an invalid [DidResolutionResult].
   ///
   /// Throws [FormatException] if the JWK parsing fails.
-  static Future<DidResolutionResult> resolve(Did did,
-      {HttpClient? client}) async {
+  static Future<DidResolutionResult> resolve(Did did) async {
     if (did.method != methodName) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
@@ -106,4 +102,13 @@ class DidJwk {
       capabilityDelegation: [verificationMethod.id],
     );
   }
+}
+
+class DidJwkResolver extends DidMethodResolver {
+  @override
+  String get name => DidJwk.methodName;
+
+  @override
+  Future<DidResolutionResult> resolve(Did did, {dynamic options}) async =>
+      DidJwk.resolve(did);
 }
