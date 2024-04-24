@@ -1,17 +1,62 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:web5/src/dids/did_dht/dns_packet/codec.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/rdata.dart';
 
-class DnsTxtData implements RData {
+class TxtData implements RData {
   final List<String> value;
 
+  TxtData(this.value);
+
+  static final codec = _TextCodec();
+
+  factory TxtData.decode(Uint8List buf, {int offset = 0}) =>
+      codec.decode(buf, offset: offset).value;
+
+  Uint8List encode() => codec.encode(this).value;
+
   @override
-  int numBytes;
+  int encodingLength() {
+    int length = 2;
+    for (var buf in value) {
+      length += utf8.encode(buf).length + 1;
+    }
 
-  DnsTxtData(this.value, this.numBytes);
+    return length;
+  }
+}
 
-  factory DnsTxtData.decode(Uint8List buf, int offset) {
+class _TextCodec implements Codec<TxtData> {
+  @override
+  EncodeResult encode(
+    TxtData data, {
+    Uint8List? input,
+    int offset = 0,
+  }) {
+    final buf = input ?? Uint8List(data.encodingLength());
+    final byteData = ByteData.sublistView(buf);
+
+    final originalOffset = offset;
+    offset += 2; // Reserve space for the total length
+
+    for (String str in data.value) {
+      final encodedStr = utf8.encode(str);
+      if (encodedStr.length > 255) {
+        throw FormatException('Individual TXT record exceeds 255 bytes');
+      }
+      buf[offset++] = encodedStr.length; // Write the length of the string
+      buf.setRange(offset, offset + encodedStr.length, encodedStr);
+      offset += encodedStr.length;
+    }
+
+    byteData.setUint16(originalOffset, offset - originalOffset - 2, Endian.big);
+
+    return EncodeResult(buf, offset - originalOffset);
+  }
+
+  @override
+  DecodeResult<TxtData> decode(Uint8List buf, {int offset = 0}) {
     final originalOffset = offset;
     int remaining = ByteData.sublistView(buf).getUint16(offset, Endian.big);
     offset += 2;
@@ -30,38 +75,6 @@ class DnsTxtData implements RData {
       remaining -= len;
     }
 
-    final numBytes = offset - originalOffset;
-    return DnsTxtData(data, numBytes);
-  }
-
-  @override
-  Uint8List encode({Uint8List? buf, int offset = 0}) {
-    buf ??= Uint8List(encodingLength());
-    final byteData = ByteData.sublistView(buf);
-
-    final originalOffset = offset;
-    offset += 2; // Reserve space for the total length
-
-    for (String str in value) {
-      final encodedStr = utf8.encode(str);
-      if (encodedStr.length > 255) {
-        throw FormatException('Individual TXT record exceeds 255 bytes');
-      }
-      buf[offset++] = encodedStr.length; // Write the length of the string
-      buf.setRange(offset, offset + encodedStr.length, encodedStr);
-      offset += encodedStr.length;
-    }
-
-    byteData.setUint16(originalOffset, offset - originalOffset - 2, Endian.big);
-
-    return buf;
-  }
-
-  int encodingLength() {
-    int length = 2;
-    for (var buf in value) {
-      length += utf8.encode(buf).length + 1;
-    }
-    return length;
+    return DecodeResult(TxtData(data), offset - originalOffset);
   }
 }
