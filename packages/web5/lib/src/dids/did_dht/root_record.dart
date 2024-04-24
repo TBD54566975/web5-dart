@@ -2,6 +2,7 @@ import 'package:web5/src/dids/did_dht/dns_packet.dart';
 
 /// [Relevant Spec Text](https://did-dht.com/#root-record)
 class RootRecord {
+  String v;
   List<String> vm;
   List<String> srv;
   List<String> inv;
@@ -11,6 +12,7 @@ class RootRecord {
   List<String> asm;
 
   RootRecord({
+    String? v,
     List<String>? vm,
     List<String>? srv,
     List<String>? inv,
@@ -18,7 +20,8 @@ class RootRecord {
     List<String>? auth,
     List<String>? asm,
     List<String>? agm,
-  })  : vm = vm ?? [],
+  })  : v = v ?? '0',
+        vm = vm ?? [],
         srv = srv ?? [],
         inv = inv ?? [],
         del = del ?? [],
@@ -96,6 +99,9 @@ class RootRecord {
       final value = split[1];
 
       switch (key) {
+        case 'v':
+          rootRecord.v = value;
+          break;
         case 'vm':
           rootRecord.vm = value.split(',');
           break;
@@ -114,8 +120,11 @@ class RootRecord {
         case 'agm':
           rootRecord.agm = value.split(',');
           break;
+        case 'asm':
+          rootRecord.asm = value.split(',');
+          break;
         default:
-          throw Exception('Invalid root record key');
+          throw Exception('Invalid root record key: $key');
       }
     }
 
