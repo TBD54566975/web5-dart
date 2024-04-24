@@ -25,6 +25,27 @@ void main() {
         expect(service.type, equals('tbdex'));
         expect(service.serviceEndpoint, equals(['https://somepfi.com/tbdex']));
       });
+
+      test('should throw exception if required field is missing', () {
+        final vector = Answer<TxtData>(
+          name: RecordName('_s0._did'),
+          type: RecordType.TXT,
+          klass: RecordClass.IN,
+          data: TxtData([
+            't=tbdex;se=https://somepfi.com/tbdex',
+          ]),
+          ttl: 7200,
+        );
+
+        final did =
+            'did:dht:i9xkp8ddcbcg8jwq54ox699wuzxyifsqx4jru45zodqu453ksz6y';
+
+        expect(
+          () => ServiceRecord.createService(did, vector),
+          throwsException,
+          reason: 'service record Missing entry: id',
+        );
+      });
     });
   });
 }
