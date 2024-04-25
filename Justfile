@@ -1,6 +1,3 @@
-clean:
-  cd packages/web5_flutter && flutter clean
-
 get:
   #!/bin/bash
   echo "Getting dependencies for packages"
@@ -11,7 +8,7 @@ get:
     fi \
   done
 
-test:
+test: test-vectors
   #!/bin/bash
   for dir in packages/*; do \
     if [ -d $dir ]; then \
@@ -27,3 +24,6 @@ analyze:
       (cd $dir && flutter analyze || dart analyze); \
     fi \
   done 
+
+test-vectors:
+  @git submodule update --init --recursive
