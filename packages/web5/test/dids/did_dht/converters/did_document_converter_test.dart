@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:math';
 
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
@@ -142,7 +142,15 @@ void main() {
       final did = Did.parse(
         'did:dht:hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
       );
+
       final didDocument = DidDocumentConverter.convertDnsPacket(did, dnsPacket);
+      expect(didDocument.id,
+          'did:dht:hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko');
+      expect(didDocument.verificationMethod!.length, 3);
+      expect(didDocument.authentication!.length, 2);
+      expect(didDocument.assertionMethod!.length, 2);
+      expect(didDocument.keyAgreement!.length, 1);
+      expect(didDocument.service!.length, 1);
     });
   });
 }
