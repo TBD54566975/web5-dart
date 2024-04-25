@@ -1,147 +1,127 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:web5/src/crypto.dart';
-import 'package:web5/src/dids/bearer_did.dart';
-import 'package:web5/src/dids/did.dart';
-import 'package:web5/src/dids/did_core.dart';
+import 'package:web5/src/dids.dart';
+import 'package:web5/src/dids/did_dht/bep44.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
-import 'package:web5/src/dids/did_dht/registered_did_type.dart';
-import 'package:web5/src/dids/did_method_resolver.dart';
-import 'package:web5/src/encoders.dart';
+import 'package:web5/src/dids/did_dht/registered_types.dart';
+import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
 import 'package:web5/src/encoders/zbase.dart';
-
-final Set<String> txtEntryNames = {'vm', 'auth', 'asm', 'agm', 'inv', 'del'};
 
 class DidDht {
   static const String methodName = 'dht';
+  static const _defaultRelay = 'https://diddht.tbddev.org';
 
   static Future<BearerDid> create({
     KeyManager? keyManager,
-    List<String>? alsoKnownAs,
-    List<String>? controllers,
-    String? gatewayUri,
-    bool? publish,
-    List<DidService>? services,
+    bool publish = false,
+    String gatewayUri = _defaultRelay,
+    List<String> alsoKnownAs = const [],
+    List<String> controllers = const [],
+    List<DidService> services = const [],
     List<DidDhtRegisteredDidType>? types,
-    List<DidCreateVerificationMethod>? verificationMethods,
+    List<DidCreateVerificationMethod> verificationMethods = const [],
   }) async {
-    final AlgorithmId idAlgorithm = AlgorithmId.ed25519;
     keyManager ??= InMemoryKeyManager();
 
-    // Generate random key material for the Identity Key.
-    final String keyAlias = await keyManager.generatePrivateKey(idAlgorithm);
-    final Jwk identityKey = await keyManager.getPublicKey(keyAlias);
+    final keyAlias = await keyManager.generatePrivateKey(AlgorithmId.ed25519);
+    final identityKey = await keyManager.getPublicKey(keyAlias);
 
-    final String didUri = identityKeyToIdentifier(identityKey: identityKey);
-    final DidDocument doc = DidDocument(
-      id: didUri,
+    final id = _computeIdentifier(identityKey: identityKey);
+    final did = 'did:$methodName:$id';
+
+    final identityVm = DidVerificationMethod(
+      id: '0',
+      type: 'JsonWebKey',
+      controller: did,
+    );
+
+    final didDoc = DidDocument(
+      id: did,
       alsoKnownAs: alsoKnownAs,
-      controller: controllers ?? didUri,
+      controller: controllers.isEmpty ? [did] : controllers,
     );
 
-    // If the given verification methods do not contain an Identity Key, add one.
-    final List<DidCreateVerificationMethod> methodsToAdd =
-        verificationMethods ?? [];
-
-    final Iterable<DidCreateVerificationMethod> identityMethods =
-        methodsToAdd.where(
-      (vm) => vm.id?.split('#').last == '0',
+    didDoc.addVerificationMethod(
+      identityVm,
+      purpose: [
+        VerificationPurpose.authentication,
+        VerificationPurpose.assertionMethod,
+        VerificationPurpose.capabilityDelegation,
+        VerificationPurpose.capabilityInvocation,
+      ],
     );
 
-    if (identityMethods.isEmpty) {
-      methodsToAdd.add(
-        DidCreateVerificationMethod(
-          algorithm: AlgorithmId.ed25519,
-          id: '0',
-          type: 'JsonWebKey',
-          controller: didUri,
-          purposes: [
-            VerificationPurpose.authentication,
-            VerificationPurpose.assertionMethod,
-            VerificationPurpose.capabilityDelegation,
-            VerificationPurpose.capabilityInvocation,
-          ],
-        ),
-      );
-    }
-
-    // Generate random key material for the Identity Key and any additional verification methods.
-    // Add verification methods to the DID document.
-    for (final DidCreateVerificationMethod vm in methodsToAdd) {
-      // Generate a random key for the verification method, or if its the Identity Key's
-      // verification method (`id` is 0) use the key previously generated.
-      late Jwk publicKey;
-
-      if (vm.id?.split('#').last == '0') {
-        publicKey = identityKey;
-      } else {
-        String alias = await keyManager.generatePrivateKey(vm.algorithm);
-        publicKey = await keyManager.getPublicKey(alias);
-      }
+    for (final vmOpts in verificationMethods) {
+      final alias = await keyManager.generatePrivateKey(vmOpts.algorithm);
+      final publicKey = await keyManager.getPublicKey(alias);
 
       // Use the given ID, the key's ID, or the key's thumbprint as the verification method ID.
-      String methodId = vm.id ?? publicKey.kid ?? publicKey.computeThumbprint();
-      methodId = '$didUri#${methodId.split('#').last}';
+      String methodId =
+          vmOpts.id ?? publicKey.kid ?? publicKey.computeThumbprint();
+      methodId = '$did#${methodId.split('#').last}';
 
-      doc.addVerificationMethod(
-        DidVerificationMethod(
-          id: methodId,
-          type: vm.type,
-          controller: vm.controller,
-          publicKeyJwk: publicKey,
-        ),
+      final vm = DidVerificationMethod(
+        id: methodId,
+        type: vmOpts.type,
+        controller: vmOpts.controller,
+        publicKeyJwk: publicKey,
       );
+      didDoc.addVerificationMethod(vm, purpose: vmOpts.purposes);
+    }
 
-      for (final VerificationPurpose purpose in vm.purposes) {
-        doc.addVerificationPurpose(purpose, methodId);
+    for (final service in services) {
+      didDoc.addService(service);
+    }
+
+    if (publish == true) {
+      final dnsPacket = DidDocumentConverter.convertDidDocument(didDoc);
+
+      sign(Uint8List data) async {
+        return await keyManager!.sign(keyAlias, data);
+      }
+
+      final seq = DateTime.now().microsecondsSinceEpoch;
+      final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
+
+      final pkarrUrl = Uri.parse('$gatewayUri/$id');
+      final request = await HttpClient().putUrl(pkarrUrl);
+
+      request.headers.contentType = ContentType.binary;
+      request.add(message);
+
+      final response = await request.close();
+      if (response.statusCode != HttpStatus.ok) {
+        final body = await response.transform(utf8.decoder).join();
+        throw Exception(
+          'Failed to publish DID document. got: ${response.statusCode} $body',
+        );
       }
     }
 
-    for (final DidService service in (services ?? [])) {
-      doc.addService(service);
-    }
-
-    final BearerDid did = BearerDid(
-      uri: didUri,
+    return BearerDid(
+      uri: did,
       keyManager: keyManager,
-      document: doc,
-      metadata: DidDocumentMetadata(
-        types: types,
-      ),
+      document: didDoc,
+      // metadata: DidDocumentMetadata(types: types),
     );
-
-    if (publish ?? true) {
-      DidDht.publish(did: did);
-    }
-
-    return did;
-  }
-
-  static String identityKeyToIdentifier({
-    required Jwk identityKey,
-  }) {
-    // Convert the key from JWK format to a byte array.
-    final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
-
-    final String identifier = ZBase32.encode(publicKeyBytes);
-    return 'did:${DidDht.methodName}:$identifier';
-  }
-
-  static Future<void> publish({
-    required BearerDid did,
-    String? gatewayUri,
-  }) async {
-    // TODO: Finish publish method
-    // final DnsPacket dnsPacket = DnsPacket.fromDid(did);
   }
 
   static Future<DidResolutionResult> resolve(
     Did did, {
-    String relayUrl = 'https://diddht.tbddev.org',
+    String relayUrl = _defaultRelay,
     HttpClient? client,
   }) async {
     if (did.method != methodName) {
+      return DidResolutionResult.withError(DidResolutionError.invalidDid);
+    }
+
+    final List<int> identityKey;
+    try {
+      identityKey = ZBase32.decode(did.id);
+    } catch (e) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
@@ -153,139 +133,33 @@ class DidDht {
     final response = await request.close();
 
     final List<int> bytes = [];
-    // Listening for response data
     await for (var byteList in response) {
       bytes.addAll(byteList);
     }
 
     httpClient.close(force: false);
 
-    // TODO: verify signature
-    // final signatureBytes = bytes.sublist(0, 64);
-    // final seq = bytes.sublist(64, 72);
+    final bep44Message = Bep44Message.verify(
+      Uint8List.fromList(bytes),
+      Uint8List.fromList(identityKey),
+    );
 
-    if (bytes.length < 72) {
+    try {
+      final dnsPacket = DnsPacket.decode(bep44Message.v);
+      final document = DidDocumentConverter.convertDnsPacket(did, dnsPacket);
+      return DidResolutionResult(didDocument: document);
+    } catch (e) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
+  }
 
-    final v = bytes.sublist(72);
+  static String _computeIdentifier({
+    required Jwk identityKey,
+  }) {
+    // Convert the key from JWK format to a byte array.
+    final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
 
-    final dnsPacket = DnsPacket.decode(v);
-    final Map<String, List<String>> txtMap = {};
-    List<String>? rootRecord;
-
-    for (final answer in dnsPacket.answers) {
-      if (answer.type != DnsType.TXT) {
-        continue;
-      }
-
-      final txtData = answer.data as DnsTxtData;
-
-      if (answer.name.value.startsWith('_did')) {
-        rootRecord = txtData.value;
-        continue;
-      }
-
-      txtMap[answer.name.value] = txtData.value;
-    }
-
-    if (rootRecord == null) {
-      // TODO: figure out more appopriate resolution error to use.
-      return DidResolutionResult.withError(DidResolutionError.invalidDid);
-    }
-
-    final Map<String, List<String>> relationshipsMap = {};
-    for (final entry in rootRecord[0].split(';')) {
-      final splitEntry = entry.split('=');
-
-      if (splitEntry.length != 2) {
-        // TODO: figure out more appopriate resolution error to use.
-        return DidResolutionResult.withError(DidResolutionError.invalidDid);
-      }
-
-      final [property, values] = splitEntry;
-      final splitValues = values.split(',');
-
-      if (!txtEntryNames.contains(property)) {
-        continue;
-      }
-
-      for (final value in splitValues) {
-        relationshipsMap[value] ??= [];
-        relationshipsMap[value]!.add(property);
-      }
-    }
-
-    final didDocument = DidDocument(id: did.uri);
-    for (final property in txtMap.entries) {
-      final values = property.value[0].split(',');
-      final valueMap = {};
-
-      for (var value in values) {
-        final [k, v] = value.split('=');
-        valueMap[k] = v;
-      }
-
-      if (property.key.startsWith('_k')) {
-        AlgorithmId algId;
-        switch (valueMap['t']) {
-          case '0':
-            algId = AlgorithmId.ed25519;
-            break;
-          case '1':
-            algId = AlgorithmId.secp256k1;
-            break;
-          default:
-            throw Exception('unsupported algorithm type: ${valueMap['t']}');
-        }
-
-        final publicKeyBytes = Base64Url.decode(valueMap['k']);
-        final publicKeyJwk = Crypto.bytesToPublicKey(algId, publicKeyBytes);
-        final verificationMethod = DidVerificationMethod(
-          controller: did.uri,
-          id: valueMap['id'],
-          type: 'JsonWebKey2020',
-          publicKeyJwk: publicKeyJwk,
-        );
-
-        didDocument.addVerificationMethod(verificationMethod);
-        final entryId = property.key.substring(1).split('.')[0];
-        final relationships = relationshipsMap[entryId];
-
-        if (relationships == null) {
-          continue;
-        }
-
-        for (final relationship in relationships) {
-          VerificationPurpose? vr;
-          if (relationship == 'auth') {
-            vr = VerificationPurpose.authentication;
-          } else if (relationship == 'asm') {
-            vr = VerificationPurpose.assertionMethod;
-          } else if (relationship == 'agm') {
-            vr = VerificationPurpose.keyAgreement;
-          } else if (relationship == 'inv') {
-            vr = VerificationPurpose.capabilityInvocation;
-          } else if (relationship == 'del') {
-            vr = VerificationPurpose.capabilityDelegation;
-          }
-
-          if (vr != null) {
-            didDocument.addVerificationPurpose(vr, verificationMethod.id);
-          }
-        }
-      } else if (property.key.startsWith('_s')) {
-        final service = DidService(
-          id: valueMap['id'],
-          type: valueMap['t'],
-          serviceEndpoint: valueMap['uri'],
-        );
-
-        didDocument.addService(service);
-      }
-    }
-
-    return DidResolutionResult(didDocument: didDocument);
+    return ZBase32.encode(publicKeyBytes);
   }
 }
 

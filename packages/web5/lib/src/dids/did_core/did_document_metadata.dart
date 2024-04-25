@@ -1,4 +1,4 @@
-import 'package:web5/src/dids/did_dht/registered_did_type.dart';
+import 'package:web5/src/dids/did_dht/registered_types.dart';
 
 /// contains metadata about the DID document contained in the didDocument
 /// property. This metadata typically does not change between invocations of

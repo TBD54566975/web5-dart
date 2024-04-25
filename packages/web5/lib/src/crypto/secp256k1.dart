@@ -172,7 +172,15 @@ class Secp256k1 {
   }
 
   static Jwk bytesToPublicKey(Uint8List input) {
-    // TODO: implement bytesToPublicKey
-    throw UnimplementedError();
+    final xBytes = input.sublist(1, 33);
+    final yBytes = input.sublist(33, 65);
+
+    return Jwk(
+      kty: kty,
+      alg: alg,
+      crv: crv,
+      x: Base64Url.encode(xBytes),
+      y: Base64Url.encode(yBytes),
+    );
   }
 }

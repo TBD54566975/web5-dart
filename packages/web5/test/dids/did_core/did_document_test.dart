@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
-import 'package:web5/src/crypto.dart';
-import 'package:web5/src/dids/did_core.dart';
+import 'package:web5/web5.dart';
 
 void main() {
   group('DidDocument', () {
@@ -110,7 +109,7 @@ void main() {
 
       didDocument.addVerificationMethod(
         vm,
-        purpose: VerificationPurpose.authentication,
+        purpose: [VerificationPurpose.authentication],
       );
 
       final result = didDocument.getVerificationMethod(
