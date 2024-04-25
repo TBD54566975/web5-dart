@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 
 import 'package:web5/src/dids.dart';
@@ -86,16 +85,17 @@ class DidDht {
       final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
 
       final pkarrUrl = Uri.parse('$gatewayUri/$id');
-      final request = await HttpClient().putUrl(pkarrUrl);
+      final response = await http.Client().put(
+        pkarrUrl,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+        body: message,
+      );
 
-      request.headers.contentType = ContentType.binary;
-      request.add(message);
-
-      final response = await request.close();
-      if (response.statusCode != HttpStatus.ok) {
-        final body = await response.transform(utf8.decoder).join();
+      if (response.statusCode != 200) {
         throw Exception(
-          'Failed to publish DID document. got: ${response.statusCode} $body',
+          'Failed to publish DID document. got: ${response.statusCode} ${response.body}',
         );
       }
     }
@@ -111,7 +111,7 @@ class DidDht {
   static Future<DidResolutionResult> resolve(
     Did did, {
     String relayUrl = _defaultRelay,
-    HttpClient? client,
+    http.Client? client,
   }) async {
     if (did.method != methodName) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
@@ -127,19 +127,11 @@ class DidDht {
     final parsedRelayUrl = Uri.parse(relayUrl);
     final resolutionUrl = parsedRelayUrl.replace(path: did.id);
 
-    final httpClient = client ??= HttpClient();
-    final request = await httpClient.getUrl(resolutionUrl);
-    final response = await request.close();
-
-    final List<int> bytes = [];
-    await for (var byteList in response) {
-      bytes.addAll(byteList);
-    }
-
-    httpClient.close(force: false);
+    final httpClient = client ??= http.Client();
+    final response = await httpClient.get(resolutionUrl);
 
     final bep44Message = Bep44Message.verify(
-      Uint8List.fromList(bytes),
+      response.bodyBytes,
       Uint8List.fromList(identityKey),
     );
 
@@ -167,6 +159,6 @@ class DidDhtResolver extends DidMethodResolver {
   String get name => DidDht.methodName;
 
   @override
-  Future<DidResolutionResult> resolve(Did did, {HttpClient? options}) async =>
+  Future<DidResolutionResult> resolve(Did did, {http.Client? options}) async =>
       DidDht.resolve(did, client: options);
 }

@@ -1,15 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:web5/web5.dart';
 
-class MockHttpClient extends Mock implements HttpClient {}
-
-class MockHttpRequest extends Mock implements HttpClientRequest {}
-
-class MockHttpResponse extends Mock implements HttpClientResponse {}
+import '../helpers/mocks.dart';
 
 const validDidWebDocument = '''{
         "id": "did:web:www.linkedin.com",
@@ -53,18 +47,10 @@ const validDidWebDocument = '''{
       }''';
 
 void main() {
-  final MockHttpClient mockClient = MockHttpClient();
-  final MockHttpRequest request = MockHttpRequest();
-  final MockHttpResponse response = MockHttpResponse();
-
-  setUpAll(() {
-    registerFallbackValue(Uri());
-  });
+  late MockHttpClient mockHttpClient;
 
   setUp(() {
-    reset(mockClient);
-    reset(request);
-    reset(response);
+    mockHttpClient = MockHttpClient();
   });
 
   group('DidWeb', () {
@@ -88,62 +74,58 @@ void main() {
     });
 
     test('should return did with failed http request', () async {
-      when(() => response.statusCode).thenReturn(400);
-      when(() => request.close()).thenAnswer((_) async => response);
-      when(() => mockClient.getUrl(any())).thenAnswer((_) async => request);
+      when(
+        () => mockHttpClient
+            .get(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
+      ).thenAnswer((_) async => http.Response('', 400));
 
       final did = Did.parse('did:web:www.linkedin.com');
-      final result = await DidWeb.resolve(did, client: mockClient);
+      final result = await DidWeb.resolve(did, client: mockHttpClient);
 
       expect(
         result,
         DidResolutionResult.withError(DidResolutionError.notFound),
       );
+
+      verify(
+        () => mockHttpClient
+            .get(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
+      ).called(1);
     });
 
     test('should resolve successfully', () async {
-      when(() => response.statusCode).thenReturn(200);
-      when(() => response.transform(utf8.decoder))
-          .thenAnswer((_) => Stream.value(validDidWebDocument));
-      when(() => request.close()).thenAnswer((_) async => response);
       when(
-        () => mockClient.getUrl(
-          Uri.parse('https://www.linkedin.com/.well-known/did.json'),
-        ),
-      ).thenAnswer((_) async => request);
+        () => mockHttpClient
+            .get(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
+      ).thenAnswer((_) async => http.Response(validDidWebDocument, 200));
 
       final did = Did.parse('did:web:www.linkedin.com');
-      final result = await DidWeb.resolve(did, client: mockClient);
+      final result = await DidWeb.resolve(did, client: mockHttpClient);
 
       expect(result.didDocument, isNotNull);
-      expect('did:web:www.linkedin.com', result.didDocument!.id);
+      expect('did:web:www.linkedin.com', result.didDocument?.id);
 
       verify(
-        () => mockClient
-            .getUrl(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
-      );
+        () => mockHttpClient
+            .get(Uri.parse('https://www.linkedin.com/.well-known/did.json')),
+      ).called(1);
     });
 
     test('should resolve successfully with paths', () async {
-      when(() => response.statusCode).thenReturn(200);
-      when(() => response.transform(utf8.decoder))
-          .thenAnswer((_) => Stream.value(validDidWebDocument));
-      when(() => request.close()).thenAnswer((_) async => response);
       when(
-        () => mockClient.getUrl(
-          Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
-        ),
-      ).thenAnswer((_) async => request);
+        () => mockHttpClient
+            .get(Uri.parse('https://www.remotehost.com:8892/ingress/did.json')),
+      ).thenAnswer((_) async => http.Response(validDidWebDocument, 200));
 
       final did = Did.parse('did:web:www.remotehost.com%3A8892:ingress');
       final result = await DidWeb.resolve(
         did,
-        client: mockClient,
+        client: mockHttpClient,
       );
       expect(result.didDocument, isNotNull);
 
       verify(
-        () => mockClient.getUrl(
+        () => mockHttpClient.get(
           Uri.parse('https://www.remotehost.com:8892/ingress/did.json'),
         ),
       );
