@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids.dart';
+import 'package:web5/src/crypto.dart';
+import 'package:web5/src/encoders/zbase.dart';
 import 'package:web5/src/dids/did_dht/bep44.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/registered_types.dart';
 import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
-import 'package:web5/src/encoders/zbase.dart';
 
 class DidDht {
   static const String methodName = 'dht';
