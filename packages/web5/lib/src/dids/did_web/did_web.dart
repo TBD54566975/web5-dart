@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:web5/src/crypto.dart';
 import 'package:web5/src/dids/bearer_did.dart';
 import 'package:web5/src/dids/did.dart';
@@ -85,7 +85,7 @@ class DidWeb {
 
   static Future<DidResolutionResult> resolve(
     Did did, {
-    HttpClient? client,
+    http.Client? client,
   }) async {
     if (did.method != methodName) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
@@ -106,17 +106,15 @@ class DidWeb {
     if (didUri.path.isEmpty) didUri = didUri.replace(path: '/.well-known');
     didUri = didUri.replace(pathSegments: [...didUri.pathSegments, 'did.json']);
 
-    final HttpClient httpClient = client ??= HttpClient();
-    final HttpClientRequest request = await httpClient.getUrl(didUri);
-    final HttpClientResponse response = await request.close();
+    final httpClient = client ??= http.Client();
+    final response = await httpClient.get(didUri);
 
     if (response.statusCode != 200) {
       return DidResolutionResult.withError(DidResolutionError.notFound);
     }
 
-    final String str = await response.transform(utf8.decoder).join();
-    final dynamic jsonParsed = json.decode(str);
-    final DidDocument doc = DidDocument.fromJson(jsonParsed);
+    final jsonParsed = json.decode(response.body);
+    final doc = DidDocument.fromJson(jsonParsed);
 
     return DidResolutionResult(didDocument: doc);
   }
@@ -127,6 +125,6 @@ class DidWebResolver extends DidMethodResolver {
   String get name => DidWeb.methodName;
 
   @override
-  Future<DidResolutionResult> resolve(Did did, {HttpClient? options}) =>
+  Future<DidResolutionResult> resolve(Did did, {http.Client? options}) =>
       DidWeb.resolve(did, client: options);
 }
