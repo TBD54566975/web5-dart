@@ -233,19 +233,33 @@ class DidDocument implements DidResource {
     return DidDocument(
       context: json['context'],
       id: json['id'],
-      alsoKnownAs: json['alsoKnownAs']?.cast<String>(),
-      controller: json['controller']?.cast<List<String>>(),
+      alsoKnownAs: (json['alsoKnownAs'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
+      controller: (json['controller'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
       verificationMethod: (json['verificationMethod'] as List<dynamic>?)
           ?.map((item) => DidVerificationMethod.fromJson(item))
           .toList(),
       service: (json['service'] as List<dynamic>?)
           ?.map((item) => DidService.fromJson(item))
           .toList(),
-      assertionMethod: json['assertionMethod']?.cast<String>(),
-      authentication: json['authentication']?.cast<String>(),
-      keyAgreement: json['keyAgreement']?.cast<String>(),
-      capabilityDelegation: json['capabilityDelegation']?.cast<String>(),
-      capabilityInvocation: json['capabilityInvocation']?.cast<String>(),
+      assertionMethod: (json['assertionMethod'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
+      authentication: (json['authentication'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
+      keyAgreement: (json['keyAgreement'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
+      capabilityDelegation: (json['capabilityDelegation'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
+      capabilityInvocation: (json['capabilityInvocation'] as List<dynamic>?)
+          ?.map((item) => item as String)
+          .toList(),
     );
   }
 }
