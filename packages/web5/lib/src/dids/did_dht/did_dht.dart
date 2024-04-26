@@ -1,3 +1,5 @@
+import 'package:base32/base32.dart';
+import 'package:convert/convert.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
 
@@ -34,6 +36,7 @@ class DidDht {
       id: '0',
       type: 'JsonWebKey',
       controller: did,
+      publicKeyJwk: identityKey,
     );
 
     final didDoc = DidDocument(
@@ -84,9 +87,12 @@ class DidDht {
       final seq = DateTime.now().microsecondsSinceEpoch;
       final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
 
-      final pkarrUrl = Uri.parse('$gatewayUri/$id');
+      // "https://diddht.tbddev.org/ctizo11zeimgou1zpc4rhi14mjpfk3nzmr3socurewadesm4ctjiwtkspbmfkh3imfizg6kspi4deauqmj3gn5njq7t8qxj7"
+
+      final gatewayUrl = Uri.parse('$gatewayUri/$id');
+      // TODO: add optional client
       final response = await http.Client().put(
-        pkarrUrl,
+        gatewayUrl,
         headers: {
           'Content-Type': 'application/octet-stream',
         },
@@ -119,16 +125,27 @@ class DidDht {
 
     final List<int> identityKey;
     try {
-      identityKey = ZBase32.decode(did.id);
+      identityKey = base32.decode(did.id);
     } catch (e) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
+
+    print('IDENTITY KEY: $identityKey');
 
     final parsedRelayUrl = Uri.parse(relayUrl);
     final resolutionUrl = parsedRelayUrl.replace(path: did.id);
 
     final httpClient = client ??= http.Client();
     final response = await httpClient.get(resolutionUrl);
+
+    print(response.body);
+    print(response.statusCode);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'failed to resolve DID document: error code ${response.statusCode}, ${response.body}',
+      );
+    }
 
     final bep44Message = Bep44Message.verify(
       response.bodyBytes,
@@ -150,7 +167,9 @@ class DidDht {
     // Convert the key from JWK format to a byte array.
     final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
 
-    return ZBase32.encode(publicKeyBytes);
+    print('HEX PUB KEY BYTES:  ${hex.encode(publicKeyBytes)}');
+
+    return base32.encode(publicKeyBytes);
   }
 }
 
