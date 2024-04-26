@@ -23,8 +23,8 @@ class VerificationMethodConverter {
     int idx,
     DidVerificationMethod method,
   ) {
-    final pubKey = Crypto.publicKeyToBytes(method.publicKeyJwk!);
-    final keyTypeIndex = _keyTypeToIndex[method.publicKeyJwk!.crv!];
+    final pubKey = Crypto.publicKeyToBytes(method.publicKeyJwk);
+    final keyTypeIndex = _keyTypeToIndex[method.publicKeyJwk.crv!];
     final data = [
       'id=${method.id.split('#').last}',
       't=$keyTypeIndex',

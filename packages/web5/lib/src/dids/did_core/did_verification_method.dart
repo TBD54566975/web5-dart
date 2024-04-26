@@ -15,15 +15,13 @@ class DidVerificationMethod implements DidResource {
   final String id;
   final String type;
   final String controller;
-  final Jwk? publicKeyJwk;
-  final String? publicKeyMultibase;
+  final Jwk publicKeyJwk;
 
   DidVerificationMethod({
     required this.id,
     required this.type,
     required this.controller,
-    this.publicKeyJwk,
-    this.publicKeyMultibase,
+    required this.publicKeyJwk,
   });
 
   @override
@@ -32,25 +30,18 @@ class DidVerificationMethod implements DidResource {
       'id': id,
       'type': type,
       'controller': controller,
-      'publicKeyJwk': publicKeyJwk?.toJson(),
-      'publicKeyMultibase': publicKeyMultibase,
+      'publicKeyJwk': publicKeyJwk.toJson(),
     };
-
-    json.removeWhere((key, value) => value == null);
 
     return json;
   }
 
   factory DidVerificationMethod.fromJson(Map<String, dynamic> json) {
     return DidVerificationMethod(
-      id: json['id'],
-      type: json['type'],
-      controller: json['controller'],
-      publicKeyJwk: json['publicKeyJwk'] != null
-          ? Jwk.fromJson(json['publicKeyJwk'])
-          : null,
-      publicKeyMultibase: json['publicKeyMultibase'],
-    );
+        id: json['id'],
+        type: json['type'],
+        controller: json['controller'],
+        publicKeyJwk: Jwk.fromJson(json['publicKeyJwk']));
   }
 }
 

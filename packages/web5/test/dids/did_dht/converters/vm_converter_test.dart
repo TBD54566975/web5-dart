@@ -23,7 +23,7 @@ void main() {
         expect(vm.controller, equals(did));
         expect(vm.id, contains('$did#'));
         expect(vm.type, equals('JsonWebKey'));
-        expect(vm.publicKeyJwk!.crv, equals('Ed25519'));
+        expect(vm.publicKeyJwk.crv, equals('Ed25519'));
       });
     });
   });

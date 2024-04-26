@@ -56,7 +56,7 @@ class DecodedJws {
     final toSignBytes = utf8.encode(toSign);
 
     await Crypto.verify(
-      publicKey: didResource.publicKeyJwk!,
+      publicKey: didResource.publicKeyJwk,
       payload: toSignBytes,
       signature: signature,
     );

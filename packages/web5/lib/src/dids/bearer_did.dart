@@ -92,11 +92,7 @@ class BearerDid {
       throw Exception('No private key found to sign with');
     }
 
-    if (vm.publicKeyJwk == null) {
-      throw Exception('could not determine key id');
-    }
-
-    final keyId = vm.publicKeyJwk!.computeThumbprint();
+    final keyId = vm.publicKeyJwk.computeThumbprint();
 
     sign(Uint8List payload) {
       return keyManager.sign(keyId, payload);
