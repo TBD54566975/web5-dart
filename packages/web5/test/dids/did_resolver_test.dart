@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_resolver.dart';
+import 'package:web5/src/encoders/zbase.dart';
 import 'package:web5/web5.dart';
 
 void main() {
@@ -43,7 +44,6 @@ IDENTITY KEY: [84, 48, 104, 77, 89, 50, 99, 49, 100, 70, 66, 111, 99, 51, 99, 52
       */
 
       final dht = await DidDht.create(publish: true);
-      print(dht.uri);
       final did = Did.parse(dht.uri);
       final x = await DidDht.resolve(did);
       expect(x.didDocument, isNotNull);

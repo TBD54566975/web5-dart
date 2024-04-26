@@ -46,12 +46,6 @@ class DecodedJws {
       );
     }
 
-    if (didResource.publicKeyJwk == null) {
-      throw Exception(
-        'Verification failed. Expected header kid to dereference a verification method with a public key',
-      );
-    }
-
     final toSign = [parts[0], parts[1]].join('.');
     final toSignBytes = utf8.encode(toSign);
 

@@ -1,4 +1,3 @@
-import 'package:base32/base32.dart';
 import 'package:convert/convert.dart';
 import 'package:http/http.dart' as http;
 import 'dart:typed_data';
@@ -125,7 +124,7 @@ class DidDht {
 
     final List<int> identityKey;
     try {
-      identityKey = base32.decode(did.id);
+      identityKey = ZBase32.decode(did.id);
     } catch (e) {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
@@ -169,7 +168,7 @@ class DidDht {
 
     print('HEX PUB KEY BYTES:  ${hex.encode(publicKeyBytes)}');
 
-    return base32.encode(publicKeyBytes);
+    return ZBase32.encode(publicKeyBytes);
   }
 }
 
