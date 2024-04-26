@@ -40,8 +40,12 @@ class BearerDid {
     }
 
     final keyExporter = keyManager as KeyExporter;
-    for (final vm in document.verificationMethod!) {
-      final publicKeyJwk = vm.publicKeyJwk!;
+    for (final vm in document.verificationMethod ?? []) {
+      if (vm.publicKeyJwk == null) {
+        continue;
+      }
+
+      final publicKeyJwk = vm.publicKeyJwk;
       final keyId = publicKeyJwk.computeThumbprint();
       final jwk = await keyExporter.export(keyId);
 
