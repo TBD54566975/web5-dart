@@ -78,15 +78,12 @@ class DidDht {
 
     if (publish == true) {
       final dnsPacket = DidDocumentConverter.convertDidDocument(didDoc);
-
       sign(Uint8List data) async {
         return await keyManager!.sign(keyAlias, data);
       }
 
       final seq = DateTime.now().microsecondsSinceEpoch;
       final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
-
-      // "https://diddht.tbddev.org/ctizo11zeimgou1zpc4rhi14mjpfk3nzmr3socurewadesm4ctjiwtkspbmfkh3imfizg6kspi4deauqmj3gn5njq7t8qxj7"
 
       final gatewayUrl = Uri.parse('$gatewayUri/$id');
       // TODO: add optional client
@@ -129,16 +126,11 @@ class DidDht {
       return DidResolutionResult.withError(DidResolutionError.invalidDid);
     }
 
-    print('IDENTITY KEY: $identityKey');
-
     final parsedRelayUrl = Uri.parse(relayUrl);
     final resolutionUrl = parsedRelayUrl.replace(path: did.id);
 
     final httpClient = client ??= http.Client();
     final response = await httpClient.get(resolutionUrl);
-
-    print(response.body);
-    print(response.statusCode);
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -165,8 +157,6 @@ class DidDht {
   }) {
     // Convert the key from JWK format to a byte array.
     final Uint8List publicKeyBytes = Crypto.publicKeyToBytes(identityKey);
-
-    print('HEX PUB KEY BYTES:  ${hex.encode(publicKeyBytes)}');
 
     return ZBase32.encode(publicKeyBytes);
   }
