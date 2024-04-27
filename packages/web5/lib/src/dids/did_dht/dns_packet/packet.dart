@@ -91,7 +91,7 @@ class _PacketCodec implements Codec<DnsPacket> {
         input: buf,
         offset: offset,
       );
-      offset = questionResult.offset;
+      offset += questionResult.offset;
     }
 
     for (var answer in packet.answers) {
@@ -100,7 +100,7 @@ class _PacketCodec implements Codec<DnsPacket> {
         input: buf,
         offset: offset,
       );
-      offset = answerResult.offset;
+      offset += answerResult.offset;
     }
 
     return EncodeResult(buf, offset - oldOffset);
