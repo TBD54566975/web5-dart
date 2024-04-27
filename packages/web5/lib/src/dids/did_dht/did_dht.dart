@@ -133,9 +133,17 @@ class DidDht {
     final response = await httpClient.get(resolutionUrl);
 
     if (response.statusCode != 200) {
+      if (response.statusCode == 404) {
+        return DidResolutionResult.withError(DidResolutionError.notFound);
+      }
+
       throw Exception(
         'failed to resolve DID document: error code ${response.statusCode}, ${response.body}',
       );
+    }
+
+    if (response.bodyBytes.isEmpty) {
+      return DidResolutionResult.withError(DidResolutionError.notFound);
     }
 
     final bep44Message = Bep44Message.verify(
