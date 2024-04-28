@@ -1,9 +1,6 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
-import 'package:web5/src/crypto.dart';
 import 'package:web5/src/vc/vc.dart';
 import 'package:web5/src/vc/vc_jwt.dart';
 import 'package:web5/web5.dart';

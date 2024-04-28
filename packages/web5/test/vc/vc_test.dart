@@ -1,7 +1,5 @@
 import 'package:test/test.dart';
-import 'package:web5/src/crypto.dart';
 import 'package:web5/src/vc/vc.dart';
-import 'package:web5/src/vc/vc_jwt.dart';
 import 'package:web5/web5.dart';
 
 void main() {
@@ -38,7 +36,7 @@ void main() {
       final issuanceDate = DateTime.now().subtract(Duration(hours: 24));
       final expirationDate = DateTime.now().subtract(Duration(hours: 12));
       final credentialSchema = [
-        CredentialSchema(id: 'id', type: 'CredentialType')
+        CredentialSchema(id: 'id', type: 'CredentialType'),
       ];
 
       final vc = VerifiableCredential.create(
