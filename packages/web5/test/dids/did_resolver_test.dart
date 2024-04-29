@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:test/test.dart';
 import 'package:web5/src/dids.dart';
-import 'package:web5/src/dids/did_dht/converters.dart';
 
 void main() {
   group('DidResolver', () {
