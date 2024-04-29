@@ -1,4 +1,3 @@
-
 import 'package:test/test.dart';
 import 'package:web5/src/dids/did_dht/dns_packet.dart';
 import 'package:web5/src/dids/did_dht/converters/did_document_converter.dart';
@@ -58,7 +57,8 @@ void main() {
 
         final txtRecord = answer as Answer<TxtData>;
 
-        if (answer.name.value == '_did.${didDocument.id}') {
+        if (answer.name.value ==
+            '_did.5cahcfh3zh8bqd5cn3y6inoea1b3d6kh85rjksne9e5dcyrc1ery.') {
           expect(
             txtRecord.data.value.first,
             'vm=k0;asm=k0;inv=k0;del=k0;auth=k0;svc=s0',
@@ -66,7 +66,7 @@ void main() {
         } else if (answer.name.value.startsWith('_k0')) {
           expect(
             txtRecord.data.value.first,
-            'id=0;t=0;k=TW5wSVIwWTFiVjlFYUdOUVlrSmFRalp2YjBsNFNVOVNMVlozTFhsS1ZsbFRVRzh5VG1kRFRXdG5adz09',
+            'id=0;t=0;k=2zHGF5m_DhcPbBZB6ooIxIOR-Vw-yJVYSPo2NgCMkgg',
           );
         } else if (answer.name.value.startsWith('_s0')) {
           expect(
@@ -143,8 +143,10 @@ void main() {
       );
 
       final didDocument = DidDocumentConverter.convertDnsPacket(did, dnsPacket);
-      expect(didDocument.id,
-          'did:dht:hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',);
+      expect(
+        didDocument.id,
+        'did:dht:hpmp9uur565nkimpwdzom7ehbuabnsba658xwwynyk7awcd15bko',
+      );
       expect(didDocument.verificationMethod!.length, 3);
       expect(didDocument.authentication!.length, 2);
       expect(didDocument.assertionMethod!.length, 2);
