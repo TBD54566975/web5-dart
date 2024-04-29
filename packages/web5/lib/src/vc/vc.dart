@@ -10,7 +10,7 @@ class CredentialSchema {
     this.type,
   });
 
-  toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'type': type,
       'id': id,
@@ -42,7 +42,7 @@ class VerifiableCredential {
   // https://www.w3.org/TR/vc-data-model-2.0/#data-schemas
   List<CredentialSchema>? credentialSchema;
 
-  VerifiableCredential({
+  VerifiableCredential._({
     required this.context,
     required this.type,
     required this.issuer,
@@ -72,7 +72,7 @@ class VerifiableCredential {
     id = id ?? 'urn:vc:uuid:${uuid.v4()}';
     issuanceDate = issuanceDate ?? DateTime.now();
 
-    return VerifiableCredential(
+    return VerifiableCredential._(
       context: context,
       type: type,
       issuer: issuer,
@@ -102,7 +102,7 @@ class VerifiableCredential {
       claims.exp = expirationDateTime.millisecondsSinceEpoch ~/ 1000;
     }
 
-    claims.misc = <String, dynamic>{'vc': toJson()};
+    claims.misc = {'vc': toJson()};
 
     return await Jwt.sign(did: bearerDid, payload: claims);
   }
@@ -115,7 +115,7 @@ class VerifiableCredential {
     final context = (json['@context'] as List<dynamic>).cast<String>();
     final type = (json['type'] as List<dynamic>).cast<String>();
 
-    return VerifiableCredential(
+    return VerifiableCredential._(
       issuer: json['issuer'],
       subject: json['subject'],
       data: credentialSubject,
