@@ -76,7 +76,8 @@ class DidDocumentConverter {
       rootRecord.addSvcRecordName(i);
     }
 
-    answers.insert(0, rootRecord.toTxtRecord(document.id));
+    final methodSpecificId = document.id.split('did:dht:').last;
+    answers.insert(0, rootRecord.toTxtRecord(methodSpecificId));
 
     return DnsPacket.create(answers);
   }

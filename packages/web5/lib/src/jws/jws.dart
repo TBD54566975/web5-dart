@@ -82,7 +82,7 @@ class Jws {
       kid = signer.verificationMethod.id;
     }
 
-    final publicKeyJwk = signer.verificationMethod.publicKeyJwk!;
+    final publicKeyJwk = signer.verificationMethod.publicKeyJwk;
 
     header ??= JwsHeader();
     header.kid = kid;

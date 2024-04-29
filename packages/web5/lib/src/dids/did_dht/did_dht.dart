@@ -34,6 +34,7 @@ class DidDht {
       id: '0',
       type: 'JsonWebKey',
       controller: did,
+      publicKeyJwk: identityKey,
     );
 
     final didDoc = DidDocument(
@@ -76,7 +77,6 @@ class DidDht {
 
     if (publish == true) {
       final dnsPacket = DidDocumentConverter.convertDidDocument(didDoc);
-
       sign(Uint8List data) async {
         return await keyManager!.sign(keyAlias, data);
       }
@@ -84,9 +84,10 @@ class DidDht {
       final seq = DateTime.now().microsecondsSinceEpoch;
       final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
 
-      final pkarrUrl = Uri.parse('$gatewayUri/$id');
+      final gatewayUrl = Uri.parse('$gatewayUri/$id');
+      // TODO: add optional client
       final response = await http.Client().put(
-        pkarrUrl,
+        gatewayUrl,
         headers: {
           'Content-Type': 'application/octet-stream',
         },
@@ -129,6 +130,20 @@ class DidDht {
 
     final httpClient = client ??= http.Client();
     final response = await httpClient.get(resolutionUrl);
+
+    if (response.statusCode != 200) {
+      if (response.statusCode == 404) {
+        return DidResolutionResult.withError(DidResolutionError.notFound);
+      }
+
+      throw Exception(
+        'failed to resolve DID document: error code ${response.statusCode}, ${response.body}',
+      );
+    }
+
+    if (response.bodyBytes.isEmpty) {
+      return DidResolutionResult.withError(DidResolutionError.notFound);
+    }
 
     final bep44Message = Bep44Message.verify(
       response.bodyBytes,

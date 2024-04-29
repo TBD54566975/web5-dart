@@ -68,13 +68,12 @@ class RootRecord {
       if (svc.isNotEmpty) 'svc=${svc.join(',')}',
     ].join(';');
 
-    final txtData = TxtData([parts]);
     // TODO: make convenience TxtRecord class
     return Answer<TxtData>(
       type: RecordType.TXT,
       klass: RecordClass.IN,
-      name: RecordName('_did.$did'),
-      data: txtData,
+      name: RecordName('_did.$did.'),
+      data: TxtData([parts]),
       ttl: 7200,
     );
   }

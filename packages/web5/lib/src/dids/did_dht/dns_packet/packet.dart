@@ -1,5 +1,4 @@
 // ignore_for_file: constant_identifier_names
-
 import 'dart:typed_data';
 
 import 'package:web5/src/dids/did_dht/dns_packet/answer.dart';
@@ -7,6 +6,7 @@ import 'package:web5/src/dids/did_dht/dns_packet/codec.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/header.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/opcode.dart';
 import 'package:web5/src/dids/did_dht/dns_packet/question.dart';
+import 'package:web5/src/dids/did_dht/dns_packet/rcode.dart';
 
 const int DNS_RECORD_TTL = 7200;
 const int DID_DHT_SPECIFICATION_VERSION = 0;
@@ -26,15 +26,16 @@ class DnsPacket {
     required this.additionals,
   });
 
-  // TODO: fix this create method
   static DnsPacket create(List<Answer> answers) {
     return DnsPacket(
       header: Header(
+        aa: true,
         id: 0,
         qr: false,
-        opcode: OpCode.NOTIFY,
+        opcode: OpCode.QUERY,
         tc: false,
         rd: false,
+        rcode: RCode.NOERROR,
         qdcount: 0,
         ancount: answers.length,
         nscount: 0,
@@ -90,7 +91,7 @@ class _PacketCodec implements Codec<DnsPacket> {
         input: buf,
         offset: offset,
       );
-      offset = questionResult.offset;
+      offset += questionResult.offset;
     }
 
     for (var answer in packet.answers) {
@@ -99,7 +100,7 @@ class _PacketCodec implements Codec<DnsPacket> {
         input: buf,
         offset: offset,
       );
-      offset = answerResult.offset;
+      offset += answerResult.offset;
     }
 
     return EncodeResult(buf, offset - oldOffset);
