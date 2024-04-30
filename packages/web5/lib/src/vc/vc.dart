@@ -135,10 +135,7 @@ class VerifiableCredential {
       'issuer': issuer,
       'credentialSubject': {
         'id': subject,
-        ...data, // PR Review: It seems like this is getting serialized correctly
-                 //            But I'm not confident about how json encoding works in dart.
-                 //            to say that this will work for any object that someone
-                 //            throws at it.
+        ...data,
       },
       'id': id,
       'issuanceDate': issuanceDate,
