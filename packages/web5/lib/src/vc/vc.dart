@@ -109,7 +109,7 @@ class VerifiableCredential {
 
   factory VerifiableCredential.fromJson(Map<String, dynamic> json) {
     final credentialSubject = json['credentialSubject'] as Map<String, dynamic>;
-    final id = credentialSubject.remove('id');
+    final subject = credentialSubject.remove('id');
     final credentialSchema = (json['credentialSchema'] as List<dynamic>)
         .map((e) => CredentialSchema(id: e['id'], type: e['type'])).toList();
     final context = (json['@context'] as List<dynamic>).cast<String>();
@@ -117,9 +117,9 @@ class VerifiableCredential {
 
     return VerifiableCredential._(
       issuer: json['issuer'],
-      subject: json['subject'],
+      subject: subject,
       data: credentialSubject,
-      id: id,
+      id: json['id'],
       context: context,
       type: type,
       issuanceDate: json['issuanceDate'],
@@ -131,11 +131,10 @@ class VerifiableCredential {
   Map<String, dynamic> toJson() {
     return {
       '@context': context,
-      'subject': subject,
       'type': type,
       'issuer': issuer,
       'credentialSubject': {
-        'id': 'id',
+        'id': subject,
         ...data, // PR Review: It seems like this is getting serialized correctly
                  //            But I'm not confident about how json encoding works in dart.
                  //            to say that this will work for any object that someone
