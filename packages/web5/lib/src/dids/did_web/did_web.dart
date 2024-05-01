@@ -92,7 +92,8 @@ class DidWeb {
     }
 
     var resolutionUrl = Uri.decodeFull(did.id.replaceAll(':', '/'));
-    if (resolutionUrl.contains('localhost')) {
+    if (resolutionUrl.contains('localhost') ||
+        DidWebResolver._containsIPv4(resolutionUrl)) {
       resolutionUrl = 'http://$resolutionUrl';
     } else {
       resolutionUrl = 'https://$resolutionUrl';
@@ -123,6 +124,14 @@ class DidWeb {
 class DidWebResolver extends DidMethodResolver {
   @override
   String get name => DidWeb.methodName;
+
+  /// checks whether a string contains an ipv4 address
+  ///! Note: this is only temporarily here while we test using did:web:<ip_addr>
+  static bool _containsIPv4(String str) {
+    final ipv4Regex = RegExp(r'^(\d{1,3}\.){3}\d{1,3}');
+
+    return ipv4Regex.hasMatch(str);
+  }
 
   @override
   Future<DidResolutionResult> resolve(Did did, {http.Client? options}) =>
