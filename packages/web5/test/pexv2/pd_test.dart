@@ -1,6 +1,8 @@
 import 'package:test/test.dart';
 import 'package:web5/src/pexv2/pd.dart';
+
 import '../helpers/test_vector_helpers.dart';
+
 
 class SelectCredentialTestVector {
   String description;
@@ -37,10 +39,14 @@ class SelectCredentialTestVector {
 void main() {
   group('select credentials', () {
     group('vectors', () {
-      final vectorsJson =
-          getJsonVectors('presentation_exchange/select_credentials.json');
-      final vectors = (vectorsJson['vectors'] as List<Map<String, dynamic>>)
-          .map(SelectCredentialTestVector.fromJson);
+      late List<SelectCredentialTestVector> vectors;
+
+      setUpAll(() {
+        final vectorsJson = getJsonVectors('presentation_exchange/select_credentials.json');
+        vectors = (vectorsJson['vectors'] as List<Map<String, dynamic>>)
+            .map(SelectCredentialTestVector.fromJson)
+            .toList();
+      });
 
       for (final vector in vectors) {
         test(vector.description, () async {
