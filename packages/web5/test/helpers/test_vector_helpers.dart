@@ -9,11 +9,9 @@ Map<String, dynamic> getJsonVectors(String vectorSubPath) {
   final file = File(vectorPath);
 
   try {
-    // Read the file as a string
     final contents = file.readAsStringSync();
     return json.decode(contents);
   } catch (e) {
-    // If encountering an error, print it
     throw Exception('Failed to load verify test vectors: $e');
   }
 }

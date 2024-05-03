@@ -72,13 +72,11 @@ void main() {
         final file = File(vectorPath);
         late List<TestVector> vectors;
         try {
-          // Read the file as a string
           final contents = file.readAsStringSync();
           final jsonVectors = json.decode(contents);
 
           vectors = TestVectors.fromJson(jsonVectors).vectors;
         } catch (e) {
-          // If encountering an error, print it
           throw Exception('Failed to load verify test vectors: $e');
         }
 
