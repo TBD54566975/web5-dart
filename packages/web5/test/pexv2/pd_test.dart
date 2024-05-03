@@ -3,35 +3,32 @@ import 'package:web5/src/pexv2/pd.dart';
 
 import '../helpers/test_vector_helpers.dart';
 
-
 class SelectCredentialTestVector {
   String description;
-
-  // Input
   PresentationDefinition inputPresentationDefinition;
   List<String> inputVcJwts;
-
-  // output
   List<String> outputSelectedCredentials;
-  bool errors;
+  bool? errors;
 
   SelectCredentialTestVector({
     required this.description,
     required this.inputPresentationDefinition,
     required this.inputVcJwts,
     required this.outputSelectedCredentials,
-    this.errors = false,
   });
 
   factory SelectCredentialTestVector.fromJson(Map<String, dynamic> json) {
+    final input =  Map<String, dynamic>.from(json['input']);
+    final output =  Map<String, dynamic>.from(json['output']);
+
     return SelectCredentialTestVector(
       description: json['description'],
       inputPresentationDefinition: PresentationDefinition.fromJson(
-        json['input']['presentationDefinition'],
+        Map<String, dynamic>.from(input['presentationDefinition']),
       ),
-      inputVcJwts: json['input']['credentialJwts'],
-      outputSelectedCredentials: json['output']['selectedCredentials'],
-      errors: json['errors'],
+      inputVcJwts: List<String>.from(input['credentialJwts']),
+      outputSelectedCredentials:
+          List<String>.from(output['selectedCredentials']),
     );
   }
 }
@@ -39,14 +36,14 @@ class SelectCredentialTestVector {
 void main() {
   group('select credentials', () {
     group('vectors', () {
-      late List<SelectCredentialTestVector> vectors;
-
-      setUpAll(() {
-        final vectorsJson = getJsonVectors('presentation_exchange/select_credentials.json');
-        vectors = (vectorsJson['vectors'] as List<Map<String, dynamic>>)
-            .map(SelectCredentialTestVector.fromJson)
-            .toList();
-      });
+      final vectorsJson =
+          getJsonVectors('presentation_exchange/select_credentials.json');
+      final vectorsJson2 =
+          getJsonVectors('presentation_exchange/select_credentials_go.json');
+ 
+      final vectors = [...vectorsJson['vectors'], ...vectorsJson2['vectors']]
+          .map((e) => SelectCredentialTestVector.fromJson(e))
+          .toList();
 
       for (final vector in vectors) {
         test(vector.description, () async {
