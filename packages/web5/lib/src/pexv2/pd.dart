@@ -1,3 +1,10 @@
+import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
+import 'package:convert/convert.dart';
+import 'package:json_path/json_path.dart';
+import 'package:json_schema/json_schema.dart';
+
 /// PresentationDefinition represents a DIF Presentation Definition defined [here].
 /// Presentation Definitions are objects that articulate what proofs a Verifier requires.
 ///
@@ -32,6 +39,27 @@ class PresentationDefinition {
         'input_descriptors':
             List<dynamic>.from(inputDescriptors.map((x) => x.toJson())),
       };
+
+  List<String> selectCredentials(List<String> vcJwts) {
+    final Set<String> matches = {};
+
+    for (final inputDescriptor in inputDescriptors) {
+      final matchingVcJwts = inputDescriptor.selectCredentials(vcJwts);
+      if (matchingVcJwts.isEmpty) {
+        return [];
+      }
+      matches.addAll(matchingVcJwts);
+    }
+
+    return matches.toList();
+  }
+}
+
+class _TokenizedField {
+  List<String> paths;
+  String token;
+
+  _TokenizedField({required this.paths, required this.token});
 }
 
 /// InputDescriptor represents a DIF Input Descriptor defined [here].
@@ -65,6 +93,73 @@ class InputDescriptor {
         'purpose': purpose,
         'constraints': constraints.toJson(),
       };
+
+  String _generateRandomToken() {
+    final rand = Random.secure();
+    final bytes = Uint8List(16);
+    for (int i = 0; i < 16; i++) {
+      bytes[i] = rand.nextInt(256);
+    }
+    return hex.encode(bytes);
+  }
+
+  List<String> selectCredentials(List<String> vcJWTs) {
+    final List<String> answer = [];
+    final List<_TokenizedField> tokenizedField = [];
+    final schemaMap = {
+      '\$schema': 'http://json-schema.org/draft-07/schema#',
+      'type': 'object',
+      'properties': {},
+      'required': [],
+    };
+
+    // Populate JSON schema and generate tokens for each field
+    for (var field in constraints.fields ?? []) {
+      final token = _generateRandomToken();
+      tokenizedField
+          .add(_TokenizedField(token: token, paths: field.path ?? []));
+
+      final properties = schemaMap['properties'] as Map<String, dynamic>;
+
+      if (field.filter != null) {
+        properties[token] = field.filter.toJson();
+      } else {
+        final anyType = {
+          'type': ['string', 'number', 'boolean', 'object', 'array'],
+        };
+        properties[token] = anyType;
+      }
+      final required = schemaMap['required'] as List<dynamic>;
+      required.add(token);
+    }
+    final jsonSchema = JsonSchema.create(schemaMap);
+
+    // Tokenize each vcJwt and validate it against the JSON schema
+    for (var vcJWT in vcJWTs) {
+      final decoded = json.decode(vcJWT);
+
+      final selectionCandidate = <String, dynamic>{};
+
+      for (var tokenPath in tokenizedField) {
+        for (var path in tokenPath.paths) {
+          final value = JsonPath(path)
+              .read(decoded)
+              .firstOrNull; // Custom function needed to handle JSON paths.
+          if (value != null) {
+            selectionCandidate[tokenPath.token] = value;
+            break;
+          }
+        }
+      }
+
+      final validationResult = jsonSchema.validate(selectionCandidate);
+      if (validationResult.isValid) {
+        answer.add(vcJWT);
+      }
+    }
+
+    return answer;
+  }
 }
 
 /// Constraints contains the requirements for a given Input Descriptor.
