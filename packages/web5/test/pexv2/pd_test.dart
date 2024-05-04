@@ -18,8 +18,8 @@ class SelectCredentialTestVector {
   });
 
   factory SelectCredentialTestVector.fromJson(Map<String, dynamic> json) {
-    final input =  Map<String, dynamic>.from(json['input']);
-    final output =  Map<String, dynamic>.from(json['output']);
+    final input = Map<String, dynamic>.from(json['input']);
+    final output = Map<String, dynamic>.from(json['output']);
 
     return SelectCredentialTestVector(
       description: json['description'],
@@ -40,7 +40,7 @@ void main() {
           getJsonVectors('presentation_exchange/select_credentials.json');
       final vectorsJson2 =
           getJsonVectors('presentation_exchange/select_credentials_go.json');
- 
+
       final vectors = [...vectorsJson['vectors'], ...vectorsJson2['vectors']]
           .map((e) => SelectCredentialTestVector.fromJson(e))
           .toList();

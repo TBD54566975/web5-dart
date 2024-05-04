@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:json_path/json_path.dart';
 import 'package:json_schema/json_schema.dart';
 
-/// PresentationDefinition represents a DIF Presentation Definition defined [here].
+/// PresentationDefinition represents a DIF Presentation Definition defined
+/// [here](https://identity.foundation/presentation-exchange/#presentation-definition).
 /// Presentation Definitions are objects that articulate what proofs a Verifier requires.
-///
-/// [here]: https://identity.foundation/presentation-exchange/#presentation-definition
 class PresentationDefinition {
   String id;
   String? name;
@@ -37,7 +37,7 @@ class PresentationDefinition {
         'name': name,
         'purpose': purpose,
         'input_descriptors':
-            List<dynamic>.from(inputDescriptors.map((x) => x.toJson())),
+            inputDescriptors.map((ind) => ind.toJson()).toList(),
       };
 
   List<String> selectCredentials(List<String> vcJwts) {
@@ -62,10 +62,9 @@ class _TokenizedField {
   _TokenizedField({required this.paths, required this.token});
 }
 
-/// InputDescriptor represents a DIF Input Descriptor defined [here].
+/// InputDescriptor represents a DIF Input Descriptor defined
+/// [here](https://identity.foundation/presentation-exchange/#input-descriptor).
 /// Input Descriptors are used to describe the information a Verifier requires of a Holder.
-///
-/// [here]: https://identity.foundation/presentation-exchange/#input-descriptor
 class InputDescriptor {
   String id;
   String? name;
@@ -103,9 +102,9 @@ class InputDescriptor {
     return hex.encode(bytes);
   }
 
-  List<String> selectCredentials(List<String> vcJWTs) {
+  List<String> selectCredentials(List<String> vcJwts) {
     final List<String> answer = [];
-    final List<_TokenizedField> tokenizedField = [];
+    final List<_TokenizedField> tokenizedFields = [];
     final schemaMap = {
       '\$schema': 'http://json-schema.org/draft-07/schema#',
       'type': 'object',
@@ -116,18 +115,13 @@ class InputDescriptor {
     // Populate JSON schema and generate tokens for each field
     for (var field in constraints.fields ?? []) {
       final token = _generateRandomToken();
-      tokenizedField
+      tokenizedFields
           .add(_TokenizedField(token: token, paths: field.path ?? []));
 
       final properties = schemaMap['properties'] as Map<String, dynamic>;
 
       if (field.filter != null) {
         properties[token] = field.filter.toJson();
-      } else {
-        final anyType = {
-          'type': ['string', 'number', 'boolean', 'object', 'array'],
-        };
-        properties[token] = anyType;
       }
       final required = schemaMap['required'] as List<dynamic>;
       required.add(token);
@@ -135,18 +129,16 @@ class InputDescriptor {
     final jsonSchema = JsonSchema.create(schemaMap);
 
     // Tokenize each vcJwt and validate it against the JSON schema
-    for (var vcJWT in vcJWTs) {
-      final decoded = json.decode(vcJWT);
+    for (var vcJwt in vcJwts) {
+      final decoded = json.decode(vcJwt);
 
       final selectionCandidate = <String, dynamic>{};
 
-      for (var tokenPath in tokenizedField) {
-        for (var path in tokenPath.paths) {
-          final value = JsonPath(path)
-              .read(decoded)
-              .firstOrNull; // Custom function needed to handle JSON paths.
+      for (final tokenizedField in tokenizedFields) {
+        for (var path in tokenizedField.paths) {
+          final value = JsonPath(path).read(decoded).firstOrNull;
           if (value != null) {
-            selectionCandidate[tokenPath.token] = value;
+            selectionCandidate[tokenizedField.token] = value;
             break;
           }
         }
@@ -154,7 +146,7 @@ class InputDescriptor {
 
       final validationResult = jsonSchema.validate(selectionCandidate);
       if (validationResult.isValid) {
-        answer.add(vcJWT);
+        answer.add(vcJwt);
       }
     }
 
@@ -208,9 +200,8 @@ class Field {
         purpose: json['purpose'],
         filter: json['filter'] == null ? null : Filter.fromJson(json['filter']),
         optional: json['optional'],
-        predicate: json['predicate'] == null
-            ? null
-            : optionalityValues.map[json['predicate']],
+        predicate: Optionality.values
+            .firstWhereOrNull((val) => val.toString() == json['predicate']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -220,17 +211,11 @@ class Field {
         'purpose': purpose,
         'filter': filter?.toJson(),
         'optional': optional,
-        'predicate':
-            predicate == null ? null : optionalityValues.reverse[predicate],
+        'predicate': predicate?.toString(),
       };
 }
 
 enum Optionality { required, preferred }
-
-final optionalityValues = EnumValues({
-  'preferred': Optionality.preferred,
-  'required': Optionality.required,
-});
 
 /// Filter is a JSON Schema that is applied against the value of a field.
 class Filter {
@@ -260,15 +245,4 @@ class Filter {
         'const': constValue,
         'contains': contains?.toJson(),
       };
-}
-
-/// Helper class for handling enums in JSON.
-// TODO might not need this
-class EnumValues<T> {
-  Map<String, T> map;
-  Map<T, String> reverseMap;
-
-  EnumValues(this.map) : reverseMap = map.map((k, v) => MapEntry(v, k));
-
-  Map<T, String> get reverse => reverseMap;
 }
