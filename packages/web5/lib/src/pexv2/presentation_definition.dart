@@ -6,6 +6,29 @@ import 'package:convert/convert.dart';
 import 'package:json_path/json_path.dart';
 import 'package:json_schema/json_schema.dart';
 
+class _JsonSchema {
+  String schema = 'http://json-schema.org/draft-07/schema#';
+  String type = 'object';
+  Map<String, dynamic> properties = {};
+  List<String> required = [];
+
+  _JsonSchema();
+
+  void addProperty(String name, Map<String, dynamic> property) {
+    properties[name] = property;
+    required.add(name);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '/$schema': schema,
+      'type': type,
+      'properties': properties,
+      'required': required,
+    };
+  }
+}
+
 /// PresentationDefinition represents a DIF Presentation Definition defined
 /// [here](https://identity.foundation/presentation-exchange/#presentation-definition).
 /// Presentation Definitions are objects that articulate what proofs a Verifier requires.
@@ -105,12 +128,7 @@ class InputDescriptor {
   List<String> selectCredentials(List<String> vcJwts) {
     final List<String> answer = [];
     final List<_TokenizedField> tokenizedFields = [];
-    final schemaMap = {
-      '\$schema': 'http://json-schema.org/draft-07/schema#',
-      'type': 'object',
-      'properties': {},
-      'required': [],
-    };
+    final schema = _JsonSchema();
 
     // Populate JSON schema and generate tokens for each field
     for (var field in constraints.fields ?? []) {
@@ -118,15 +136,13 @@ class InputDescriptor {
       tokenizedFields
           .add(_TokenizedField(token: token, paths: field.path ?? []));
 
-      final properties = schemaMap['properties'] as Map<String, dynamic>;
-
       if (field.filter != null) {
-        properties[token] = field.filter.toJson();
+        schema.addProperty(token, field.filter.toJson());
+      } else {
+        schema.addProperty(token, {});
       }
-      final required = schemaMap['required'] as List<dynamic>;
-      required.add(token);
     }
-    final jsonSchema = JsonSchema.create(schemaMap);
+    final jsonSchema = JsonSchema.create(schema.toJson());
 
     // Tokenize each vcJwt and validate it against the JSON schema
     for (var vcJwt in vcJwts) {
