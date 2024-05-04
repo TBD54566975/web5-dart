@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:web5/src/pexv2/pd.dart';
+import 'package:web5/src/pexv2/presentation_definition.dart';
 
 import '../helpers/test_vector_helpers.dart';
 
