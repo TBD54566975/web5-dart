@@ -78,11 +78,11 @@ class PresentationDefinition {
   }
 }
 
-class _TokenizedField {
+class _TokenizedPath {
   String path;
   String token;
 
-  _TokenizedField({required this.path, required this.token});
+  _TokenizedPath({required this.path, required this.token});
 }
 
 /// InputDescriptor represents a DIF Input Descriptor defined
@@ -127,14 +127,14 @@ class InputDescriptor {
 
   List<String> selectCredentials(List<String> vcJwts) {
     final List<String> answer = [];
-    final List<_TokenizedField> tokenizedFields = [];
+    final List<_TokenizedPath> tokenizedPaths = [];
     final schema = _JsonSchema();
 
     // Populate JSON schema and generate tokens for each field
     for (Field field in constraints.fields ?? []) {
       final token = _generateRandomToken();
       for (String path in field.path ?? []) {
-        tokenizedFields.add(_TokenizedField(token: token, path: path));
+        tokenizedPaths.add(_TokenizedPath(token: token, path: path));
       }
 
       if (field.filter != null) {
@@ -151,13 +151,13 @@ class InputDescriptor {
 
       final selectionCandidate = <String, dynamic>{};
 
-      for (final tokenizedField in tokenizedFields) {
-        selectionCandidate[tokenizedField.token] ??=
-            JsonPath(tokenizedField.path).read(decoded).firstOrNull;
+      for (final tokenizedPath in tokenizedPaths) {
+        selectionCandidate[tokenizedPath.token] ??=
+            JsonPath(tokenizedPath.path).read(decoded).firstOrNull;
       }
       selectionCandidate.removeWhere((_, value) => value == null);
 
-      if (selectionCandidate.keys.length < tokenizedFields.length) {
+      if (selectionCandidate.keys.length < tokenizedPaths.length) {
         // Did not find values for all `field`s in the input desciptor
         continue;
       }
