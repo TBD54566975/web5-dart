@@ -79,10 +79,10 @@ class PresentationDefinition {
 }
 
 class _TokenizedField {
-  List<String> paths;
+  String path;
   String token;
 
-  _TokenizedField({required this.paths, required this.token});
+  _TokenizedField({required this.path, required this.token});
 }
 
 /// InputDescriptor represents a DIF Input Descriptor defined
@@ -131,13 +131,14 @@ class InputDescriptor {
     final schema = _JsonSchema();
 
     // Populate JSON schema and generate tokens for each field
-    for (var field in constraints.fields ?? []) {
+    for (Field field in constraints.fields ?? []) {
       final token = _generateRandomToken();
-      tokenizedFields
-          .add(_TokenizedField(token: token, paths: field.path ?? []));
+      for (String path in field.path ?? []) {
+        tokenizedFields.add(_TokenizedField(token: token, path: path));
+      }
 
       if (field.filter != null) {
-        schema.addProperty(token, field.filter.toJson());
+        schema.addProperty(token, field.filter!.toJson());
       } else {
         schema.addProperty(token, {});
       }
@@ -151,13 +152,14 @@ class InputDescriptor {
       final selectionCandidate = <String, dynamic>{};
 
       for (final tokenizedField in tokenizedFields) {
-        for (var path in tokenizedField.paths) {
-          final value = JsonPath(path).read(decoded).firstOrNull;
-          if (value != null) {
-            selectionCandidate[tokenizedField.token] = value;
-            break;
-          }
-        }
+        selectionCandidate[tokenizedField.token] ??=
+            JsonPath(tokenizedField.path).read(decoded).firstOrNull;
+      }
+      selectionCandidate.removeWhere((_, value) => value == null);
+
+      if (selectionCandidate.keys.length < tokenizedFields.length) {
+        // Did not find values for all `field`s in the input desciptor
+        continue;
       }
 
       final validationResult = jsonSchema.validate(selectionCandidate);
