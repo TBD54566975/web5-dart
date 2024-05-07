@@ -21,6 +21,7 @@ class DidDht {
     List<DidService> services = const [],
     List<DidDhtRegisteredDidType>? types,
     List<DidCreateVerificationMethod> verificationMethods = const [],
+    http.Client? client,
   }) async {
     keyManager ??= InMemoryKeyManager();
 
@@ -85,8 +86,9 @@ class DidDht {
       final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
 
       final gatewayUrl = Uri.parse('$gatewayUri/$id');
-      // TODO: add optional client
-      final response = await http.Client().put(
+      final httpClient = client ??= http.Client();
+
+      final response = await httpClient.put(
         gatewayUrl,
         headers: {
           'Content-Type': 'application/octet-stream',
