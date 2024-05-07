@@ -111,7 +111,8 @@ class VerifiableCredential {
     final credentialSubject = json['credentialSubject'] as Map<String, dynamic>;
     final subject = credentialSubject.remove('id');
     final credentialSchema = (json['credentialSchema'] as List<dynamic>)
-        .map((e) => CredentialSchema(id: e['id'], type: e['type'])).toList();
+        .map((e) => CredentialSchema(id: e['id'], type: e['type']))
+        .toList();
     final context = (json['@context'] as List<dynamic>).cast<String>();
     final type = (json['type'] as List<dynamic>).cast<String>();
 
@@ -141,9 +142,11 @@ class VerifiableCredential {
       'issuanceDate': issuanceDate,
       if (expirationDate != null) 'expirationDate': expirationDate,
       if (credentialSchema != null)
-        'credentialSchema': credentialSchema!.map(
-          (e) => e.toJson(),
-        ).toList(),
+        'credentialSchema': credentialSchema!
+            .map(
+              (e) => e.toJson(),
+            )
+            .toList(),
     };
   }
 }

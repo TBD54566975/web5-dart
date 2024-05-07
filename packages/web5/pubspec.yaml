@@ -13,6 +13,8 @@ dependencies:
   pointycastle: ^3.7.3
   http: ^1.2.0
   uuid: ^4.4.0
+  json_path: ^0.7.1
+  json_schema: ^5.1.7
 
 dev_dependencies:
   lints: ^3.0.0

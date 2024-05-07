@@ -72,13 +72,11 @@ void main() {
         final file = File(vectorPath);
         late List<TestVector> vectors;
         try {
-          // Read the file as a string
           final contents = file.readAsStringSync();
           final jsonVectors = json.decode(contents);
 
           vectors = TestVectors.fromJson(jsonVectors).vectors;
         } catch (e) {
-          // If encountering an error, print it
           throw Exception('Failed to load verify test vectors: $e');
         }
 
@@ -88,14 +86,20 @@ void main() {
                 Uint8List.fromList(hex.decode(vector.input.signature));
             final payload = Uint8List.fromList(hex.decode(vector.input.data));
 
+            // Since some other web5 implementations of this Secp256k1.verify()
+            // return `false` rather than throwing, we should interpret the
+            // test vectors as expecting failure when either `errors` is true
+            // or `output` is false.
+            final shouldThrow = vector.errors || vector.output == false;
+
             try {
               await Secp256k1.verify(vector.input.key, payload, signature);
 
-              if (vector.errors == true) {
+              if (shouldThrow) {
                 fail('Expected an error but none was thrown');
               }
             } catch (e) {
-              if (vector.errors == false) {
+              if (!shouldThrow) {
                 fail('Expected no error but got: $e');
               }
             }
