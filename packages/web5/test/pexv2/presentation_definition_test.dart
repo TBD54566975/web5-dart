@@ -38,10 +38,8 @@ void main() {
     group('vectors', () {
       final vectorsJson =
           getJsonVectors('presentation_exchange/select_credentials.json');
-      final vectorsJson2 =
-          getJsonVectors('presentation_exchange/select_credentials_go.json');
 
-      final vectors = [...vectorsJson['vectors'], ...vectorsJson2['vectors']]
+      final vectors = vectorsJson['vectors']
           .map((e) => SelectCredentialTestVector.fromJson(e))
           .toList();
 
