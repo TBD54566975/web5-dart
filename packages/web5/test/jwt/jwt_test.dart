@@ -14,9 +14,17 @@ void main() {
       expect(parsedJwt.claims.iss, equals(did.uri));
     });
 
-    test('should verify signed JWT', () async {
+    test('should verify JWT signed by did:jwk', () async {
       final did = await DidJwk.create();
 
+      final signedJwt =
+          await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
+
+      await Jwt.verify(signedJwt);
+    });
+
+    test('should verify signed JWT signed by did:dht', () async {
+      final did = await DidDht.create(publish: true);
       final signedJwt =
           await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
 
