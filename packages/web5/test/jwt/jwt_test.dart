@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:web5/web5.dart';
 import 'package:test/test.dart';
 
@@ -25,7 +27,6 @@ void main() {
 
     test('should verify signed JWT signed by did:dht', () async {
       final did = await DidDht.create(publish: true);
-
       final signedJwt =
           await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
 

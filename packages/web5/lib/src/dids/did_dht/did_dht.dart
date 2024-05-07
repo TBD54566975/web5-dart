@@ -32,7 +32,7 @@ class DidDht {
     final did = 'did:$methodName:$id';
 
     final identityVm = DidVerificationMethod(
-      id: '0',
+      id: '$did#0',
       type: 'JsonWebKey',
       controller: did,
       publicKeyJwk: identityKey,
