@@ -29,9 +29,7 @@ void main() {
       final signedJwt =
           await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
 
-      final parsedJwt = Jwt.decode(signedJwt);
-      expect(parsedJwt.header.kid, contains('${did.uri}#'));
-      expect(parsedJwt.claims.iss, equals(did.uri));
+      await Jwt.verify(signedJwt);
     });
   });
 }
