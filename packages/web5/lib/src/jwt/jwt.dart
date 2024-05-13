@@ -36,8 +36,9 @@ class Jwt {
   static Future<String> sign({
     required BearerDid did,
     required JwtClaims payload,
+    String? type = 'JWT',
   }) async {
-    final header = JwtHeader(typ: 'JWT');
+    final header = JwtHeader(typ: type);
     final payloadBytes = json.toBytes(payload.toJson());
 
     return Jws.sign(did: did, payload: payloadBytes, header: header);
