@@ -6,12 +6,27 @@ void main() {
     test('should decode signed JWT', () async {
       final did = await DidJwk.create();
 
-      final signedJwt =
-          await Jwt.sign(did: did, payload: JwtClaims(iss: did.uri));
+      final signedJwt = await Jwt.sign(
+        did: did,
+        payload: JwtClaims(iss: did.uri),
+      );
 
       final parsedJwt = Jwt.decode(signedJwt);
       expect(parsedJwt.header.kid, contains('${did.uri}#'));
       expect(parsedJwt.claims.iss, equals(did.uri));
+    });
+
+    test('should allow for custom typ', () async {
+      final did = await DidJwk.create();
+
+      final signedJwt = await Jwt.sign(
+        did: did,
+        payload: JwtClaims(iss: did.uri),
+        type: 'custom',
+      );
+
+      final parsedJwt = Jwt.decode(signedJwt);
+      expect(parsedJwt.header.typ, equals('custom'));
     });
 
     test('should verify JWT signed by did:jwk', () async {
