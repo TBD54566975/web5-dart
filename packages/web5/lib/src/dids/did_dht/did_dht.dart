@@ -82,7 +82,7 @@ class DidDht {
         return await keyManager!.sign(keyAlias, data);
       }
 
-      final seq = DateTime.now().microsecondsSinceEpoch;
+      final seq = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final message = await Bep44Message.create(dnsPacket.encode(), seq, sign);
 
       final gatewayUrl = Uri.parse('$gatewayUri/$id');
