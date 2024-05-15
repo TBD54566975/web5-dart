@@ -36,34 +36,46 @@ class SelectCredentialTestVector {
 void main() {
   group('select credentials', () {
     group('vectors', () {
-      final vectorsJson =
-          getJsonVectors('presentation_exchange/select_credentials.json');
+      late List<SelectCredentialTestVector> vectors;
+      setUp(() {
+        final vectorsJson =
+            getJsonVectors('presentation_exchange/select_credentials.json');
+        final vectorsDynamic = vectorsJson['vectors'] as List<dynamic>;
 
-      final vectors = vectorsJson['vectors']
-          .map((e) => SelectCredentialTestVector.fromJson(e))
-          .toList();
+        vectors = vectorsDynamic
+            .map((e) => SelectCredentialTestVector.fromJson(e))
+            .toList();
+      });
 
-      for (final vector in vectors) {
-        test(vector.description, () async {
+      test('web5 test vectors', () async {
+        for (final vector in vectors) {
+          late List<String> matchingVcJwts;
+
           try {
-            final matchingVcJwts = vector.inputPresentationDefinition
+            matchingVcJwts = vector.inputPresentationDefinition
                 .selectCredentials(vector.inputVcJwts);
-
-            if (vector.errors == true) {
-              fail('Expected an error but none was thrown');
-            }
-
-            expect(
-              Set.from(matchingVcJwts),
-              Set.from(vector.outputSelectedCredentials),
-            );
           } catch (e) {
-            if (vector.errors == false) {
-              fail('Expected no error but got: $e');
+            if (vector.errors != true) {
+              fail(
+                'Expected no error for vector (${vector.description}) but got: $e',
+              );
             }
+            return;
           }
-        });
-      }
+
+          if (vector.errors == true) {
+            fail(
+              'Expected an error for vector (${vector.description}) but none was thrown ',
+            );
+          }
+
+          expect(
+            Set.from(matchingVcJwts),
+            Set.from(vector.outputSelectedCredentials),
+            reason: 'Test vector (${vector.description}) has mismatched output',
+          );
+        }
+      });
     });
   });
 }
