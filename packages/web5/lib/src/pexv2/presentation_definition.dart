@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:json_path/json_path.dart';
 import 'package:json_schema/json_schema.dart';
+import 'package:web5/web5.dart';
 
 class _JsonSchema {
   String schema = 'http://json-schema.org/draft-07/schema#';
@@ -21,7 +22,7 @@ class _JsonSchema {
 
   Map<String, dynamic> toJson() {
     return {
-      '/$schema': schema,
+      '\$schema': schema,
       'type': type,
       'properties': properties,
       'required': required,
@@ -147,20 +148,18 @@ class InputDescriptor {
 
     // Tokenize each vcJwt and validate it against the JSON schema
     for (var vcJwt in vcJwts) {
-      final decoded = json.decode(vcJwt);
+      final decodedVcJwt = DecodedVcJwt.decode(vcJwt);
+      final payloadJsonString =
+          utf8.decode(Base64Url.decode(decodedVcJwt.jwt.parts[1]));
+      final payloadJson = json.decode(payloadJsonString);
 
       final selectionCandidate = <String, dynamic>{};
 
       for (final tokenizedPath in tokenizedPaths) {
         selectionCandidate[tokenizedPath.token] ??=
-            JsonPath(tokenizedPath.path).read(decoded).firstOrNull;
+            JsonPath(tokenizedPath.path).read(payloadJson).firstOrNull?.value;
       }
       selectionCandidate.removeWhere((_, value) => value == null);
-
-      if (selectionCandidate.keys.length < tokenizedPaths.length) {
-        // Did not find values for all `field`s in the input desciptor
-        continue;
-      }
 
       final validationResult = jsonSchema.validate(selectionCandidate);
       if (validationResult.isValid) {
@@ -258,9 +257,9 @@ class Filter {
       );
 
   Map<String, dynamic> toJson() => {
-        'type': type,
-        'pattern': pattern,
-        'const': constValue,
-        'contains': contains?.toJson(),
+        if (type != null) 'type': type,
+        if (pattern != null) 'pattern': pattern,
+        if (constValue != null) 'const': constValue,
+        if (contains != null) 'contains': contains?.toJson(),
       };
 }

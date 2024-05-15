@@ -110,9 +110,12 @@ class VerifiableCredential {
   factory VerifiableCredential.fromJson(Map<String, dynamic> json) {
     final credentialSubject = json['credentialSubject'] as Map<String, dynamic>;
     final subject = credentialSubject.remove('id');
-    final credentialSchema = (json['credentialSchema'] as List<dynamic>)
-        .map((e) => CredentialSchema(id: e['id'], type: e['type']))
-        .toList();
+    var credentialSchema = null as List<CredentialSchema>?;
+    if (json['credentialSchema'] != null) {
+      credentialSchema = (json['credentialSchema'] as List<dynamic>)
+          .map((e) => CredentialSchema(id: e['id'], type: e['type']))
+          .toList();
+    }
     final context = (json['@context'] as List<dynamic>).cast<String>();
     final type = (json['type'] as List<dynamic>).cast<String>();
 
