@@ -1,29 +1,23 @@
+_help:
+  @just -l
+
 get:
   #!/bin/bash
-  echo "Getting dependencies for packages"
-  for dir in packages/*; do \
-    if [ -d $dir ]; then \
-      echo "Getting dependencies in $dir"; \
-      (cd $dir && flutter pub get || dart pub get); \
-    fi \
-  done
+  set -euo pipefail
 
-test: test-vectors
+  echo "Getting dependencies for packages"
+  dart pub get
+
+test:
   #!/bin/bash
-  for dir in packages/*; do \
-    if [ -d $dir ]; then \
-      echo "Running tests in $dir"; \
-      (cd $dir && flutter test || dart test); \
-    fi \
-  done
+  set -euo pipefail
+
+  git submodule init
+  git submodule update
+  dart test
 
 analyze:
   #!/bin/bash
-  for dir in packages/*; do \
-    if [ -d $dir ]; then \
-      (cd $dir && flutter analyze || dart analyze); \
-    fi \
-  done 
+  set -euo pipefail
 
-test-vectors:
-  @git submodule update --init --recursive
+  dart analyze
