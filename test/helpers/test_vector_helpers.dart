@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 final thisDir = Directory.current.path;
-final vectorDir = '$thisDir/../../web5-spec/test-vectors/';
+final vectorDir = '$thisDir/web5-spec/test-vectors/';
 
 Map<String, dynamic> getJsonVectors(String vectorSubPath) {
   final vectorPath = '$vectorDir$vectorSubPath';

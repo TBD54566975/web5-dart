@@ -7,7 +7,7 @@ import 'package:web5/src/crypto.dart';
 import 'package:test/test.dart';
 
 final thisDir = Directory.current.path;
-final vectorDir = '$thisDir/../../web5-spec/test-vectors/crypto_es256k';
+final vectorDir = '$thisDir/web5-spec/test-vectors/crypto_es256k';
 
 class Input {
   String data;
