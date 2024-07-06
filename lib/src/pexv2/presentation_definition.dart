@@ -146,6 +146,8 @@ class InputDescriptor {
     }
     final jsonSchema = JsonSchema.create(schema.toJson());
 
+    print(JsonEncoder.withIndent('  ').convert(jsonSchema.schemaMap));
+
     // Tokenize each vcJwt and validate it against the JSON schema
     for (var vcJwt in vcJwts) {
       final decodedVcJwt = DecodedVcJwt.decode(vcJwt);
@@ -156,10 +158,23 @@ class InputDescriptor {
       final selectionCandidate = <String, dynamic>{};
 
       for (final tokenizedPath in tokenizedPaths) {
+        // print(tokenizedPath.path);
+        // print(JsonPath(tokenizedPath.path).read(payloadJson).first.path);
+
+        final thang = JsonPath(tokenizedPath.path).readValues(payloadJson);
+        print(thang);
+
         selectionCandidate[tokenizedPath.token] ??=
             JsonPath(tokenizedPath.path).read(payloadJson).firstOrNull?.value;
+
+        // print(
+        //   JsonEncoder.withIndent('  ')
+        //       .convert(selectionCandidate[tokenizedPath.token]),
+        // );
       }
       selectionCandidate.removeWhere((_, value) => value == null);
+
+      print(JsonEncoder.withIndent('  ').convert(selectionCandidate));
 
       final validationResult = jsonSchema.validate(selectionCandidate);
       if (validationResult.isValid) {

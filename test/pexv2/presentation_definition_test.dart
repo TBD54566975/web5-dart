@@ -1,3 +1,4 @@
+import 'package:json_path/json_path.dart';
 import 'package:test/test.dart';
 import 'package:web5/src/pexv2/presentation_definition.dart';
 
@@ -95,7 +96,7 @@ void main() {
                       'type': 'array',
                       'contains': {
                         'type': 'string',
-                        'const': 'http://localhost:5173/schema/kcc.json',
+                        'const': 'http://192.168.1.77:5173/schema/kcc.json',
                       },
                     },
                   },
@@ -113,6 +114,34 @@ void main() {
         });
 
         expect(pd.selectCredentials(vcs), isNotEmpty);
+      });
+
+      test('shite jsonpath', () {
+        final brobject = {
+          'a': [
+            {'id': 'a_weehee'},
+            {'id': 'a_weehee2'},
+          ],
+          'b': [
+            {'id': 'b_weehee'},
+            {'id': 'b_weehee2'},
+          ],
+          'c': 'c_weehee',
+          'd': {
+            'id': 'd_weehee',
+          },
+        };
+
+        final path = r'$.d[*].id';
+        final idk = JsonPath(r'$.a[*].id').readValues(brobject);
+        dynamic value;
+        if (path.contains('[*]')) {
+          value = idk.toList();
+        } else {
+          value = idk;
+        }
+
+        print(value);
       });
     });
   });
