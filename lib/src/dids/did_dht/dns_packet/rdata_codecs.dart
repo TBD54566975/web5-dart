@@ -8,6 +8,7 @@ import 'package:web5/src/dids/did_dht/dns_packet/txt_data.dart';
 class RDataCodecs {
   static final Map<RecordType, Codec> _codecs = {
     RecordType.TXT: TxtData.codec,
+    RecordType.NS: TxtData.codec,
   };
 
   static EncodeResult encode(
