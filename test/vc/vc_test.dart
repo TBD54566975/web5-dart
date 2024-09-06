@@ -1,5 +1,4 @@
 import 'package:test/test.dart';
-import 'package:web5/src/vc/vc.dart';
 import 'package:web5/web5.dart';
 
 void main() {

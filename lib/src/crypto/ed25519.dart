@@ -35,8 +35,14 @@ class Ed25519 {
     return publicKeyJwk;
   }
 
-  static Future<Jwk> generatePrivateKey() async {
-    final keyPair = await ed25519.newKeyPair();
+  static Future<Jwk> generatePrivateKey({Uint8List? seed}) async {
+    crypto.SimpleKeyPair keyPair;
+
+    if (seed == null) {
+      keyPair = await ed25519.newKeyPair();
+    } else {
+      keyPair = await ed25519.newKeyPairFromSeed(seed);
+    }
 
     final privateKeyBytes = await keyPair.extractPrivateKeyBytes();
     final publicKey = await keyPair.extractPublicKey();
