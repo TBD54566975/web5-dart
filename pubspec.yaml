@@ -1,6 +1,6 @@
 name: web5
 description: Dart library for Web5.
-version: 0.3.0
+version: 0.4.0
 repository: https://github.com/TBD54566975/web5-dart
 
 environment:
