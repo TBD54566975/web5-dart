@@ -28,11 +28,12 @@ class Bep44Message {
     final sig = await sign(toSign.toBytes());
 
     // The sequence number needs to be converted to a big-endian byte array.
-    final seqBytes = ByteData(8)..setInt64(0, seq, Endian.big);
+    final bigSeq = BigInt.from(seq);
+    final seqBytes = _bigIntToBytes(bigSeq);
     final encoded = BytesBuilder(copy: false);
 
     encoded.add(sig);
-    encoded.add(seqBytes.buffer.asUint8List());
+    encoded.add(seqBytes);
     encoded.add(message);
 
     return encoded.toBytes();
@@ -52,11 +53,11 @@ class Bep44Message {
     }
 
     final sig = bytes.sublist(0, 64);
-    final seqBytes = ByteData.sublistView(bytes, 64, 72);
-    final int seq = seqBytes.getUint64(0, Endian.big);
+    final seqBytes = bytes.sublist(64, 72);
+    final bigSeq = _bytesToBigInt(seqBytes);
+    final seq = bigSeq.toInt();
     final v = bytes.sublist(72);
 
-    // The public key 'k' is not provided in the data and needs to be handled accordingly.
     return DecodedBep44Message(seq: seq, sig: sig, v: v);
   }
 
@@ -65,6 +66,24 @@ class Bep44Message {
     message.verify(publicKey);
 
     return message;
+  }
+
+  static Uint8List _bigIntToBytes(BigInt bigInt) {
+    final byteArray = bigInt.toRadixString(16).padLeft(16, '0');
+    return Uint8List.fromList(
+      List<int>.generate(8, (i) {
+        final byteString = byteArray.substring(i * 2, i * 2 + 2);
+        return int.parse(byteString, radix: 16);
+      }),
+    );
+  }
+
+  static BigInt _bytesToBigInt(Uint8List bytes) {
+    var hexString = '';
+    for (final byte in bytes) {
+      hexString += byte.toRadixString(16).padLeft(2, '0');
+    }
+    return BigInt.parse(hexString, radix: 16);
   }
 }
 
